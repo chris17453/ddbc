@@ -1,0 +1,34 @@
+
+SELECT simple_expr 
+[FROM identifier] 
+[
+    [JOIN identifier ON expression] 
+    [LEFT JOIN identifier ON expression] 
+    [FULL JOIN identifier ON expression] 
+    [OUTER JOIN identifier ON expression] 
+    [INNER JOIN identifier ON expression] 
+...
+]
+[WHERE expression]
+[GROUP BY {column | expr | position, ...}] 
+[HAVING exprission]
+[ORDER BY {column | expression | position} [ASC|DESC], ...]
+[LIMIT {[offset],row_count}] 
+
+
+INSERT INTO identifier (column_list])  VALUES (value_list)
+
+UPDATE identifier SET identifyer=expression [WHERE expression]
+
+
+DELETE FROM identifier [WHERE expression]
+
+
+
+column_list:
+    column
+    [, column ...]
+
+value_list:
+    expression
+    [, expression ...]    

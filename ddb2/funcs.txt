@@ -1,0 +1,1766 @@
+• ASCII(str)
+Returns the numeric value of the leftmost character of the string str. Returns 0 if str is the empty
+string. Returns NULL if str is NULL. ASCII() works for 8-bit characters.
+mysql> SELECT ASCII('2');
+ -> 50
+mysql> SELECT ASCII(2);
+ -> 50
+mysql> SELECT ASCII('dx');
+ -> 100
+See also the ORD() function.
+• BIN(N)
+Returns a string representation of the binary value of N, where N is a longlong (BIGINT) number. This is
+equivalent to CONV(N,10,2). Returns NULL if N is NULL.
+mysql> SELECT BIN(12);
+String Functions and Operators
+1955
+ -> '1100'
+• BIT_LENGTH(str)
+Returns the length of the string str in bits.
+mysql> SELECT BIT_LENGTH('text');
+ -> 32
+• CHAR(N,... [USING charset_name])
+CHAR() interprets each argument N as an integer and returns a string consisting of the characters given
+by the code values of those integers. NULL values are skipped.
+mysql> SELECT CHAR(77,121,83,81,'76');
+ -> 'MySQL'
+mysql> SELECT CHAR(77,77.3,'77.3');
+ -> 'MMM'
+CHAR() arguments larger than 255 are converted into multiple result bytes. For example, CHAR(256) is
+equivalent to CHAR(1,0), and CHAR(256*256) is equivalent to CHAR(1,0,0):
+mysql> SELECT HEX(CHAR(1,0)), HEX(CHAR(256));
++----------------+----------------+
+| HEX(CHAR(1,0)) | HEX(CHAR(256)) |
++----------------+----------------+
+| 0100 | 0100 |
++----------------+----------------+
+mysql> SELECT HEX(CHAR(1,0,0)), HEX(CHAR(256*256));
++------------------+--------------------+
+| HEX(CHAR(1,0,0)) | HEX(CHAR(256*256)) |
++------------------+--------------------+
+| 010000 | 010000 |
++------------------+--------------------+
+By default, CHAR() returns a binary string. To produce a string in a given character set, use the optional
+USING clause:
+mysql> SELECT CHARSET(CHAR(X'65')), CHARSET(CHAR(X'65' USING utf8));
++----------------------+---------------------------------+
+| CHARSET(CHAR(X'65')) | CHARSET(CHAR(X'65' USING utf8)) |
++----------------------+---------------------------------+
+| binary | utf8 |
++----------------------+---------------------------------+
+If USING is given and the result string is illegal for the given character set, a warning is issued. Also, if
+strict SQL mode is enabled, the result from CHAR() becomes NULL.
+• CHAR_LENGTH(str)
+Returns the length of the string str, measured in characters. A multibyte character counts as a single
+character. This means that for a string containing five 2-byte characters, LENGTH() returns 10, whereas
+CHAR_LENGTH() returns 5.
+• CHARACTER_LENGTH(str)
+CHARACTER_LENGTH() is a synonym for CHAR_LENGTH().
+• CONCAT(str1,str2,...)
+String Functions and Operators
+1956
+Returns the string that results from concatenating the arguments. May have one or more arguments. If
+all arguments are nonbinary strings, the result is a nonbinary string. If the arguments include any binary
+strings, the result is a binary string. A numeric argument is converted to its equivalent nonbinary string
+form.
+CONCAT() returns NULL if any argument is NULL.
+mysql> SELECT CONCAT('My', 'S', 'QL');
+ -> 'MySQL'
+mysql> SELECT CONCAT('My', NULL, 'QL');
+ -> NULL
+mysql> SELECT CONCAT(14.3);
+ -> '14.3'
+For quoted strings, concatenation can be performed by placing the strings next to each other:
+mysql> SELECT 'My' 'S' 'QL';
+ -> 'MySQL'
+• CONCAT_WS(separator,str1,str2,...)
+CONCAT_WS() stands for Concatenate With Separator and is a special form of CONCAT(). The first
+argument is the separator for the rest of the arguments. The separator is added between the strings to
+be concatenated. The separator can be a string, as can the rest of the arguments. If the separator is
+NULL, the result is NULL.
+mysql> SELECT CONCAT_WS(',','First name','Second name','Last Name');
+ -> 'First name,Second name,Last Name'
+mysql> SELECT CONCAT_WS(',','First name',NULL,'Last Name');
+ -> 'First name,Last Name'
+CONCAT_WS() does not skip empty strings. However, it does skip any NULL values after the separator
+argument.
+• ELT(N,str1,str2,str3,...)
+ELT() returns the Nth element of the list of strings: str1 if N = 1, str2 if N = 2, and so on. Returns
+NULL if N is less than 1 or greater than the number of arguments. ELT() is the complement of FIELD().
+mysql> SELECT ELT(1, 'Aa', 'Bb', 'Cc', 'Dd');
+ -> 'Aa'
+mysql> SELECT ELT(4, 'Aa', 'Bb', 'Cc', 'Dd');
+ -> 'Dd'
+• EXPORT_SET(bits,on,off[,separator[,number_of_bits]])
+Returns a string such that for every bit set in the value bits, you get an on string and for every bit not
+set in the value, you get an off string. Bits in bits are examined from right to left (from low-order to
+high-order bits). Strings are added to the result from left to right, separated by the separator string
+(the default being the comma character ,). The number of bits examined is given by number_of_bits,
+which has a default of 64 if not specified. number_of_bits is silently clipped to 64 if larger than 64. It is
+treated as an unsigned integer, so a value of −1 is effectively the same as 64.
+mysql> SELECT EXPORT_SET(5,'Y','N',',',4);
+ -> 'Y,N,Y,N'
+String Functions and Operators
+1957
+mysql> SELECT EXPORT_SET(6,'1','0',',',10);
+ -> '0,1,1,0,0,0,0,0,0,0'
+• FIELD(str,str1,str2,str3,...)
+Returns the index (position) of str in the str1, str2, str3, ... list. Returns 0 if str is not found.
+If all arguments to FIELD() are strings, all arguments are compared as strings. If all arguments are
+numbers, they are compared as numbers. Otherwise, the arguments are compared as double.
+If str is NULL, the return value is 0 because NULL fails equality comparison with any value. FIELD() is
+the complement of ELT().
+mysql> SELECT FIELD('Bb', 'Aa', 'Bb', 'Cc', 'Dd', 'Ff');
+ -> 2
+mysql> SELECT FIELD('Gg', 'Aa', 'Bb', 'Cc', 'Dd', 'Ff');
+ -> 0
+• FIND_IN_SET(str,strlist)
+Returns a value in the range of 1 to N if the string str is in the string list strlist consisting of
+N substrings. A string list is a string composed of substrings separated by , characters. If the first
+argument is a constant string and the second is a column of type SET, the FIND_IN_SET() function
+is optimized to use bit arithmetic. Returns 0 if str is not in strlist or if strlist is the empty string.
+Returns NULL if either argument is NULL. This function does not work properly if the first argument
+contains a comma (,) character.
+mysql> SELECT FIND_IN_SET('b','a,b,c,d');
+ -> 2
+• FORMAT(X,D[,locale])
+Formats the number X to a format like '#,###,###.##', rounded to D decimal places, and returns the
+result as a string. If D is 0, the result has no decimal point or fractional part.
+The optional third parameter enables a locale to be specified to be used for the result number's decimal
+point, thousands separator, and grouping between separators. Permissible locale values are the same
+as the legal values for the lc_time_names system variable (see Section 10.16, “MySQL Server Locale
+Support”). If no locale is specified, the default is 'en_US'.
+mysql> SELECT FORMAT(12332.123456, 4);
+ -> '12,332.1235'
+mysql> SELECT FORMAT(12332.1,4);
+ -> '12,332.1000'
+mysql> SELECT FORMAT(12332.2,0);
+ -> '12,332'
+mysql> SELECT FORMAT(12332.2,2,'de_DE');
+ -> '12.332,20'
+• FROM_BASE64(str)
+Takes a string encoded with the base-64 encoded rules used by TO_BASE64() and returns the decoded
+result as a binary string. The result is NULL if the argument is NULL or not a valid base-64 string. See the
+description of TO_BASE64() for details about the encoding and decoding rules.
+mysql> SELECT TO_BASE64('abc'), FROM_BASE64(TO_BASE64('abc'));
+ -> 'JWJj', 'abc'
+String Functions and Operators
+1958
+• HEX(str), HEX(N)
+For a string argument str, HEX() returns a hexadecimal string representation of str where each byte
+of each character in str is converted to two hexadecimal digits. (Multibyte characters therefore become
+more than two digits.) The inverse of this operation is performed by the UNHEX() function.
+For a numeric argument N, HEX() returns a hexadecimal string representation of the value of N treated
+as a longlong (BIGINT) number. This is equivalent to CONV(N,10,16). The inverse of this operation is
+performed by CONV(HEX(N),16,10).
+mysql> SELECT X'616263', HEX('abc'), UNHEX(HEX('abc'));
+ -> 'abc', 616263, 'abc'
+mysql> SELECT HEX(255), CONV(HEX(255),16,10);
+ -> 'FF', 255
+• INSERT(str,pos,len,newstr)
+Returns the string str, with the substring beginning at position pos and len characters long replaced
+by the string newstr. Returns the original string if pos is not within the length of the string. Replaces the
+rest of the string from position pos if len is not within the length of the rest of the string. Returns NULL if
+any argument is NULL.
+mysql> SELECT INSERT('Quadratic', 3, 4, 'What');
+ -> 'QuWhattic'
+mysql> SELECT INSERT('Quadratic', -1, 4, 'What');
+ -> 'Quadratic'
+mysql> SELECT INSERT('Quadratic', 3, 100, 'What');
+ -> 'QuWhat'
+This function is multibyte safe.
+• INSTR(str,substr)
+Returns the position of the first occurrence of substring substr in string str. This is the same as the
+two-argument form of LOCATE(), except that the order of the arguments is reversed.
+mysql> SELECT INSTR('foobarbar', 'bar');
+ -> 4
+mysql> SELECT INSTR('xbar', 'foobar');
+ -> 0
+This function is multibyte safe, and is case-sensitive only if at least one argument is a binary string.
+• LCASE(str)
+LCASE() is a synonym for LOWER().
+LCASE() used in a view is rewritten as LOWER() when storing the view's definition. (Bug #12844279)
+• LEFT(str,len)
+Returns the leftmost len characters from the string str, or NULL if any argument is NULL.
+mysql> SELECT LEFT('foobarbar', 5);
+ -> 'fooba'
+This function is multibyte safe.
+String Functions and Operators
+1959
+• LENGTH(str)
+Returns the length of the string str, measured in bytes. A multibyte character counts as multiple
+bytes. This means that for a string containing five 2-byte characters, LENGTH() returns 10, whereas
+CHAR_LENGTH() returns 5.
+mysql> SELECT LENGTH('text');
+ -> 4
+Note
+The Length() OpenGIS spatial function is named ST_Length() in MySQL.
+• LOAD_FILE(file_name)
+Reads the file and returns the file contents as a string. To use this function, the file must be located on
+the server host, you must specify the full path name to the file, and you must have the FILE privilege.
+The file must be readable by the server and its size less than max_allowed_packet bytes. If the
+secure_file_priv system variable is set to a nonempty directory name, the file to be loaded must be
+located in that directory. (Prior to MySQL 8.0.17, the file must be readable by all, not just readable by the
+server.)
+If the file does not exist or cannot be read because one of the preceding conditions is not satisfied, the
+function returns NULL.
+The character_set_filesystem system variable controls interpretation of file names that are given
+as literal strings.
+mysql> UPDATE t
+ SET blob_col=LOAD_FILE('/tmp/picture')
+ WHERE id=1;
+• LOCATE(substr,str), LOCATE(substr,str,pos)
+The first syntax returns the position of the first occurrence of substring substr in string str. The
+second syntax returns the position of the first occurrence of substring substr in string str, starting at
+position pos. Returns 0 if substr is not in str. Returns NULL if any argument is NULL.
+mysql> SELECT LOCATE('bar', 'foobarbar');
+ -> 4
+mysql> SELECT LOCATE('xbar', 'foobar');
+ -> 0
+mysql> SELECT LOCATE('bar', 'foobarbar', 5);
+ -> 7
+This function is multibyte safe, and is case-sensitive only if at least one argument is a binary string.
+• LOWER(str)
+Returns the string str with all characters changed to lowercase according to the current character set
+mapping. The default is utf8mb4.
+mysql> SELECT LOWER('QUADRATICALLY');
+ -> 'quadratically'
+String Functions and Operators
+1960
+LOWER() (and UPPER()) are ineffective when applied to binary strings (BINARY, VARBINARY, BLOB).
+To perform lettercase conversion, convert the string to a nonbinary string:
+mysql> SET @str = BINARY 'New York';
+mysql> SELECT LOWER(@str), LOWER(CONVERT(@str USING utf8mb4));
++-------------+------------------------------------+
+| LOWER(@str) | LOWER(CONVERT(@str USING utf8mb4)) |
++-------------+------------------------------------+
+| New York | new york |
++-------------+------------------------------------+
+For collations of Unicode character sets, LOWER() and UPPER() work according to the Unicode
+Collation Algorithm (UCA) version in the collation name, if there is one, and UCA 4.0.0 if no version
+is specified. For example, utf8mb4_0900_ai_ci and utf8_unicode_520_ci work according to
+UCA 9.0.0 and 5.2.0, respectively, whereas utf8_unicode_ci works according to UCA 4.0.0. See
+Section 10.10.1, “Unicode Character Sets”.
+This function is multibyte safe.
+LCASE() used within views is rewritten as LOWER().
+• LPAD(str,len,padstr)
+Returns the string str, left-padded with the string padstr to a length of len characters. If str is longer
+than len, the return value is shortened to len characters.
+mysql> SELECT LPAD('hi',4,'??');
+ -> '??hi'
+mysql> SELECT LPAD('hi',1,'??');
+ -> 'h'
+• LTRIM(str)
+Returns the string str with leading space characters removed.
+mysql> SELECT LTRIM(' barbar');
+ -> 'barbar'
+This function is multibyte safe.
+• MAKE_SET(bits,str1,str2,...)
+Returns a set value (a string containing substrings separated by , characters) consisting of the strings
+that have the corresponding bit in bits set. str1 corresponds to bit 0, str2 to bit 1, and so on. NULL
+values in str1, str2, ... are not appended to the result.
+mysql> SELECT MAKE_SET(1,'a','b','c');
+ -> 'a'
+mysql> SELECT MAKE_SET(1 | 4,'hello','nice','world');
+ -> 'hello,world'
+mysql> SELECT MAKE_SET(1 | 4,'hello','nice',NULL,'world');
+ -> 'hello'
+mysql> SELECT MAKE_SET(0,'a','b','c');
+ -> ''
+• MID(str,pos,len)
+String Functions and Operators
+1961
+MID(str,pos,len) is a synonym for SUBSTRING(str,pos,len).
+• OCT(N)
+Returns a string representation of the octal value of N, where N is a longlong (BIGINT) number. This is
+equivalent to CONV(N,10,8). Returns NULL if N is NULL.
+mysql> SELECT OCT(12);
+ -> '14'
+• OCTET_LENGTH(str)
+OCTET_LENGTH() is a synonym for LENGTH().
+• ORD(str)
+If the leftmost character of the string str is a multibyte character, returns the code for that character,
+calculated from the numeric values of its constituent bytes using this formula:
+ (1st byte code)
++ (2nd byte code * 256)
++ (3rd byte code * 256^2) ...
+If the leftmost character is not a multibyte character, ORD() returns the same value as the ASCII()
+function.
+mysql> SELECT ORD('2');
+ -> 50
+• POSITION(substr IN str)
+POSITION(substr IN str) is a synonym for LOCATE(substr,str).
+• QUOTE(str)
+Quotes a string to produce a result that can be used as a properly escaped data value in an SQL
+statement. The string is returned enclosed by single quotation marks and with each instance of
+backslash (\), single quote ('), ASCII NUL, and Control+Z preceded by a backslash. If the argument is
+NULL, the return value is the word “NULL” without enclosing single quotation marks.
+mysql> SELECT QUOTE('Don\'t!');
+ -> 'Don\'t!'
+mysql> SELECT QUOTE(NULL);
+ -> NULL
+For comparison, see the quoting rules for literal strings and within the C API in Section 9.1.1, “String
+Literals”, and Section 28.7.7.56, “mysql_real_escape_string_quote()”.
+• REPEAT(str,count)
+Returns a string consisting of the string str repeated count times. If count is less than 1, returns an
+empty string. Returns NULL if str or count are NULL.
+mysql> SELECT REPEAT('MySQL', 3);
+ -> 'MySQLMySQLMySQL'
+String Functions and Operators
+1962
+• REPLACE(str,from_str,to_str)
+Returns the string str with all occurrences of the string from_str replaced by the string to_str.
+REPLACE() performs a case-sensitive match when searching for from_str.
+mysql> SELECT REPLACE('www.mysql.com', 'w', 'Ww');
+ -> 'WwWwWw.mysql.com'
+This function is multibyte safe.
+• REVERSE(str)
+Returns the string str with the order of the characters reversed.
+mysql> SELECT REVERSE('abc');
+ -> 'cba'
+This function is multibyte safe.
+• RIGHT(str,len)
+Returns the rightmost len characters from the string str, or NULL if any argument is NULL.
+mysql> SELECT RIGHT('foobarbar', 4);
+ -> 'rbar'
+This function is multibyte safe.
+• RPAD(str,len,padstr)
+Returns the string str, right-padded with the string padstr to a length of len characters. If str is
+longer than len, the return value is shortened to len characters.
+mysql> SELECT RPAD('hi',5,'?');
+ -> 'hi???'
+mysql> SELECT RPAD('hi',1,'?');
+ -> 'h'
+This function is multibyte safe.
+• RTRIM(str)
+Returns the string str with trailing space characters removed.
+mysql> SELECT RTRIM('barbar ');
+ -> 'barbar'
+This function is multibyte safe.
+• SOUNDEX(str)
+Returns a soundex string from str. Two strings that sound almost the same should have identical
+soundex strings. A standard soundex string is four characters long, but the SOUNDEX() function returns
+an arbitrarily long string. You can use SUBSTRING() on the result to get a standard soundex string.
+All nonalphabetic characters in str are ignored. All international alphabetic characters outside the A-Z
+range are treated as vowels.
+String Functions and Operators
+1963
+Important
+When using SOUNDEX(), you should be aware of the following limitations:
+• This function, as currently implemented, is intended to work well with strings that are in the English
+language only. Strings in other languages may not produce reliable results.
+• This function is not guaranteed to provide consistent results with strings that use multibyte character
+sets, including utf-8. See Bug #22638 for more information.
+mysql> SELECT SOUNDEX('Hello');
+ -> 'H400'
+mysql> SELECT SOUNDEX('Quadratically');
+ -> 'Q36324'
+Note
+This function implements the original Soundex algorithm, not the more popular
+enhanced version (also described by D. Knuth). The difference is that original
+version discards vowels first and duplicates second, whereas the enhanced
+version discards duplicates first and vowels second.
+• expr1 SOUNDS LIKE expr2
+This is the same as SOUNDEX(expr1) = SOUNDEX(expr2).
+• SPACE(N)
+Returns a string consisting of N space characters.
+mysql> SELECT SPACE(6);
+ -> ' '
+• SUBSTR(str,pos), SUBSTR(str FROM pos), SUBSTR(str,pos,len), SUBSTR(str FROM pos
+FOR len)
+SUBSTR() is a synonym for SUBSTRING().
+• SUBSTRING(str,pos), SUBSTRING(str FROM pos), SUBSTRING(str,pos,len),
+SUBSTRING(str FROM pos FOR len)
+The forms without a len argument return a substring from string str starting at position pos. The forms
+with a len argument return a substring len characters long from string str, starting at position pos.
+The forms that use FROM are standard SQL syntax. It is also possible to use a negative value for pos.
+In this case, the beginning of the substring is pos characters from the end of the string, rather than the
+beginning. A negative value may be used for pos in any of the forms of this function.
+For all forms of SUBSTRING(), the position of the first character in the string from which the substring is
+to be extracted is reckoned as 1.
+mysql> SELECT SUBSTRING('Quadratically',5);
+ -> 'ratically'
+mysql> SELECT SUBSTRING('foobarbar' FROM 4);
+ -> 'barbar'
+mysql> SELECT SUBSTRING('Quadratically',5,6);
+ -> 'ratica'
+String Functions and Operators
+1964
+mysql> SELECT SUBSTRING('Sakila', -3);
+ -> 'ila'
+mysql> SELECT SUBSTRING('Sakila', -5, 3);
+ -> 'aki'
+mysql> SELECT SUBSTRING('Sakila' FROM -4 FOR 2);
+ -> 'ki'
+This function is multibyte safe.
+If len is less than 1, the result is the empty string.
+• SUBSTRING_INDEX(str,delim,count)
+Returns the substring from string str before count occurrences of the delimiter delim. If count
+is positive, everything to the left of the final delimiter (counting from the left) is returned. If count
+is negative, everything to the right of the final delimiter (counting from the right) is returned.
+SUBSTRING_INDEX() performs a case-sensitive match when searching for delim.
+mysql> SELECT SUBSTRING_INDEX('www.mysql.com', '.', 2);
+ -> 'www.mysql'
+mysql> SELECT SUBSTRING_INDEX('www.mysql.com', '.', -2);
+ -> 'mysql.com'
+This function is multibyte safe.
+• TO_BASE64(str)
+Converts the string argument to base-64 encoded form and returns the result as a character string with
+the connection character set and collation. If the argument is not a string, it is converted to a string
+before conversion takes place. The result is NULL if the argument is NULL. Base-64 encoded strings can
+be decoded using the FROM_BASE64() function.
+mysql> SELECT TO_BASE64('abc'), FROM_BASE64(TO_BASE64('abc'));
+ -> 'JWJj', 'abc'
+Different base-64 encoding schemes exist. These are the encoding and decoding rules used by
+TO_BASE64() and FROM_BASE64():
+• The encoding for alphabet value 62 is '+'.
+• The encoding for alphabet value 63 is '/'.
+• Encoded output consists of groups of 4 printable characters. Each 3 bytes of the input data are
+encoded using 4 characters. If the last group is incomplete, it is padded with '=' characters to a
+length of 4.
+• A newline is added after each 76 characters of encoded output to divide long output into multiple lines.
+• Decoding recognizes and ignores newline, carriage return, tab, and space.
+• TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr FROM]
+str)
+Returns the string str with all remstr prefixes or suffixes removed. If none of the specifiers BOTH,
+LEADING, or TRAILING is given, BOTH is assumed. remstr is optional and, if not specified, spaces are
+removed.
+String Functions and Operators
+1965
+mysql> SELECT TRIM(' bar ');
+ -> 'bar'
+mysql> SELECT TRIM(LEADING 'x' FROM 'xxxbarxxx');
+ -> 'barxxx'
+mysql> SELECT TRIM(BOTH 'x' FROM 'xxxbarxxx');
+ -> 'bar'
+mysql> SELECT TRIM(TRAILING 'xyz' FROM 'barxxyz');
+ -> 'barx'
+This function is multibyte safe.
+• UCASE(str)
+UCASE() is a synonym for UPPER().
+UCASE() used within views is rewritten as UPPER().
+• UNHEX(str)
+For a string argument 
+
+
+
+
+LOG2() Return the base-2 logarithm of the argument
+MOD() Return the remainder
+PI() Return the value of pi
+POW() Return the argument raised to the specified power
+Mathematical Functions
+1987
+Name Description
+POWER() Return the argument raised to the specified power
+RADIANS() Return argument converted to radians
+RAND() Return a random floating-point value
+ROUND() Round the argument
+SIGN() Return the sign of the argument
+SIN() Return the sine of the argument
+SQRT() Return the square root of the argument
+TAN() Return the tangent of the argument
+TRUNCATE() Truncate to specified number of decimal places
+All mathematical functions return NULL in the event of an error.
+• ABS(X)
+Returns the absolute value of X.
+mysql> SELECT ABS(2);
+ -> 2
+mysql> SELECT ABS(-32);
+ -> 32
+This function is safe to use with BIGINT values.
+• ACOS(X)
+Returns the arc cosine of X, that is, the value whose cosine is X. Returns NULL if X is not in the range -1
+to 1.
+mysql> SELECT ACOS(1);
+ -> 0
+mysql> SELECT ACOS(1.0001);
+ -> NULL
+mysql> SELECT ACOS(0);
+ -> 1.5707963267949
+• ASIN(X)
+Returns the arc sine of X, that is, the value whose sine is X. Returns NULL if X is not in the range -1 to 1.
+mysql> SELECT ASIN(0.2);
+ -> 0.20135792079033
+mysql> SELECT ASIN('foo');
++-------------+
+| ASIN('foo') |
++-------------+
+| 0 |
++-------------+
+1 row in set, 1 warning (0.00 sec)
+mysql> SHOW WARNINGS;
++---------+------+-----------------------------------------+
+| Level | Code | Message |
++---------+------+-----------------------------------------+
+Mathematical Functions
+1988
+| Warning | 1292 | Truncated incorrect DOUBLE value: 'foo' |
++---------+------+-----------------------------------------+
+• ATAN(X)
+Returns the arc tangent of X, that is, the value whose tangent is X.
+mysql> SELECT ATAN(2);
+ -> 1.1071487177941
+mysql> SELECT ATAN(-2);
+ -> -1.1071487177941
+• ATAN(Y,X), ATAN2(Y,X)
+Returns the arc tangent of the two variables X and Y. It is similar to calculating the arc tangent of Y / X,
+except that the signs of both arguments are used to determine the quadrant of the result.
+mysql> SELECT ATAN(-2,2);
+ -> -0.78539816339745
+mysql> SELECT ATAN2(PI(),0);
+• CEIL(X)
+CEIL() is a synonym for CEILING().
+• CEILING(X)
+Returns the smallest integer value not less than X.
+mysql> SELECT CEILING(1.23);
+ -> 2
+mysql> SELECT CEILING(-1.23);
+ -> -1
+For exact-value numeric arguments, the return value has an exact-value numeric type. For string or
+floating-point arguments, the return value has a floating-point type.
+• CONV(N,from_base,to_base)
+Converts numbers between different number bases. Returns a string representation of the number
+N, converted from base from_base to base to_base. Returns NULL if any argument is NULL. The
+argument N is interpreted as an integer, but may be specified as an integer or a string. The minimum
+base is 2 and the maximum base is 36. If from_base is a negative number, N is regarded as a signed
+number. Otherwise, N is treated as unsigned. CONV() works with 64-bit precision.
+mysql> SELECT CONV('a',16,2);
+ -> '1010'
+mysql> SELECT CONV('6E',18,8);
+ -> '172'
+mysql> SELECT CONV(-17,10,-18);
+ -> '-H'
+mysql> SELECT CONV(10+'10'+'10'+X'0a',10,10);
+ -> '40'
+• COS(X)
+Returns the cosine of X, where X is given in radians.
+Mathematical Functions
+1989
+mysql> SELECT COS(PI());
+ -> -1
+• COT(X)
+Returns the cotangent of X.
+mysql> SELECT COT(12);
+ -> -1.5726734063977
+mysql> SELECT COT(0);
+ -> out-of-range error
+• CRC32(expr)
+Computes a cyclic redundancy check value and returns a 32-bit unsigned value. The result is NULL if the
+argument is NULL. The argument is expected to be a string and (if possible) is treated as one if it is not.
+mysql> SELECT CRC32('MySQL');
+ -> 3259397556
+mysql> SELECT CRC32('mysql');
+ -> 2501908538
+• DEGREES(X)
+Returns the argument X, converted from radians to degrees.
+mysql> SELECT DEGREES(PI());
+ -> 180
+mysql> SELECT DEGREES(PI() / 2);
+ -> 90
+• EXP(X)
+Returns the value of e (the base of natural logarithms) raised to the power of X. The inverse of this
+function is LOG() (using a single argument only) or LN().
+mysql> SELECT EXP(2);
+ -> 7.3890560989307
+mysql> SELECT EXP(-2);
+ -> 0.13533528323661
+mysql> SELECT EXP(0);
+ -> 1
+• FLOOR(X)
+Returns the largest integer value not greater than X.
+mysql> SELECT FLOOR(1.23), FLOOR(-1.23);
+ -> 1, -2
+For exact-value numeric arguments, the return value has an exact-value numeric type. For string or
+floating-point arguments, the return value has a floating-point type.
+• FORMAT(X,D)
+Mathematical Functions
+1990
+Formats the number X to a format like '#,###,###.##', rounded to D decimal places, and returns the
+result as a string. For details, see Section 12.5, “String Functions and Operators”.
+• HEX(N_or_S)
+This function can be used to obtain a hexadecimal representation of a decimal number or a string; the
+manner in which it does so varies according to the argument's type. See this function's description in
+Section 12.5, “String Functions and Operators”, for details.
+• LN(X)
+Returns the natural logarithm of X; that is, the base-e logarithm of X. If X is less than or equal to 0.0E0,
+the function returns NULL and a warning “Invalid argument for logarithm” is reported.
+mysql> SELECT LN(2);
+ -> 0.69314718055995
+mysql> SELECT LN(-2);
+ -> NULL
+This function is synonymous with LOG(X). The inverse of this function is the EXP() function.
+• LOG(X), LOG(B,X)
+If called with one parameter, this function returns the natural logarithm of X. If X is less than or equal to
+0.0E0, the function returns NULL and a warning “Invalid argument for logarithm” is reported.
+The inverse of this function (when called with a single argument) is the EXP() function.
+mysql> SELECT LOG(2);
+ -> 0.69314718055995
+mysql> SELECT LOG(-2);
+ -> NULL
+If called with two parameters, this function returns the logarithm of X to the base B. If X is less than or
+equal to 0, or if B is less than or equal to 1, then NULL is returned.
+mysql> SELECT LOG(2,65536);
+ -> 16
+mysql> SELECT LOG(10,100);
+ -> 2
+mysql> SELECT LOG(1,100);
+ -> NULL
+LOG(B,X) is equivalent to LOG(X) / LOG(B).
+• LOG2(X)
+Returns the base-2 logarithm of X. If X is less than or equal to 0.0E0, the function returns NULL and a
+warning “Invalid argument for logarithm” is reported.
+mysql> SELECT LOG2(65536);
+ -> 16
+mysql> SELECT LOG2(-100);
+ -> NULL
+LOG2() is useful for finding out how many bits a number requires for storage. This function is equivalent
+to the expression LOG(X) / LOG(2).
+Mathematical Functions
+1991
+• LOG10(X)
+Returns the base-10 logarithm of X. If X is less than or equal to 0.0E0, the function returns NULL and a
+warning “Invalid argument for logarithm” is reported.
+mysql> SELECT LOG10(2);
+ -> 0.30102999566398
+mysql> SELECT LOG10(100);
+ -> 2
+mysql> SELECT LOG10(-100);
+ -> NULL
+LOG10(X) is equivalent to LOG(10,X).
+• MOD(N,M), N % M, N MOD M
+Modulo operation. Returns the remainder of N divided by M.
+mysql> SELECT MOD(234, 10);
+ -> 4
+mysql> SELECT 253 % 7;
+ -> 1
+mysql> SELECT MOD(29,9);
+ -> 2
+mysql> SELECT 29 MOD 9;
+ -> 2
+This function is safe to use with BIGINT values.
+MOD() also works on values that have a fractional part and returns the exact remainder after division:
+mysql> SELECT MOD(34.5,3);
+ -> 1.5
+MOD(N,0) returns NULL.
+• PI()
+Returns the value of π (pi). The default number of decimal places displayed is seven, but MySQL uses
+the full double-precision value internally.
+mysql> SELECT PI();
+ -> 3.141593
+mysql> SELECT PI()+0.000000000000000000;
+ -> 3.141592653589793116
+• POW(X,Y)
+Returns the value of X raised to the power of Y.
+mysql> SELECT POW(2,2);
+ -> 4
+mysql> SELECT POW(2,-2);
+ -> 0.25
+• POWER(X,Y)
+This is a synonym for POW().
+Mathematical Functions
+1992
+• RADIANS(X)
+Returns the argument X, converted from degrees to radians. (Note that π radians equals 180 degrees.)
+mysql> SELECT RADIANS(90);
+ -> 1.5707963267949
+• RAND([N])
+Returns a random floating-point value v in the range 0 <= v < 1.0. To obtain a random integer R in
+the range i <= R < j, use the expression FLOOR(i + RAND() * (j − i)). For example, to obtain a
+random integer in the range the range 7 <= R < 12, use the following statement:
+SELECT FLOOR(7 + (RAND() * 5));
+If an integer argument N is specified, it is used as the seed value:
+• With a constant initializer argument, the seed is initialized once when the statement is prepared, prior
+to execution.
+• With a nonconstant initializer argument (such as a column name), the seed is initialized with the value
+for each invocation of RAND().
+One implication of this behavior is that for equal argument values, RAND(N) returns the same value
+each time, and thus produces a repeatable sequence of column values. In the following example, the
+sequence of values produced by RAND(3) is the same both places it occurs.
+mysql> CREATE TABLE t (i INT);
+Query OK, 0 rows affected (0.42 sec)
+mysql> INSERT INTO t VALUES(1),(2),(3);
+Query OK, 3 rows affected (0.00 sec)
+Records: 3 Duplicates: 0 Warnings: 0
+mysql> SELECT i, RAND() FROM t;
++------+------------------+
+| i | RAND() |
++------+------------------+
+| 1 | 0.61914388706828 |
+| 2 | 0.93845168309142 |
+| 3 | 0.83482678498591 |
++------+------------------+
+3 rows in set (0.00 sec)
+mysql> SELECT i, RAND(3) FROM t;
++------+------------------+
+| i | RAND(3) |
++------+------------------+
+| 1 | 0.90576975597606 |
+| 2 | 0.37307905813035 |
+| 3 | 0.14808605345719 |
++------+------------------+
+3 rows in set (0.00 sec)
+mysql> SELECT i, RAND() FROM t;
++------+------------------+
+| i | RAND() |
++------+------------------+
+| 1 | 0.35877890638893 |
+Mathematical Functions
+1993
+| 2 | 0.28941420772058 |
+| 3 | 0.37073435016976 |
++------+------------------+
+3 rows in set (0.00 sec)
+mysql> SELECT i, RAND(3) FROM t;
++------+------------------+
+| i | RAND(3) |
++------+------------------+
+| 1 | 0.90576975597606 |
+| 2 | 0.37307905813035 |
+| 3 | 0.14808605345719 |
++------+------------------+
+3 rows in set (0.01 sec)
+RAND() in a WHERE clause is evaluated for every row (when selecting from one table) or combination of
+rows (when selecting from a multiple-table join). Thus, for optimizer purposes, RAND() is not a constant
+value and cannot be used for index optimizations. For more information, see Section 8.2.1.20, “Function
+Call Optimization”.
+Use of a column with RAND() values in an ORDER BY or GROUP BY clause may yield unexpected
+results because for either clause a RAND() expression can be evaluated multiple times for the same
+row, each time returning a different result. If the goal is to retrieve rows in random order, you can use a
+statement like this:
+SELECT * FROM tbl_name ORDER BY RAND();
+To select a random sample from a set of rows, combine ORDER BY RAND() with LIMIT:
+SELECT * FROM table1, table2 WHERE a=b AND c<d ORDER BY RAND() LIMIT 1000;
+RAND() is not meant to be a perfect random generator. It is a fast way to generate random numbers on
+demand that is portable between platforms for the same MySQL version.
+This function is unsafe for statement-based replication. A warning is logged if you use this function when
+binlog_format is set to STATEMENT.
+• ROUND(X), ROUND(X,D)
+Rounds the argument X to D decimal places. The rounding algorithm depends on the data type of X. D
+defaults to 0 if not specified. D can be negative to cause D digits left of the decimal point of the value X to
+become zero.
+mysql> SELECT ROUND(-1.23);
+ -> -1
+mysql> SELECT ROUND(-1.58);
+ -> -2
+mysql> SELECT ROUND(1.58);
+ -> 2
+mysql> SELECT ROUND(1.298, 1);
+ -> 1.3
+mysql> SELECT ROUND(1.298, 0);
+ -> 1
+mysql> SELECT ROUND(23.298, -1);
+ -> 20
+The return value has the same type as the first argument (assuming that it is integer, double, or
+decimal). This means that for an integer argument, the result is an integer (no decimal places):
+Mathematical Functions
+1994
+mysql> SELECT ROUND(150.000,2), ROUND(150,2);
++------------------+--------------+
+| ROUND(150.000,2) | ROUND(150,2) |
++------------------+--------------+
+| 150.00 | 150 |
++------------------+--------------+
+ROUND() uses the following rules depending on the type of the first argument:
+• For exact-value numbers, ROUND() uses the “round half away from zero” or “round toward nearest”
+rule: A value with a fractional part of .5 or greater is rounded up to the next integer if positive or down
+to the next integer if negative. (In other words, it is rounded away from zero.) A value with a fractional
+part less than .5 is rounded down to the next integer if positive or up to the next integer if negative.
+• For approximate-value numbers, the result depends on the C library. On many systems, this means
+that ROUND() uses the “round to nearest even” rule: A value with a fractional part exactly halfway
+between two integers is rounded to the nearest even integer.
+The following example shows how rounding differs for exact and approximate values:
+mysql> SELECT ROUND(2.5), ROUND(25E-1);
++------------+--------------+
+| ROUND(2.5) | ROUND(25E-1) |
++------------+--------------+
+| 3 | 2 |
++------------+--------------+
+For more information, see Section 12.25, “Precision Math”.
+• SIGN(X)
+Returns the sign of the argument as -1, 0, or 1, depending on whether X is negative, zero, or positive.
+mysql> SELECT SIGN(-32);
+ -> -1
+mysql> SELECT SIGN(0);
+ -> 0
+mysql> SELECT SIGN(234);
+ -> 1
+• SIN(X)
+Returns the sine of X, where X is given in radians.
+mysql> SELECT SIN(PI());
+ -> 1.2246063538224e-16
+mysql> SELECT ROUND(SIN(PI()));
+ -> 0
+• SQRT(X)
+Returns the square root of a nonnegative number X.
+mysql> SELECT SQRT(4);
+ -> 2
+mysql> SELECT SQRT(20);
+ -> 4.4721359549996
+Date and Time Functions
+1995
+mysql> SELECT SQRT(-16);
+ -> NULL
+• TAN(X)
+Returns the tangent of X, where X is given in radians.
+mysql> SELECT TAN(PI());
+ -> -1.2246063538224e-16
+mysql> SELECT TAN(PI()+1);
+ -> 1.5574077246549
+• TRUNCATE(X,D)
+Returns the number X, truncated to D decimal places. If D is 0, the result has no decimal point or
+fractional part. D can be negative to cause D digits left of the decimal point of the value X to become
+zero.
+mysql> SELECT TRUNCATE(1.223,1);
+ -> 1.2
+mysql> SELECT TRUNCATE(1.999,1);
+ -> 1.9
+mysql> SELECT TRUNCATE(1.999,0);
+ -> 1
+mysql> SELECT TRUNCATE(-1.999,1);
+ -> -1.9
+mysql> SELECT TRUNCATE(122,-2);
+ -> 100
+mysql> SELECT TRUNCATE(10.28*100,0);
+ -> 1028
+All numbers are rounded toward zero.
+12.7 Date and Time Functions
+This section describes the functions that can be used to manipulate temporal values. See Section 11.3,
+“Date and Time Types”, for a description of the range of values each date and time type has and the valid
+formats in which values may be specified.
+Table 12.13 Date and Time Functions
+Name Description
+ADDDATE() Add time values (intervals) to a date value
+ADDTIME() Add time
+CONVERT_TZ() Convert from one time zone to another
+CURDATE() Return the current date
+CURRENT_DATE(), CURRENT_DATE Synonyms for CURDATE()
+CURRENT_TIME(), CURRENT_TIME Synonyms for CURTIME()
+CURRENT_TIMESTAMP(),
+CURRENT_TIMESTAMP
+Synonyms for NOW()
+CURTIME() Return the current time
+DATE() Extract the date part of a date or datetime expression
+DATE_ADD() Add time values (intervals) to a date value
+DATE_FORMAT() Format date as specified
+Date and Time Functions
+1996
+Name Description
+DATE_SUB() Subtract a time value (interval) from a date
+DATEDIFF() Subtract two dates
+DAY() Synonym for DAYOFMONTH()
+DAYNAME() Return the name of the weekday
+DAYOFMONTH() Return the day of the month (0-31)
+DAYOFWEEK() Return the weekday index of the argument
+DAYOFYEAR() Return the day of the year (1-366)
+EXTRACT() Extract part of a date
+FROM_DAYS() Convert a day number to a date
+FROM_UNIXTIME() Format Unix timestamp as a date
+GET_FORMAT() Return a date format string
+HOUR() Extract the hour
+LAST_DAY Return the last day of the month for the argument
+LOCALTIME(), LOCALTIME Synonym for NOW()
+LOCALTIMESTAMP,
+LOCALTIMESTAMP()
+Synonym for NOW()
+MAKEDATE() Create a date from the year and day of year
+MAKETIME() Create time from hour, minute, second
+MICROSECOND() Return the microseconds from argument
+MINUTE() Return the minute from the argument
+MONTH() Return the month from the date passed
+MONTHNAME() Return the name of the month
+NOW() Return the current date and time
+PERIOD_ADD() Add a period to a year-month
+PERIOD_DIFF() Return the number of months between periods
+QUARTER() Return the quarter from a date argument
+SEC_TO_TIME() Converts seconds to 'hh:mm:ss' format
+SECOND() Return the second (0-59)
+STR_TO_DATE() Convert a string to a date
+SUBDATE() Synonym for DATE_SUB() when invoked with three arguments
+SUBTIME() Subtract times
+SYSDATE() Return the time at which the function executes
+TIME() Extract the time portion of the expression passed
+TIME_FORMAT() Format as time
+TIME_TO_SEC() Return the argument converted to seconds
+TIMEDIFF() Subtract time
+TIMESTAMP() With a single argument, this function returns the date or
+datetime expression; with two arguments, the sum of the
+arguments
+Date and Time Functions
+1997
+Name Description
+TIMESTAMPADD() Add an interval to a datetime expression
+TIMESTAMPDIFF() Subtract an interval from a datetime expression
+TO_DAYS() Return the date argument converted to days
+TO_SECONDS() Return the date or datetime argument converted to seconds
+since Year 0
+UNIX_TIMESTAMP() Return a Unix timestamp
+UTC_DATE() Return the current UTC date
+UTC_TIME() Return the current UTC time
+UTC_TIMESTAMP() Return the current UTC date and time
+WEEK() Return the week number
+WEEKDAY() Return the weekday index
+WEEKOFYEAR() Return the calendar week of the date (1-53)
+YEAR() Return the year
+YEARWEEK() Return the year and week
+Here is an example that uses date functions. The following query selects all rows with a date_col value
+from within the last 30 days:
+mysql> SELECT something FROM tbl_name
+ -> WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col;
+The query also selects rows with dates that lie in the future.
+Functions that expect date values usually accept datetime values and ignore the time part. Functions that
+expect time values usually accept datetime values and ignore the date part.
+Functions that return the current date or time each are evaluated only once per query at the start of
+query execution. This means that multiple references to a function such as NOW() within a single query
+always produce the same result. (For our purposes, a single query also includes a call to a stored program
+(stored routine, trigger, or event) and all subprograms called by that program.) This principle also applies
+to CURDATE(), CURTIME(), UTC_DATE(), UTC_TIME(), UTC_TIMESTAMP(), and to any of their
+synonyms.
+The CURRENT_TIMESTAMP(), CURRENT_TIME(), CURRENT_DATE(), and FROM_UNIXTIME() functions
+return values in the current session time zone, which is available as the session value of the time_zone
+system variable. In addition, UNIX_TIMESTAMP() assumes that its argument is a datetime value in the
+session time zone. See Section 5.1.13, “MySQL Server Time Zone Support”.
+Some date functions can be used with “zero” dates or incomplete dates such as '2001-11-00', whereas
+others cannot. Functions that extract parts of dates typically work with incomplete dates and thus can
+return 0 when you might otherwise expect a nonzero value. For example:
+mysql> SELECT DAYOFMONTH('2001-11-00'), MONTH('2005-00-00');
+ -> 0, 0
+Other functions expect complete dates and return NULL for incomplete dates. These include functions that
+perform date arithmetic or that map parts of dates to names. For example:
+Date and Time Functions
+1998
+mysql> SELECT DATE_ADD('2006-05-00',INTERVAL 1 DAY);
+ -> NULL
+mysql> SELECT DAYNAME('2006-05-00');
+ -> NULL
+Several functions are more strict when passed a DATE() function value as their argument and reject
+incomplete dates with a day part of zero. These functions are affected: CONVERT_TZ(), DATE_ADD(),
+DATE_SUB(), DAYOFYEAR(), LAST_DAY() (permits a day part of zero), TIMESTAMPDIFF(),
+TO_DAYS(), TO_SECONDS(), WEEK(), WEEKDAY(), WEEKOFYEAR(), YEARWEEK().
+Fractional seconds for TIME, DATETIME, and TIMESTAMP values are supported, with up to microsecond
+precision. Functions that take temporal arguments accept values with fractional seconds. Return values
+from temporal functions include fractional seconds as appropriate.
+• ADDDATE(date,INTERVAL expr unit), ADDDATE(expr,days)
+When invoked with the INTERVAL form of the second argument, ADDDATE() is a synonym for
+DATE_ADD(). The related function SUBDATE() is a synonym for DATE_SUB(). For information on the
+INTERVAL unit argument, see Temporal Intervals.
+mysql> SELECT DATE_ADD('2008-01-02', INTERVAL 31 DAY);
+ -> '2008-02-02'
+mysql> SELECT ADDDATE('2008-01-02', INTERVAL 31 DAY);
+ -> '2008-02-02'
+When invoked with the days form of the second argument, MySQL treats it as an integer number of
+days to be added to expr.
+mysql> SELECT ADDDATE('2008-01-02', 31);
+ -> '2008-02-02'
+• ADDTIME(expr1,expr2)
+ADDTIME() adds expr2 to expr1 and returns the result. expr1 is a time or datetime expression, and
+expr2 is a time expression.
+mysql> SELECT ADDTIME('2007-12-31 23:59:59.999999', '1 1:1:1.000002');
+ -> '2008-01-02 01:01:01.000001'
+mysql> SELECT ADDTIME('01:00:00.999999', '02:00:00.999998');
+ -> '03:00:01.999997'
+• CONVERT_TZ(dt,from_tz,to_tz)
+CONVERT_TZ() converts a datetime value dt from the time zone given by from_tz to the time zone
+given by to_tz and returns the resulting value. Time zones are specified as described in Section 5.1.13,
+“MySQL Server Time Zone Support”. This function returns NULL if the arguments are invalid.
+If the value falls out of the supported range of the TIMESTAMP type when converted from from_tz to
+UTC, no conversion occurs. The TIMESTAMP range is described in Section 11.1.2, “Date and Time Type
+Overview”.
+mysql> SELECT CONVERT_TZ('2004-01-01 12:00:00','GMT','MET');
+ -> '2004-01-01 13:00:00'
+mysql> SELECT CONVERT_TZ('2004-01-01 12:00:00','+00:00','+10:00');
+ -> '2004-01-01 22:00:00'
+Date and Time Functions
+1999
+Note
+To use named time zones such as 'MET' or 'Europe/Amsterdam', the
+time zone tables must be properly set up. For instructions, see Section 5.1.13,
+“MySQL Server Time Zone Support”.
+• CURDATE()
+Returns the current date as a value in 'YYYY-MM-DD' or YYYYMMDD format, depending on whether the
+function is used in a string or numeric context.
+mysql> SELECT CURDATE();
+ -> '2008-06-13'
+mysql> SELECT CURDATE() + 0;
+ -> 20080613
+• CURRENT_DATE, CURRENT_DATE()
+CURRENT_DATE and CURRENT_DATE() are synonyms for CURDATE().
+• CURRENT_TIME, CURRENT_TIME([fsp])
+CURRENT_TIME and CURRENT_TIME() are synonyms for CURTIME().
+• CURRENT_TIMESTAMP, CURRENT_TIMESTAMP([fsp])
+CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW().
+• CURTIME([fsp])
+Returns the current time as a value in 'hh:mm:ss' or hhmmss format, depending on whether the
+function is used in a string or numeric context. The value is expressed in the session time zone.
+If the fsp argument is given to specify a fractional seconds precision from 0 to 6, the return value
+includes a fractional seconds part of that many digits.
+mysql> SELECT CURTIME();
+ -> '23:50:26'
+mysql> SELECT CURTIME() + 0;
+ -> 235026.000000
+• DATE(expr)
+Extracts the date part of the date or datetime expression expr.
+mysql> SELECT DATE('2003-12-31 01:02:03');
+ -> '2003-12-31'
+• DATEDIFF(expr1,expr2)
+DATEDIFF() returns expr1 − expr2 expressed as a value in days from one date to the other. expr1
+and expr2 are date or date-and-time expressions. Only the date parts of the values are used in the
+calculation.
+mysql> SELECT DATEDIFF('2007-12-31 23:59:59','2007-12-30');
+ -> 1
+mysql> SELECT DATEDIFF('2010-11-30 23:59:59','2010-12-31');
+
+
+
+
+
+ -> -31
+• DATE_ADD(date,INTERVAL expr unit), DATE_SUB(date,INTERVAL expr unit)
+These functions perform date arithmetic. The date argument specifies the starting date or datetime
+value. expr is an expression specifying the interval value to be added or subtracted from the starting
+date. expr is evaluated as a string; it may start with a - for negative intervals. unit is a keyword
+indicating the units in which the expression should be interpreted.
+For more information about temporal interval syntax, including a full list of unit specifiers, the expected
+form of the expr argument for each unit value, and rules for operand interpretation in temporal
+arithmetic, see Temporal Intervals.
+The return value depends on the arguments:
+• DATE if the date argument is a DATE value and your calculations involve only YEAR, MONTH, and DAY
+parts (that is, no time parts).
+• DATETIME if the first argument is a DATETIME (or TIMESTAMP) value, or if the first argument is a
+DATE and the unit value uses HOURS, MINUTES, or SECONDS.
+• String otherwise.
+To ensure that the result is DATETIME, you can use CAST() to convert the first argument to DATETIME.
+mysql> SELECT DATE_ADD('2018-05-01',INTERVAL 1 DAY);
+ -> '2018-05-02'
+mysql> SELECT DATE_SUB('2018-05-01',INTERVAL 1 YEAR);
+ -> '2017-05-01'
+mysql> SELECT DATE_ADD('2020-12-31 23:59:59',
+ -> INTERVAL 1 SECOND);
+ -> '2021-01-01 00:00:00'
+mysql> SELECT DATE_ADD('2018-12-31 23:59:59',
+ -> INTERVAL 1 DAY);
+ -> '2019-01-01 23:59:59'
+mysql> SELECT DATE_ADD('2100-12-31 23:59:59',
+ -> INTERVAL '1:1' MINUTE_SECOND);
+ -> '2101-01-01 00:01:00'
+mysql> SELECT DATE_SUB('2025-01-01 00:00:00',
+ -> INTERVAL '1 1:1:1' DAY_SECOND);
+ -> '2024-12-30 22:58:59'
+mysql> SELECT DATE_ADD('1900-01-01 00:00:00',
+ -> INTERVAL '-1 10' DAY_HOUR);
+ -> '1899-12-30 14:00:00'
+mysql> SELECT DATE_SUB('1998-01-02', INTERVAL 31 DAY);
+ -> '1997-12-02'
+mysql> SELECT DATE_ADD('1992-12-31 23:59:59.000002',
+ -> INTERVAL '1.999999' SECOND_MICROSECOND);
+ -> '1993-01-01 00:00:01.000001'
+• DATE_FORMAT(date,format)
+Formats the date value according to the format string.
+The specifiers shown in the following table may be used in the format string. The % character
+is required before format specifier characters. The specifiers apply to other functions as well:
+STR_TO_DATE(), TIME_FORMAT(), UNIX_TIMESTAMP().
+Date and Time Functions
+2001
+Specifier Description
+%a Abbreviated weekday name (Sun..Sat)
+%b Abbreviated month name (Jan..Dec)
+%c Month, numeric (0..12)
+%D Day of the month with English suffix (0th, 1st, 2nd, 3rd, …)
+%d Day of the month, numeric (00..31)
+%e Day of the month, numeric (0..31)
+%f Microseconds (000000..999999)
+%H Hour (00..23)
+%h Hour (01..12)
+%I Hour (01..12)
+%i Minutes, numeric (00..59)
+%j Day of year (001..366)
+%k Hour (0..23)
+%l Hour (1..12)
+%M Month name (January..December)
+%m Month, numeric (00..12)
+%p AM or PM
+%r Time, 12-hour (hh:mm:ss followed by AM or PM)
+%S Seconds (00..59)
+%s Seconds (00..59)
+%T Time, 24-hour (hh:mm:ss)
+%U Week (00..53), where Sunday is the first day of the week; WEEK()
+mode 0
+%u Week (00..53), where Monday is the first day of the week; WEEK()
+mode 1
+%V Week (01..53), where Sunday is the first day of the week; WEEK()
+mode 2; used with %X
+%v Week (01..53), where Monday is the first day of the week; WEEK()
+mode 3; used with %x
+%W Weekday name (Sunday..Saturday)
+%w Day of the week (0=Sunday..6=Saturday)
+%X Year for the week where Sunday is the first day of the week, numeric,
+four digits; used with %V
+%x Year for the week, where Monday is the first day of the week, numeric,
+four digits; used with %v
+%Y Year, numeric, four digits
+%y Year, numeric (two digits)
+%% A literal % character
+%x x, for any “x” not listed above
+Date and Time Functions
+2002
+Ranges for the month and day specifiers begin with zero due to the fact that MySQL permits the storing
+of incomplete dates such as '2014-00-00'.
+The language used for day and month names and abbreviations is controlled by the value of the
+lc_time_names system variable (Section 10.16, “MySQL Server Locale Support”).
+For the %U, %u, %V, and %v specifiers, see the description of the WEEK() function for information about
+the mode values. The mode affects how week numbering occurs.
+DATE_FORMAT() returns a string with a character set and collation given by
+character_set_connection and collation_connection so that it can return month and
+weekday names containing non-ASCII characters.
+mysql> SELECT DATE_FORMAT('2009-10-04 22:23:00', '%W %M %Y');
+ -> 'Sunday October 2009'
+mysql> SELECT DATE_FORMAT('2007-10-04 22:23:00', '%H:%i:%s');
+ -> '22:23:00'
+mysql> SELECT DATE_FORMAT('1900-10-04 22:23:00',
+ -> '%D %y %a %d %m %b %j');
+ -> '4th 00 Thu 04 10 Oct 277'
+mysql> SELECT DATE_FORMAT('1997-10-04 22:23:00',
+ -> '%H %k %I %r %T %S %w');
+ -> '22 22 10 10:23:00 PM 22:23:00 00 6'
+mysql> SELECT DATE_FORMAT('1999-01-01', '%X %V');
+ -> '1998 52'
+mysql> SELECT DATE_FORMAT('2006-06-00', '%d');
+ -> '00'
+• DATE_SUB(date,INTERVAL expr unit)
+See the description for DATE_ADD().
+• DAY(date)
+DAY() is a synonym for DAYOFMONTH().
+• DAYNAME(date)
+Returns the name of the weekday for date. The language used for the name is controlled by the value
+of the lc_time_names system variable (Section 10.16, “MySQL Server Locale Support”).
+mysql> SELECT DAYNAME('2007-02-03');
+ -> 'Saturday'
+• DAYOFMONTH(date)
+Returns the day of the month for date, in the range 1 to 31, or 0 for dates such as '0000-00-00' or
+'2008-00-00' that have a zero day part.
+mysql> SELECT DAYOFMONTH('2007-02-03');
+ -> 3
+• DAYOFWEEK(date)
+Returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday). These index values
+correspond to the ODBC standard.
+Date and Time Functions
+2003
+mysql> SELECT DAYOFWEEK('2007-02-03');
+ -> 7
+• DAYOFYEAR(date)
+Returns the day of the year for date, in the range 1 to 366.
+mysql> SELECT DAYOFYEAR('2007-02-03');
+ -> 34
+• EXTRACT(unit FROM date)
+The EXTRACT() function uses the same kinds of unit specifiers as DATE_ADD() or DATE_SUB(),
+but extracts parts from the date rather than performing date arithmetic. For information on the unit
+argument, see Temporal Intervals.
+mysql> SELECT EXTRACT(YEAR FROM '2019-07-02');
+ -> 2019
+mysql> SELECT EXTRACT(YEAR_MONTH FROM '2019-07-02 01:02:03');
+ -> 201907
+mysql> SELECT EXTRACT(DAY_MINUTE FROM '2019-07-02 01:02:03');
+ -> 20102
+mysql> SELECT EXTRACT(MICROSECOND
+ -> FROM '2003-01-02 10:30:00.000123');
+ -> 123
+• FROM_DAYS(N)
+Given a day number N, returns a DATE value.
+mysql> SELECT FROM_DAYS(730669);
+ -> '2000-07-03'
+Use FROM_DAYS() with caution on old dates. It is not intended for use with values that precede the
+advent of the Gregorian calendar (1582). See Section 12.8, “What Calendar Is Used By MySQL?”.
+• FROM_UNIXTIME(unix_timestamp[,format])
+Returns a representation of the unix_timestamp argument as a value in 'YYYY-MM-DD hh:mm:ss'
+or YYYYMMDDhhmmss.uuuuuu format, depending on whether the function is used in a string or numeric
+context. unix_timestamp is an internal timestamp value representing seconds since '1970-01-01
+00:00:00' UTC, such as produced by the UNIX_TIMESTAMP() function.
+The return value is expressed in the session time zone. (Clients can set the session time zone as
+described in Section 5.1.13, “MySQL Server Time Zone Support”.) The format string, if given, is used
+to format the result the same way as described in the entry for the DATE_FORMAT() function.
+mysql> SELECT FROM_UNIXTIME(1447430881);
+ -> '2015-11-13 10:08:01'
+mysql> SELECT FROM_UNIXTIME(1447430881) + 0;
+ -> 20151113100801
+mysql> SELECT FROM_UNIXTIME(1447430881,
+ -> '%Y %D %M %h:%i:%s %x');
+ -> '2015 13th November 10:08:01 2015'
+Date and Time Functions
+2004
+Note
+If you use UNIX_TIMESTAMP() and FROM_UNIXTIME() to convert between
+values in a non-UTC time zone and Unix timestamp values, the conversion is
+lossy because the mapping is not one-to-one in both directions. For details, see
+the description of the UNIX_TIMESTAMP() function.
+• GET_FORMAT({DATE|TIME|DATETIME}, {'EUR'|'USA'|'JIS'|'ISO'|'INTERNAL'})
+Returns a format string. This function is useful in combination with the DATE_FORMAT() and the
+STR_TO_DATE() functions.
+The possible values for the first and second arguments result in several possible format strings (for the
+specifiers used, see the table in the DATE_FORMAT() function description). ISO format refers to ISO
+9075, not ISO 8601.
+Function Call Result
+GET_FORMAT(DATE,'USA') '%m.%d.%Y'
+GET_FORMAT(DATE,'JIS') '%Y-%m-%d'
+GET_FORMAT(DATE,'ISO') '%Y-%m-%d'
+GET_FORMAT(DATE,'EUR') '%d.%m.%Y'
+GET_FORMAT(DATE,'INTERNAL') '%Y%m%d'
+GET_FORMAT(DATETIME,'USA') '%Y-%m-%d %H.%i.%s'
+GET_FORMAT(DATETIME,'JIS') '%Y-%m-%d %H:%i:%s'
+GET_FORMAT(DATETIME,'ISO') '%Y-%m-%d %H:%i:%s'
+GET_FORMAT(DATETIME,'EUR') '%Y-%m-%d %H.%i.%s'
+GET_FORMAT(DATETIME,'INTERNAL') '%Y%m%d%H%i%s'
+GET_FORMAT(TIME,'USA') '%h:%i:%s %p'
+GET_FORMAT(TIME,'JIS') '%H:%i:%s'
+GET_FORMAT(TIME,'ISO') '%H:%i:%s'
+GET_FORMAT(TIME,'EUR') '%H.%i.%s'
+GET_FORMAT(TIME,'INTERNAL') '%H%i%s'
+TIMESTAMP can also be used as the first argument to GET_FORMAT(), in which case the function
+returns the same values as for DATETIME.
+mysql> SELECT DATE_FORMAT('2003-10-03',GET_FORMAT(DATE,'EUR'));
+ -> '03.10.2003'
+mysql> SELECT STR_TO_DATE('10.31.2003',GET_FORMAT(DATE,'USA'));
+ -> '2003-10-31'
+• HOUR(time)
+Returns the hour for time. The range of the return value is 0 to 23 for time-of-day values. However, the
+range of TIME values actually is much larger, so HOUR can return values greater than 23.
+mysql> SELECT HOUR('10:05:03');
+ -> 10
+mysql> SELECT HOUR('272:59:59');
+Date and Time Functions
+2005
+ -> 272
+• LAST_DAY(date)
+Takes a date or datetime value and returns the corresponding value for the last day of the month.
+Returns NULL if the argument is invalid.
+mysql> SELECT LAST_DAY('2003-02-05');
+ -> '2003-02-28'
+mysql> SELECT LAST_DAY('2004-02-05');
+ -> '2004-02-29'
+mysql> SELECT LAST_DAY('2004-01-01 01:01:01');
+ -> '2004-01-31'
+mysql> SELECT LAST_DAY('2003-03-32');
+ -> NULL
+• LOCALTIME, LOCALTIME([fsp])
+LOCALTIME and LOCALTIME() are synonyms for NOW().
+• LOCALTIMESTAMP, LOCALTIMESTAMP([fsp])
+LOCALTIMESTAMP and LOCALTIMESTAMP() are synonyms for NOW().
+• MAKEDATE(year,dayofyear)
+Returns a date, given year and day-of-year values. dayofyear must be greater than 0 or the result is
+NULL.
+mysql> SELECT MAKEDATE(2011,31), MAKEDATE(2011,32);
+ -> '2011-01-31', '2011-02-01'
+mysql> SELECT MAKEDATE(2011,365), MAKEDATE(2014,365);
+ -> '2011-12-31', '2014-12-31'
+mysql> SELECT MAKEDATE(2011,0);
+ -> NULL
+• MAKETIME(hour,minute,second)
+Returns a time value calculated from the hour, minute, and second arguments.
+The second argument can have a fractional part.
+mysql> SELECT MAKETIME(12,15,30);
+ -> '12:15:30'
+• MICROSECOND(expr)
+Returns the microseconds from the time or datetime expression expr as a number in the range from 0
+to 999999.
+mysql> SELECT MICROSECOND('12:00:00.123456');
+ -> 123456
+mysql> SELECT MICROSECOND('2019-12-31 23:59:59.000010');
+ -> 10
+• MINUTE(time)
+Returns the minute for time, in the range 0 to 59.
+Date and Time Functions
+2006
+mysql> SELECT MINUTE('2008-02-03 10:05:03');
+ -> 5
+• MONTH(date)
+Returns the month for date, in the range 1 to 12 for January to December, or 0 for dates such as
+'0000-00-00' or '2008-00-00' that have a zero month part.
+mysql> SELECT MONTH('2008-02-03');
+ -> 2
+• MONTHNAME(date)
+Returns the full name of the month for date. The language used for the name is controlled by the value
+of the lc_time_names system variable (Section 10.16, “MySQL Server Locale Support”).
+mysql> SELECT MONTHNAME('2008-02-03');
+ -> 'February'
+• NOW([fsp])
+Returns the current date and time as a value in 'YYYY-MM-DD hh:mm:ss' or YYYYMMDDhhmmss
+format, depending on whether the function is used in a string or numeric context. The value is expressed
+in the session time zone.
+If the fsp argument is given to specify a fractional seconds precision from 0 to 6, the return value
+includes a fractional seconds part of that many digits.
+mysql> SELECT NOW();
+ -> '2007-12-15 23:50:26'
+mysql> SELECT NOW() + 0;
+ -> 20071215235026.000000
+NOW() returns a constant time that indicates the time at which the statement began to execute. (Within
+a stored function or trigger, NOW() returns the time at which the function or triggering statement began
+to execute.) This differs from the behavior for SYSDATE(), which returns the exact time at which it
+executes.
+mysql> SELECT NOW(), SLEEP(2), NOW();
++---------------------+----------+---------------------+
+| NOW() | SLEEP(2) | NOW() |
++---------------------+----------+---------------------+
+| 2006-04-12 13:47:36 | 0 | 2006-04-12 13:47:36 |
++---------------------+----------+---------------------+
+mysql> SELECT SYSDATE(), SLEEP(2), SYSDATE();
++---------------------+----------+---------------------+
+| SYSDATE() | SLEEP(2) | SYSDATE() |
++---------------------+----------+---------------------+
+| 2006-04-12 13:47:44 | 0 | 2006-04-12 13:47:46 |
++---------------------+----------+---------------------+
+In addition, the SET TIMESTAMP statement affects the value returned by NOW() but not by SYSDATE().
+This means that timestamp settings in the binary log have no effect on invocations of SYSDATE().
+Setting the timestamp to a nonzero value causes each subsequent invocation of NOW() to return that
+Date and Time Functions
+2007
+value. Setting the timestamp to zero cancels this effect so that NOW() once again returns the current
+date and time.
+See the description for SYSDATE() for additional information about the differences between the two
+functions.
+• PERIOD_ADD(P,N)
+Adds N months to period P (in the format YYMM or YYYYMM). Returns a value in the format YYYYMM.
+Note
+The period argument P is not a date value.
+mysql> SELECT PERIOD_ADD(200801,2);
+ -> 200803
+• PERIOD_DIFF(P1,P2)
+Returns the number of months between periods P1 and P2. P1 and P2 should be in the format YYMM or
+YYYYMM. Note that the period arguments P1 and P2 are not date values.
+mysql> SELECT PERIOD_DIFF(200802,200703);
+ -> 11
+• QUARTER(date)
+Returns the quarter of the year for date, in the range 1 to 4.
+mysql> SELECT QUARTER('2008-04-01');
+ -> 2
+• SECOND(time)
+Returns the second for time, in the range 0 to 59.
+mysql> SELECT SECOND('10:05:03');
+ -> 3
+• SEC_TO_TIME(seconds)
+Returns the seconds argument, converted to hours, minutes, and seconds, as a TIME value. The range
+of the result is constrained to that of the TIME data type. A warning occurs if the argument corresponds
+to a value outside that range.
+mysql> SELECT SEC_TO_TIME(2378);
+ -> '00:39:38'
+mysql> SELECT SEC_TO_TIME(2378) + 0;
+ -> 3938
+• STR_TO_DATE(str,format)
+This is the inverse of the DATE_FORMAT() function. It takes a string str and a format string format.
+STR_TO_DATE() returns a DATETIME value if the format string contains both date and time parts, or
+Date and Time Functions
+2008
+a DATE or TIME value if the string contains only date or time parts. If the date, time, or datetime value
+extracted from str is illegal, STR_TO_DATE() returns NULL and produces a warning.
+The server scans str attempting to match format to it. The format string can contain literal characters
+and format specifiers beginning with %. Literal characters in format must match literally in str. Format
+specifiers in format must match a date or time part in str. For the specifiers that can be used in
+format, see the DATE_FORMAT() function description.
+mysql> SELECT STR_TO_DATE('01,5,2013','%d,%m,%Y');
+ -> '2013-05-01'
+mysql> SELECT STR_TO_DATE('May 1, 2013','%M %d,%Y');
+ -> '2013-05-01'
+Scanning starts at the beginning of str and fails if format is found not to match. Extra characters at the
+end of str are ignored.
+mysql> SELECT STR_TO_DATE('a09:30:17','a%h:%i:%s');
+ -> '09:30:17'
+mysql> SELECT STR_TO_DATE('a09:30:17','%h:%i:%s');
+ -> NULL
+mysql> SELECT STR_TO_DATE('09:30:17a','%h:%i:%s');
+ -> '09:30:17'
+Unspecified date or time parts have a value of 0, so incompletely specified values in str produce a
+result with some or all parts set to 0:
+mysql> SELECT STR_TO_DATE('abc','abc');
+ -> '0000-00-00'
+mysql> SELECT STR_TO_DATE('9','%m');
+ -> '0000-09-00'
+mysql> SELECT STR_TO_DATE('9','%s');
+ -> '00:00:09'
+Range checking on the parts of date values is as described in Section 11.3.1, “The DATE, DATETIME,
+and TIMESTAMP Types”. This means, for example, that “zero” dates or dates with part values of 0 are
+permitted unless the SQL mode is set to disallow such values.
+mysql> SELECT STR_TO_DATE('00/00/0000', '%m/%d/%Y');
+ -> '0000-00-00'
+mysql> SELECT STR_TO_DATE('04/31/2004', '%m/%d/%Y');
+ -> '2004-04-31'
+If the NO_ZERO_DATE or NO_ZERO_IN_DATE SQL mode is enabled, zero dates or part of dates are
+disallowed. In that case, STR_TO_DATE() returns NULL and generates a warning:
+mysql> SET sql_mode = '';
+mysql> SELECT STR_TO_DATE('15:35:00', '%H:%i:%s');
++-------------------------------------+
+| STR_TO_DATE('15:35:00', '%H:%i:%s') |
++-------------------------------------+
+| 15:35:00 |
++-------------------------------------+
+mysql> SET sql_mode = 'NO_ZERO_IN_DATE';
+mysql> SELECT STR_TO_DATE('15:35:00', '%h:%i:%s');
++-------------------------------------+
+| STR_TO_DATE('15:35:00', '%h:%i:%s') |
++-------------------------------------+
+| NULL |
+Date and Time Functions
+2009
++-------------------------------------+
+mysql> SHOW WARNINGS\G
+*************************** 1. row ***************************
+ Level: Warning
+ Code: 1411
+Message: Incorrect datetime value: '15:35:00' for function str_to_date
+Note
+You cannot use format "%X%V" to convert a year-week string to a date because
+the combination of a year and week does not uniquely identify a year and month
+if the week crosses a month boundary. To convert a year-week to a date, you
+should also specify the weekday:
+mysql> SELECT STR_TO_DATE('200442 Monday', '%X%V %W');
+ -> '2004-10-18'
+
+
+• SUBDATE(date,INTERVAL expr unit), SUBDATE(expr,days)
+When invoked with the INTERVAL form of the second argument, SUBDATE() is a synonym for
+DATE_SUB(). For information on the INTERVAL unit argument, see the discussion for DATE_ADD().
+mysql> SELECT DATE_SUB('2008-01-02', INTERVAL 31 DAY);
+ -> '2007-12-02'
+mysql> SELECT SUBDATE('2008-01-02', INTERVAL 31 DAY);
+ -> '2007-12-02'
+The second form enables the use of an integer value for days. In such cases, it is interpreted as the
+number of days to be subtracted from the date or datetime expression expr.
+mysql> SELECT SUBDATE('2008-01-02 12:00:00', 31);
+ -> '2007-12-02 12:00:00'
+• SUBTIME(expr1,expr2)
+SUBTIME() returns expr1 − expr2 expressed as a value in the same format as expr1. expr1 is a
+time or datetime expression, and expr2 is a time expression.
+mysql> SELECT SUBTIME('2007-12-31 23:59:59.999999','1 1:1:1.000002');
+ -> '2007-12-30 22:58:58.999997'
+mysql> SELECT SUBTIME('01:00:00.999999', '02:00:00.999998');
+ -> '-00:59:59.999999'
+• SYSDATE([fsp])
+Returns the current date and time as a value in 'YYYY-MM-DD hh:mm:ss' or YYYYMMDDhhmmss
+format, depending on whether the function is used in a string or numeric context.
+If the fsp argument is given to specify a fractional seconds precision from 0 to 6, the return value
+includes a fractional seconds part of that many digits.
+SYSDATE() returns the time at which it executes. This differs from the behavior for NOW(), which returns
+a constant time that indicates the time at which the statement began to execute. (Within a stored function
+or trigger, NOW() returns the time at which the function or triggering statement began to execute.)
+mysql> SELECT NOW(), SLEEP(2), NOW();
++---------------------+----------+---------------------+
+Date and Time Functions
+2010
+| NOW() | SLEEP(2) | NOW() |
++---------------------+----------+---------------------+
+| 2006-04-12 13:47:36 | 0 | 2006-04-12 13:47:36 |
++---------------------+----------+---------------------+
+mysql> SELECT SYSDATE(), SLEEP(2), SYSDATE();
++---------------------+----------+---------------------+
+| SYSDATE() | SLEEP(2) | SYSDATE() |
++---------------------+----------+---------------------+
+| 2006-04-12 13:47:44 | 0 | 2006-04-12 13:47:46 |
++---------------------+----------+---------------------+
+In addition, the SET TIMESTAMP statement affects the value returned by NOW() but not by SYSDATE().
+This means that timestamp settings in the binary log have no effect on invocations of SYSDATE().
+Because SYSDATE() can return different values even within the same statement, and is not affected by
+SET TIMESTAMP, it is nondeterministic and therefore unsafe for replication if statement-based binary
+logging is used. If that is a problem, you can use row-based logging.
+Alternatively, you can use the --sysdate-is-now option to cause SYSDATE() to be an alias for
+NOW(). This works if the option is used on both the master and the slave.
+The nondeterministic nature of SYSDATE() also means that indexes cannot be used for evaluating
+expressions that refer to it.
+• TIME(expr)
+Extracts the time part of the time or datetime expression expr and returns it as a string.
+This function is unsafe for statement-based replication. A warning is logged if you use this function when
+binlog_format is set to STATEMENT.
+mysql> SELECT TIME('2003-12-31 01:02:03');
+ -> '01:02:03'
+mysql> SELECT TIME('2003-12-31 01:02:03.000123');
+ -> '01:02:03.000123'
+• TIMEDIFF(expr1,expr2)
+TIMEDIFF() returns expr1 − expr2 expressed as a time value. expr1 and expr2 are time or dateand-time expressions, but both must be of the same type.
+The result returned by TIMEDIFF() is limited to the range allowed for TIME values. Alternatively, you
+can use either of the functions TIMESTAMPDIFF() and UNIX_TIMESTAMP(), both of which return
+integers.
+mysql> SELECT TIMEDIFF('2000:01:01 00:00:00',
+ -> '2000:01:01 00:00:00.000001');
+ -> '-00:00:00.000001'
+mysql> SELECT TIMEDIFF('2008-12-31 23:59:59.000001',
+ -> '2008-12-30 01:01:01.000002');
+ -> '46:58:57.999999'
+• TIMESTAMP(expr), TIMESTAMP(expr1,expr2)
+With a single argument, this function returns the date or datetime expression expr as a datetime value.
+With two arguments, it adds the time expression expr2 to the date or datetime expression expr1 and
+returns the result as a datetime value.
+Date and Time Functions
+2011
+mysql> SELECT TIMESTAMP('2003-12-31');
+ -> '2003-12-31 00:00:00'
+mysql> SELECT TIMESTAMP('2003-12-31 12:00:00','12:00:00');
+ -> '2004-01-01 00:00:00'
+• TIMESTAMPADD(unit,interval,datetime_expr)
+Adds the integer expression interval to the date or datetime expression datetime_expr. The
+unit for interval is given by the unit argument, which should be one of the following values:
+MICROSECOND (microseconds), SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, or YEAR.
+The unit value may be specified using one of keywords as shown, or with a prefix of SQL_TSI_. For
+example, DAY and SQL_TSI_DAY both are legal.
+mysql> SELECT TIMESTAMPADD(MINUTE,1,'2003-01-02');
+ -> '2003-01-02 00:01:00'
+mysql> SELECT TIMESTAMPADD(WEEK,1,'2003-01-02');
+ -> '2003-01-09'
+• TIMESTAMPDIFF(unit,datetime_expr1,datetime_expr2)
+Returns datetime_expr2 − datetime_expr1, where datetime_expr1 and datetime_expr2
+are date or datetime expressions. One expression may be a date and the other a datetime; a date value
+is treated as a datetime having the time part '00:00:00' where necessary. The unit for the result (an
+integer) is given by the unit argument. The legal values for unit are the same as those listed in the
+description of the TIMESTAMPADD() function.
+mysql> SELECT TIMESTAMPDIFF(MONTH,'2003-02-01','2003-05-01');
+ -> 3
+mysql> SELECT TIMESTAMPDIFF(YEAR,'2002-05-01','2001-01-01');
+ -> -1
+mysql> SELECT TIMESTAMPDIFF(MINUTE,'2003-02-01','2003-05-01 12:05:55');
+ -> 128885
+Note
+The order of the date or datetime arguments for this function is the opposite of
+that used with the TIMESTAMP() function when invoked with 2 arguments.
+• TIME_FORMAT(time,format)
+This is used like the DATE_FORMAT() function, but the format string may contain format specifiers only
+for hours, minutes, seconds, and microseconds. Other specifiers produce a NULL value or 0.
+If the time value contains an hour part that is greater than 23, the %H and %k hour format specifiers
+produce a value larger than the usual range of 0..23. The other hour format specifiers produce the hour
+value modulo 12.
+mysql> SELECT TIME_FORMAT('100:00:00', '%H %k %h %I %l');
+ -> '100 100 04 04 4'
+• TIME_TO_SEC(time)
+Returns the time argument, converted to seconds.
+Date and Time Functions
+2012
+mysql> SELECT TIME_TO_SEC('22:23:00');
+ -> 80580
+mysql> SELECT TIME_TO_SEC('00:39:38');
+ -> 2378
+• TO_DAYS(date)
+Given a date date, returns a day number (the number of days since year 0).
+mysql> SELECT TO_DAYS(950501);
+ -> 728779
+mysql> SELECT TO_DAYS('2007-10-07');
+ -> 733321
+TO_DAYS() is not intended for use with values that precede the advent of the Gregorian calendar
+(1582), because it does not take into account the days that were lost when the calendar was changed.
+For dates before 1582 (and possibly a later year in other locales), results from this function are not
+reliable. See Section 12.8, “What Calendar Is Used By MySQL?”, for details.
+Remember that MySQL converts two-digit year values in dates to four-digit form using the rules in
+Section 11.3, “Date and Time Types”. For example, '2008-10-07' and '08-10-07' are seen as
+identical dates:
+mysql> SELECT TO_DAYS('2008-10-07'), TO_DAYS('08-10-07');
+ -> 733687, 733687
+In MySQL, the zero date is defined as '0000-00-00', even though this date is itself considered invalid.
+This means that, for '0000-00-00' and '0000-01-01', TO_DAYS() returns the values shown here:
+mysql> SELECT TO_DAYS('0000-00-00');
++-----------------------+
+| to_days('0000-00-00') |
++-----------------------+
+| NULL |
++-----------------------+
+1 row in set, 1 warning (0.00 sec)
+mysql> SHOW WARNINGS;
++---------+------+----------------------------------------+
+| Level | Code | Message |
++---------+------+----------------------------------------+
+| Warning | 1292 | Incorrect datetime value: '0000-00-00' |
++---------+------+----------------------------------------+
+1 row in set (0.00 sec)
+mysql> SELECT TO_DAYS('0000-01-01');
++-----------------------+
+| to_days('0000-01-01') |
++-----------------------+
+| 1 |
++-----------------------+
+1 row in set (0.00 sec)
+This is true whether or not the ALLOW_INVALID_DATES SQL server mode is enabled.
+• TO_SECONDS(expr)
+Given a date or datetime expr, returns the number of seconds since the year 0. If expr is not a valid
+date or datetime value, returns NULL.
+Date and Time Functions
+2013
+mysql> SELECT TO_SECONDS(950501);
+ -> 62966505600
+mysql> SELECT TO_SECONDS('2009-11-29');
+ -> 63426672000
+mysql> SELECT TO_SECONDS('2009-11-29 13:43:32');
+ -> 63426721412
+mysql> SELECT TO_SECONDS( NOW() );
+ -> 63426721458
+Like TO_DAYS(), TO_SECONDS() is not intended for use with values that precede the advent of the
+Gregorian calendar (1582), because it does not take into account the days that were lost when the
+calendar was changed. For dates before 1582 (and possibly a later year in other locales), results from
+this function are not reliable. See Section 12.8, “What Calendar Is Used By MySQL?”, for details.
+Like TO_DAYS(), TO_SECONDS(), converts two-digit year values in dates to four-digit form using the
+rules in Section 11.3, “Date and Time Types”.
+In MySQL, the zero date is defined as '0000-00-00', even though this date is itself considered invalid.
+This means that, for '0000-00-00' and '0000-01-01', TO_SECONDS() returns the values shown
+here:
+mysql> SELECT TO_SECONDS('0000-00-00');
++--------------------------+
+| TO_SECONDS('0000-00-00') |
++--------------------------+
+| NULL |
++--------------------------+
+1 row in set, 1 warning (0.00 sec)
+mysql> SHOW WARNINGS;
++---------+------+----------------------------------------+
+| Level | Code | Message |
++---------+------+----------------------------------------+
+| Warning | 1292 | Incorrect datetime value: '0000-00-00' |
++---------+------+----------------------------------------+
+1 row in set (0.00 sec)
+mysql> SELECT TO_SECONDS('0000-01-01');
++--------------------------+
+| TO_SECONDS('0000-01-01') |
++--------------------------+
+| 86400 |
++--------------------------+
+1 row in set (0.00 sec)
+This is true whether or not the ALLOW_INVALID_DATES SQL server mode is enabled.
+• UNIX_TIMESTAMP([date])
+If UNIX_TIMESTAMP() is called with no date argument, it returns a Unix timestamp representing
+seconds since '1970-01-01 00:00:00' UTC.
+If UNIX_TIMESTAMP() is called with a date argument, it returns the value of the argument as seconds
+since '1970-01-01 00:00:00' UTC. The server interprets date as a value in the session time
+zone and converts it to an internal Unix timestamp value in UTC. (Clients can set the session time zone
+as described in Section 5.1.13, “MySQL Server Time Zone Support”.) The date argument may be
+a DATE, DATETIME, or TIMESTAMP string, or a number in YYMMDD, YYMMDDhhmmss, YYYYMMDD, or
+Date and Time Functions
+2014
+YYYYMMDDhhmmss format. If the argument includes a time part, it may optionally include a fractional
+seconds part.
+The return value is an integer if no argument is given or the argument does not include a fractional
+seconds part, or DECIMAL if an argument is given that includes a fractional seconds part.
+When the date argument is a TIMESTAMP column, UNIX_TIMESTAMP() returns the internal timestamp
+value directly, with no implicit “string-to-Unix-timestamp” conversion.
+The valid range of argument values is the same as for the TIMESTAMP data type: '1970-01-01
+00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC. If you pass an out-of-range
+date to UNIX_TIMESTAMP(), it returns 0.
+mysql> SELECT UNIX_TIMESTAMP();
+ -> 1447431666
+mysql> SELECT UNIX_TIMESTAMP('2015-11-13 10:20:19');
+ -> 1447431619
+mysql> SELECT UNIX_TIMESTAMP('2015-11-13 10:20:19.012');
+ -> 1447431619.012
+If you use UNIX_TIMESTAMP() and FROM_UNIXTIME() to convert between values in a non-UTC time
+zone and Unix timestamp values, the conversion is lossy because the mapping is not one-to-one in both
+directions. For example, due to conventions for local time zone changes such as Daylight Saving Time
+(DST), it is possible for UNIX_TIMESTAMP() to map two values that are distinct in a non-UTC time
+zone to the same Unix timestamp value. FROM_UNIXTIME() will map that value back to only one of the
+original values. Here is an example, using values that are distinct in the MET time zone:
+mysql> SET time_zone = 'MET';
+mysql> SELECT UNIX_TIMESTAMP('2005-03-27 03:00:00');
++---------------------------------------+
+| UNIX_TIMESTAMP('2005-03-27 03:00:00') |
++---------------------------------------+
+| 1111885200 |
++---------------------------------------+
+mysql> SELECT UNIX_TIMESTAMP('2005-03-27 02:00:00');
++---------------------------------------+
+| UNIX_TIMESTAMP('2005-03-27 02:00:00') |
++---------------------------------------+
+| 1111885200 |
++---------------------------------------+
+mysql> SELECT FROM_UNIXTIME(1111885200);
++---------------------------+
+| FROM_UNIXTIME(1111885200) |
++---------------------------+
+| 2005-03-27 03:00:00 |
++---------------------------+
+Note
+To use named time zones such as 'MET' or 'Europe/Amsterdam', the
+time zone tables must be properly set up. For instructions, see Section 5.1.13,
+“MySQL Server Time Zone Support”.
+If you want to subtract UNIX_TIMESTAMP() columns, you might want to cast them to signed integers.
+See Section 12.10, “Cast Functions and Operators”.
+• UTC_DATE, UTC_DATE()
+
+
+Returns the current UTC date as a value in 'YYYY-MM-DD' or YYYYMMDD format, depending on whether
+the function is used in a string or numeric context.
+mysql> SELECT UTC_DATE(), UTC_DATE() + 0;
+ -> '2003-08-14', 20030814
+• UTC_TIME, UTC_TIME([fsp])
+Returns the current UTC time as a value in 'hh:mm:ss' or hhmmss format, depending on whether the
+function is used in a string or numeric context.
+If the fsp argument is given to specify a fractional seconds precision from 0 to 6, the return value
+includes a fractional seconds part of that many digits.
+mysql> SELECT UTC_TIME(), UTC_TIME() + 0;
+ -> '18:07:53', 180753.000000
+• UTC_TIMESTAMP, UTC_TIMESTAMP([fsp])
+Returns the current UTC date and time as a value in 'YYYY-MM-DD hh:mm:ss' or YYYYMMDDhhmmss
+format, depending on whether the function is used in a string or numeric context.
+If the fsp argument is given to specify a fractional seconds precision from 0 to 6, the return value
+includes a fractional seconds part of that many digits.
+mysql> SELECT UTC_TIMESTAMP(), UTC_TIMESTAMP() + 0;
+ -> '2003-08-14 18:08:04', 20030814180804.000000
+• WEEK(date[,mode])
+This function returns the week number for date. The two-argument form of WEEK() enables you
+to specify whether the week starts on Sunday or Monday and whether the return value should
+be in the range from 0 to 53 or from 1 to 53. If the mode argument is omitted, the value of the
+default_week_format system variable is used. See Section 5.1.8, “Server System Variables”.
+The following table describes how the mode argument works.
+Mode First day of week Range Week 1 is the first week …
+0 Sunday 0-53 with a Sunday in this year
+1 Monday 0-53 with 4 or more days this year
+2 Sunday 1-53 with a Sunday in this year
+3 Monday 1-53 with 4 or more days this year
+4 Sunday 0-53 with 4 or more days this year
+5 Monday 0-53 with a Monday in this year
+6 Sunday 1-53 with 4 or more days this year
+7 Monday 1-53 with a Monday in this year
+For mode values with a meaning of “with 4 or more days this year,” weeks are numbered according to
+ISO 8601:1988:
+• If the week containing January 1 has 4 or more days in the new year, it is week 1.
+Date and Time Functions
+2016
+• Otherwise, it is the last week of the previous year, and the next week is week 1.
+mysql> SELECT WEEK('2008-02-20');
+ -> 7
+mysql> SELECT WEEK('2008-02-20',0);
+ -> 7
+mysql> SELECT WEEK('2008-02-20',1);
+ -> 8
+mysql> SELECT WEEK('2008-12-31',1);
+ -> 53
+If a date falls in the last week of the previous year, MySQL returns 0 if you do not use 2, 3, 6, or 7 as the
+optional mode argument:
+mysql> SELECT YEAR('2000-01-01'), WEEK('2000-01-01',0);
+ -> 2000, 0
+One might argue that WEEK() should return 52 because the given date actually occurs in the 52nd week
+of 1999. WEEK() returns 0 instead so that the return value is “the week number in the given year.” This
+makes use of the WEEK() function reliable when combined with other functions that extract a date part
+from a date.
+If you prefer a result evaluated with respect to the year that contains the first day of the week for the
+given date, use 0, 2, 5, or 7 as the optional mode argument.
+mysql> SELECT WEEK('2000-01-01',2);
+ -> 52
+Alternatively, use the YEARWEEK() function:
+mysql> SELECT YEARWEEK('2000-01-01');
+ -> 199952
+mysql> SELECT MID(YEARWEEK('2000-01-01'),5,2);
+ -> '52'
+• WEEKDAY(date)
+Returns the weekday index for date (0 = Monday, 1 = Tuesday, … 6 = Sunday).
+mysql> SELECT WEEKDAY('2008-02-03 22:23:00');
+ -> 6
+mysql> SELECT WEEKDAY('2007-11-06');
+ -> 1
+• WEEKOFYEAR(date)
+Returns the calendar week of the date as a number in the range from 1 to 53. WEEKOFYEAR() is a
+compatibility function that is equivalent to WEEK(date,3).
+mysql> SELECT WEEKOFYEAR('2008-02-20');
+ -> 8
+• YEAR(date)
+Returns the year for date, in the range 1000 to 9999, or 0 for the “zero” date.
+What Calendar Is Used By MySQL?
+2017
+mysql> SELECT YEAR('1987-01-01');
+ -> 1987
+• YEARWEEK(date), YEARWEEK(date,mode)
+Returns year and week for a date. The year in the result may be different from the year in the date
+argument for the first and the last week of the year.
+The mode argument works exactly like the mode argument to WEEK(). For the single-argument syntax,
+a mode value of 0 is used. Unlike WEEK(), the value of default_week_format does not influence
+YEARWEEK().
+mysql> SELECT YEARWEEK('1987-01-01');
+ -> 198652
+The week number is different from what the WEEK() function would return (
