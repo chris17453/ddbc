@@ -156,6 +156,7 @@ functions=[
  {  'signed_integer'      :  'sign integer' },
  {  'integer'             :  'unsigned_int | signed_int ' },
  {  'number'              :  'int | { int . unsigned_int } |  { . unsigned_int }  [E int]' },
+ {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
  # date 
  #fsp
  #str
@@ -207,6 +208,7 @@ def clean_pattern(pattern):
 
 
 def function_header(name,depth,pattern):
+    print "---------"
     if depth==0:
         o="""
 /*
@@ -233,6 +235,14 @@ def get_padd(depth,spacer):
     padd+="    "
     return padd
 
+uid_int=1
+    
+def uid():
+    global uid_int
+    uid_int+=1
+    return uid_int;
+
+
 def build(name,pattern,depth=0):
     spacer="   "
     pattern=clean_pattern(pattern)
@@ -254,23 +264,33 @@ def build(name,pattern,depth=0):
         last_token=token
         token=tokens[index]
         
-        depth2=0
+        optional_depth=0
+        group_depth=0
+        in_chain=0
         distance=0
+        # {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
+        #print "-"+token
+        if token!='' :
+            for pre_index in range(0,len(tokens)):
+                if pre_index==index-1 and in_chain==1:
+                    print "THIS IS A CHAIN"
+                if tokens[pre_index]=='{':   group_depth+=1
+                if tokens[pre_index]=='}':   group_depth-=1
+                if tokens[pre_index]=='[':   optional_depth+=1
+                if tokens[pre_index]==']':   optional_depth-=1
 
-        for pre_index in range(index,len(tokens)):
-            if tokens[pre_index]=='{': 
-                depth2+=1
-            if tokens[pre_index]=='}': 
-                depth2-=1
-            if depth==0:
-                if tokens[pre_index]==' ':
-                    continue
-
-                if tokens[pre_index]=='|' and distance==1:
-                    token_or="token_or_{0}".format(depth)
-
-                    print padd+"token_t * {0}=token;".format(token_or)
-                distance+=1;
+                if group_depth==0 and optional_depth==0:
+                    if tokens[pre_index]=='|' and distance==1:
+                        if in_chain==0:
+                            in_chain=1
+                        if index==pre_index: print "IN CHAIN"
+                        if index==pre_index:  token_or="token_or_{0}".format(uid())
+                        if index==pre_index:  print padd+"token_t * {0}=token;".format(token_or)
+                    distance+=1;
+                    if distance>1:
+                        if index==pre_index:  print "NOT IN CHAIN"
+                        in_chain=0
+                    
 
 
         #next_token=tokens[index+1]
@@ -288,7 +308,7 @@ def build(name,pattern,depth=0):
                 if tokens[index2]=='{':
                     md+=1
                 if tokens[index2]=='}':
-                    md-=1  
+                    md-=1
                 if md==0:
                     sub_pattern=" ".join(tokens[index+1:index2])
                     build(name,sub_pattern,depth+1)
@@ -311,10 +331,11 @@ def build(name,pattern,depth=0):
             continue
 
         if token[0]=='[':
+            uid_str=uid()
             print "\n"
             print padd+"// "+pattern
             print padd+"if ( token != NULL ) {{         //Match must be successfull to proceed".format(token)
-            print padd+spacer+"token_t *optional_token_{0}=token;".format(depth)
+            print padd+spacer+"token_t *optional_token_{0}=token;".format(uid_str)
             md=0
             for index2 in range(index,len(tokens)):
                 if tokens[index2]=='[':
@@ -327,7 +348,7 @@ def build(name,pattern,depth=0):
                     index=index2+1
                     break
             
-            print padd+spacer+"if ( token == NULL ) token = optional_token_{0};".format(depth)
+            print padd+spacer+"if ( token == NULL ) token = optional_token_{0};".format(uid_str)
             print padd+"}}//END Optional".format(token)
             continue            
             
