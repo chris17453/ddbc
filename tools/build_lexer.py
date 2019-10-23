@@ -208,7 +208,6 @@ def clean_pattern(pattern):
 
 
 def function_header(name,depth,pattern):
-    print "---------"
     if depth==0:
         o="""
 /*
@@ -263,17 +262,18 @@ def build(name,pattern,depth=0):
             break
         last_token=token
         token=tokens[index]
-        
+        if token=='':
+            index+=1
+            continue;
+
         optional_depth=0
         group_depth=0
         in_chain=0
         distance=0
         # {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
         #print "-"+token
-        if token!='' :
+        if token!='|':
             for pre_index in range(0,len(tokens)):
-                if pre_index==index-1 and in_chain==1:
-                    print "THIS IS A CHAIN"
                 if tokens[pre_index]=='{':   group_depth+=1
                 if tokens[pre_index]=='}':   group_depth-=1
                 if tokens[pre_index]=='[':   optional_depth+=1
@@ -283,13 +283,16 @@ def build(name,pattern,depth=0):
                     if tokens[pre_index]=='|' and distance==1:
                         if in_chain==0:
                             in_chain=1
-                        if index==pre_index: print "IN CHAIN"
-                        if index==pre_index:  token_or="token_or_{0}".format(uid())
-                        if index==pre_index:  print padd+"token_t * {0}=token;".format(token_or)
+                            token_or="token_or_{0}".format(uid())
+                            print padd+"token_t * {0}=token".format(token_or)
+                        #   print index,pre_index
+                        
+                        #if index==pre_index:  print padd+"token_t * {0}=token;".format(token_or)
                     distance+=1;
                     if distance>1:
-                        if index==pre_index:  print "NOT IN CHAIN"
+                        #print "NOT IN CHAIN"
                         in_chain=0
+                
                     
 
 
@@ -311,7 +314,7 @@ def build(name,pattern,depth=0):
                     md-=1
                 if md==0:
                     sub_pattern=" ".join(tokens[index+1:index2])
-                    build(name,sub_pattern,depth+1)
+                    #build(name,sub_pattern,depth+1)
                     index=index2
                     break
             continue
@@ -344,7 +347,7 @@ def build(name,pattern,depth=0):
                     md-=1  
                 if md==0:
                     sub_pattern=" ".join(tokens[index+1:index2])
-                    build(name,sub_pattern,depth+1)
+                    #:"build(name,sub_pattern,depth+1)
                     index=index2+1
                     break
             
