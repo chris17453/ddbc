@@ -1,4 +1,5 @@
 import datetime
+import pprint
 
 functions=[
  {  'ABS':                  'ABS ( X )'  }, 
@@ -199,11 +200,13 @@ PAREN_RIGHT=2
 
 
 def clean_pattern(pattern):
+    pattern=pattern.strip()
     pattern=pattern.replace("|"," | ")
     pattern=pattern.replace("]"," ] ")
     pattern=pattern.replace("["," [ ")
     pattern=pattern.replace(","," , ")
     pattern=pattern.replace("  "," ")
+    pattern=pattern.strip()
     return pattern
 
 
@@ -241,15 +244,81 @@ def uid():
     uid_int+=1
     return uid_int;
 
+def build_expression_levels(pattern,expression_depth):
+    pattern=clean_pattern(pattern)
+    tokens=pattern.split(" ")
+    
+    tokens2=[]
+
+    index=0
+    while 1:
+        if index>=len(tokens):
+            break
+        token=tokens[index]
+        if token=='{':
+            sub_tokens=[]
+            depth=0
+            for sub_index in range(index,len(tokens)):
+                sub_token=tokens[sub_index]
+                if sub_token=='{': depth+=1 
+                if sub_token=='}': depth-=1 
+                if depth==0:
+                    sub_tokens.append(sub_token)
+                    pattern2=" ".join(sub_tokens)
+                    if pattern==pattern2:
+                        tokens2.append(sub_tokens)    
+                    else:
+                        tokens2.append({'type':'group','data':build_expression_levels(pattern2[1:-1],expression_depth+1)}) 
+                    index=sub_index+1
+                    break
+                else:
+                    if token!='':
+                        sub_tokens.append(sub_token)
+            continue
+        
+        if token=='[':
+            sub_tokens=[]
+            depth=0
+            for sub_index in range(index,len(tokens)):
+                sub_token=tokens[sub_index]
+                if sub_token=='[': depth+=1 
+                if sub_token==']': depth-=1 
+                if depth==0:
+                    sub_tokens.append(sub_token)
+                    pattern2=" ".join(sub_tokens)
+                    if pattern==pattern2:
+                        tokens2.append(sub_tokens)    
+                    else:
+                        tokens2.append({'type':'optional','data':build_expression_levels(pattern2[1:-1],expression_depth+1)}) 
+                    index=sub_index+1
+                    break
+                else:
+                    if token!='':
+                        sub_tokens.append(sub_token)
+            continue
+        if token!='':
+            tokens2.append(token)
+        index+=1
+    
+    
+    return tokens2
+
+
 
 def build(name,pattern,depth=0):
     spacer="   "
-    pattern=clean_pattern(pattern)
     function_header(name,depth,pattern)
     padd=get_padd(depth,spacer)
-    
         
-    tokens=pattern.split(" ")
+    
+    tokens=build_expression_levels(pattern,0)
+    pprint.pprint(tokens)
+
+
+
+
+
+def bob():    
     optional=None
     in_or=None
     index=0
@@ -272,18 +341,22 @@ def build(name,pattern,depth=0):
         distance=0
         # {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
         #print "-"+token
-        if token!='|':
-            for pre_index in range(0,len(tokens)):
+        if token=='00|':
+
+            for pre_index in range(index,len(tokens)):
                 if tokens[pre_index]=='{':   group_depth+=1
                 if tokens[pre_index]=='}':   group_depth-=1
                 if tokens[pre_index]=='[':   optional_depth+=1
                 if tokens[pre_index]==']':   optional_depth-=1
-
+                if group_depth<0: break
+                if optional_depth<0: break
+                
                 if group_depth==0 and optional_depth==0:
                     if tokens[pre_index]=='|' and distance==1:
                         if in_chain==0:
                             in_chain=1
                             token_or="token_or_{0}".format(uid())
+                            #print index,pre_index,token
                             print padd+"token_t * {0}=token".format(token_or)
                         #   print index,pre_index
                         
@@ -291,7 +364,7 @@ def build(name,pattern,depth=0):
                     distance+=1;
                     if distance>1:
                         #print "NOT IN CHAIN"
-                        in_chain=0
+                        break
                 
                     
 
@@ -314,7 +387,7 @@ def build(name,pattern,depth=0):
                     md-=1
                 if md==0:
                     sub_pattern=" ".join(tokens[index+1:index2])
-                    #build(name,sub_pattern,depth+1)
+                    build(name,sub_pattern,depth+1)
                     index=index2
                     break
             continue
@@ -347,7 +420,7 @@ def build(name,pattern,depth=0):
                     md-=1  
                 if md==0:
                     sub_pattern=" ".join(tokens[index+1:index2])
-                    #:"build(name,sub_pattern,depth+1)
+                    build(name,sub_pattern,depth+1)
                     index=index2+1
                     break
             
@@ -361,8 +434,6 @@ def build(name,pattern,depth=0):
             print padd+"if ( token.cmp('{0}') != NULL ) token=next_token(token);        //data match".format(token)
         else:
             print padd+"if ( token != NULL ) token = match_{0}(token);".format(token)
-             
-        
 
         index+=1
     
