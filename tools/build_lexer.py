@@ -153,11 +153,11 @@ functions=[
  {  'alpha'               :  'A-Z | a-z' },
  {  'string'              :  '\'[*]\'|"[*]"' },
  {  'sign'                :  "- | + " },
- {  'unsigned_integer'    :  '[0-9]+' },
- {  'signed_integer'      :  'sign integer' },
+ {  'unsigned_int'        :  '[0-9]+' },
+ {  'signed_int'          :  'sign integer' },
  {  'integer'             :  'unsigned_int | signed_int ' },
  {  'number'              :  'int | { int . unsigned_int } |  { . unsigned_int }  [E int]' },
- {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
+ #{  'number'              :  'int | { int { . | unsi1gned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
  # date 
  #fsp
  #str
@@ -194,8 +194,7 @@ functions=[
 # template out the matching
 
 print("""
-PAREN_LEFT=1
-PAREN_RIGHT=2
+#include "headers/bytecode.h"
 """)
 
 
@@ -224,9 +223,9 @@ def function_header(name,depth,pattern):
  *     Failure: Returns NULL
  */
 token_t * match_{0}(token_t * tokens){{
-    //{0}
+    // {0}: {2}
     token_t * token=tokens;                //make a copy of the pointer
-""".format(name,datetime.datetime.now().strftime("%Y-%m-%d"))
+""".format(name,datetime.datetime.now().strftime("%Y-%m-%d"),pattern)
         print o
 
 
@@ -305,147 +304,156 @@ def build_expression_levels(pattern,expression_depth):
 
 
 
+
+def gather_matches(tokens):
+    functions={}
+    if isinstance(tokens,list):
+        for token in tokens:
+            functions.update(gather_matches(token))
+
+    if isinstance(tokens,dict):
+        for token in tokens['data']:
+            functions.update(gather_matches(token))
+
+    if isinstance(tokens,str):
+        functions[tokens]=1
+
+    return functions
+
+
 def build(name,pattern,depth=0):
-    spacer="   "
     function_header(name,depth,pattern)
-    padd=get_padd(depth,spacer)
         
     
     tokens=build_expression_levels(pattern,0)
-    pprint.pprint(tokens)
+    #pprint.pprint(tokens)
 
 
 
+    list_of_match_functions=gather_matches(tokens)
+    #pprint.pprint(list_of_match_functions)
+
+    templates=build_function_templates(tokens)
+    #pprint.pprint(templates)
 
 
-def bob():    
-    optional=None
-    in_or=None
+    print "\n"
+    print "    return token;"
+    print "}} // end match_{0}".format(name)
+
+
+def build_function_templates(tokens,depth=0):
     index=0
-
-    token=None
-    last_token=None
-    token_or="????"
+    spacer="   "
+    padd=get_padd(depth,spacer)
+    in_or=0
+    #print tokens
+    if isinstance(tokens,dict):
+        tokens=tokens['data']
+    
+    if isinstance(tokens,str):
+        tokens=[tokens]
     while 1:
+        #print index ,
         if index>=len(tokens):
             break
-        last_token=token
+        
         token=tokens[index]
-        if token=='':
-            index+=1
-            continue;
 
-        optional_depth=0
-        group_depth=0
-        in_chain=0
-        distance=0
-        # {  'number'              :  'int | { int { . | unsigned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
-        #print "-"+token
-        if token=='00|':
-
-            for pre_index in range(index,len(tokens)):
-                if tokens[pre_index]=='{':   group_depth+=1
-                if tokens[pre_index]=='}':   group_depth-=1
-                if tokens[pre_index]=='[':   optional_depth+=1
-                if tokens[pre_index]==']':   optional_depth-=1
-                if group_depth<0: break
-                if optional_depth<0: break
-                
-                if group_depth==0 and optional_depth==0:
-                    if tokens[pre_index]=='|' and distance==1:
-                        if in_chain==0:
-                            in_chain=1
-                            token_or="token_or_{0}".format(uid())
-                            #print index,pre_index,token
-                            print padd+"token_t * {0}=token".format(token_or)
-                        #   print index,pre_index
-                        
-                        #if index==pre_index:  print padd+"token_t * {0}=token;".format(token_or)
-                    distance+=1;
-                    if distance>1:
-                        #print "NOT IN CHAIN"
-                        break
-                
-                    
-
-
-        #next_token=tokens[index+1]
+        if index+1<len(tokens):
+            if in_or==0:
+                if tokens[index+1] =='|':
+            
+                    or_uid="or_temp_{0}".format(uid())
+                    print padd+"// Begin OR block"
+                    print padd+"token_t * {0}=token;".format(or_uid)
+                    in_or=1
+                    #index+=1
+                    #continue
+            
         
-        if len(token)==0:
-            index+=1
-            continue
-        if token==')':
-            token="RIGHT_PAREN"
-        if token=='(':
-            token="LEFT_PAREN"
-        if token=='{': 
-            md=0
-            for index2 in range(index,len(tokens)):
-                if tokens[index2]=='{':
-                    md+=1
-                if tokens[index2]=='}':
-                    md-=1
-                if md==0:
-                    sub_pattern=" ".join(tokens[index+1:index2])
-                    build(name,sub_pattern,depth+1)
-                    index=index2
-                    break
-            continue
+        if index>0 and in_or!=0:
+            if token!='|' and tokens[index-1] !='|':
+                print padd+"// end OR Block"
+                in_or=0
 
-        if in_or:
-            print padd+"}}//end OR  ".format(token)
-            in_or=None
-            index+=1
-            continue
-
-        if token[0]=='|':
-            print "\n"
+        if token=='|':
+            print ""
             print padd+"if ( token == NULL ) {{        ".format(token)
-            print padd+spacer+"token={0}".format(token_or)
-            in_or=True
-            index+=1
+            #print tokens
+            print padd+spacer+"token={0};".format(or_uid)
+
+            build_function_templates(tokens[index+1],depth+1)
+            print padd+"}"
+            index+=2;
             continue
 
-        if token[0]=='[':
-            uid_str=uid()
-            print "\n"
-            print padd+"// "+pattern
-            print padd+"if ( token != NULL ) {{         //Match must be successfull to proceed".format(token)
-            print padd+spacer+"token_t *optional_token_{0}=token;".format(uid_str)
-            md=0
-            for index2 in range(index,len(tokens)):
-                if tokens[index2]=='[':
-                    md+=1
-                if tokens[index2]==']':
-                    md-=1  
-                if md==0:
-                    sub_pattern=" ".join(tokens[index+1:index2])
-                    build(name,sub_pattern,depth+1)
-                    index=index2+1
-                    break
-            
-            print padd+spacer+"if ( token == NULL ) token = optional_token_{0};".format(uid_str)
-            print padd+"}}//END Optional".format(token)
-            continue            
-            
+        if isinstance(token,str):
+            if token[0]>='A' and token[0]<='Z' or (( token[0]<'a' or token[0]>'z') and ( token[0]<'A' or token[0]>'Z')):
+                print padd+"if ( token != NULL && token_cmp(token,'{0}') != NULL ) token=next_token(token);".format(token)
+            else:
+                print padd+"if ( token != NULL ) token = match_{0}(token);".format(token)
+            index+=1
+            continue
         
-        #if optional
-        if token[0]>='A' and token[0]<='Z':
-            print padd+"if ( token.cmp('{0}') != NULL ) token=next_token(token);        //data match".format(token)
-        else:
-            print padd+"if ( token != NULL ) token = match_{0}(token);".format(token)
+        if isinstance(token,dict):
+            if token['type']=='optional':
+                print ""
+                opt_uid="opt_temp_{0}".format(uid())
+                print padd+"// begin optional block"
+                print padd+"if ( token =! NULL ) {{".format(token)
+                print padd+spacer+"token_t * {0}=token;".format(opt_uid)
+                build_function_templates(token,depth+1)
+                print padd+spacer+"if ( token == NULL ) token={0};".format(opt_uid)
+                print padd+"}// end optional block"
+                index+=1
+                continue
 
+            if token['type']=='group':
+                print ""
+                print padd+"// begin group block"
+                print padd+"if ( token =! NULL ) {{".format(token)
+                build_function_templates(token,depth+1)
+                print padd+"} // end group block"
+                index+=1
+                continue
+
+#if isinstance(token,str):
+        
         index+=1
     
-    if depth==0:
-        print "\n"
-        print spacer+"return token;".format(name)
-        print "}}//end match_{0}".format(name)
 
 for function in functions:
     for key in function:
         build(key,function[key])
 
+print """
+/*
+ * Function: match_functions
+ * -----------------------------
+ *   Generated: {0}
+ *      tokens: a pointer to the curent element in a linked list of tokens to search
+ * 
+ *     Success: Returns a the token AFTER the curent pattern match
+ *              If the end of the list is reached the last token is passed
+ *     Failure: Returns NULL
+ */
+""".format(datetime.datetime.now().strftime("%Y-%m-%d"))
+        
+print "token_t * match_function(token_t* tokens) {";
+print "    token_t * token=NULL;";
+index=0
+for function in functions:
+    
+    for key in function:
+        if index==0:
+            print "    token=match_{0}(tokens);".format(key)
+        else:
+            print "    if (token!=NULL) return token; token=match_{0}(tokens);".format(key)
+        index+=1
+print "    return token;"
+print "} // end match functions";
 
-
-
+## TODO sub variables "acos(X)"
+## TODO RANGE A-Z
+## TODO ' * UNTIL '

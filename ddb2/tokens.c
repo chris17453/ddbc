@@ -95,6 +95,19 @@ void append_token(token_t *token_list,token_t *token_insert){
     connect_token(token_list,token_insert);
 }
 
+// insert a token before another 
+int token_cmp(token_t *token,char* match){
+    int needle_len=strlen(match);
+    if (token->data_length!=needle_len) return NULL;
+    
+    for(int i=0;i<token->data_length;i++){
+        if (token->data[i]!=match[i]){
+            return NULL;
+        }
+    }
+    return 1;
+}
+
 
 
 
