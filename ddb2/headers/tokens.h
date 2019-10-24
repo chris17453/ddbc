@@ -27,3 +27,6 @@ void       connect_token(token_t *token_left,token_t *token_right);
 void       insert_token_after(token_t *token_left,token_t *token_insert);
 void       insert_token_before(token_t *token_right,token_t *token_insert);
 void       append_token(token_t *token_list,token_t *token_insert);
+int        token_cmp(token_t *token,char* match);
+int        token_cmp_range(token_t *token,char* match1,char* match2);
+

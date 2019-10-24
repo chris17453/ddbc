@@ -5,7 +5,7 @@
 /*
  * Function: match_ABS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -28,7 +28,7 @@ token_t * match_ABS(token_t * tokens){
 /*
  * Function: match_ACOS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -51,7 +51,7 @@ token_t * match_ACOS(token_t * tokens){
 /*
  * Function: match_ADDDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -78,7 +78,7 @@ token_t * match_ADDDATE(token_t * tokens){
 /*
  * Function: match_ADDDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -103,7 +103,7 @@ token_t * match_ADDDATE(token_t * tokens){
 /*
  * Function: match_ADDTIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -128,7 +128,7 @@ token_t * match_ADDTIME(token_t * tokens){
 /*
  * Function: match_ASCII
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -151,7 +151,7 @@ token_t * match_ASCII(token_t * tokens){
 /*
  * Function: match_ASIN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -174,7 +174,7 @@ token_t * match_ASIN(token_t * tokens){
 /*
  * Function: match_ATAN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -197,7 +197,7 @@ token_t * match_ATAN(token_t * tokens){
 /*
  * Function: match_ATAN2
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -222,7 +222,7 @@ token_t * match_ATAN2(token_t * tokens){
 /*
  * Function: match_BIN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -245,7 +245,7 @@ token_t * match_BIN(token_t * tokens){
 /*
  * Function: match_BIT_LENGTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -268,7 +268,7 @@ token_t * match_BIT_LENGTH(token_t * tokens){
 /*
  * Function: match_CEILING
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -291,7 +291,7 @@ token_t * match_CEILING(token_t * tokens){
 /*
  * Function: match_CEIL
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -314,7 +314,7 @@ token_t * match_CEIL(token_t * tokens){
 /*
  * Function: match_CHARACTER_LENGTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -337,7 +337,7 @@ token_t * match_CHARACTER_LENGTH(token_t * tokens){
 /*
  * Function: match_CHAR_LENGTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -360,7 +360,7 @@ token_t * match_CHAR_LENGTH(token_t * tokens){
 /*
  * Function: match_CHAR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -393,7 +393,7 @@ token_t * match_CHAR(token_t * tokens){
 /*
  * Function: match_CONCAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -420,7 +420,7 @@ token_t * match_CONCAT(token_t * tokens){
 /*
  * Function: match_CONCAT_WS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -449,7 +449,7 @@ token_t * match_CONCAT_WS(token_t * tokens){
 /*
  * Function: match_CONVERT_TZ
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -476,7 +476,7 @@ token_t * match_CONVERT_TZ(token_t * tokens){
 /*
  * Function: match_CONV
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -503,7 +503,7 @@ token_t * match_CONV(token_t * tokens){
 /*
  * Function: match_COS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -526,7 +526,7 @@ token_t * match_COS(token_t * tokens){
 /*
  * Function: match_COT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -549,7 +549,7 @@ token_t * match_COT(token_t * tokens){
 /*
  * Function: match_CRC32
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -572,7 +572,7 @@ token_t * match_CRC32(token_t * tokens){
 /*
  * Function: match_CURDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -594,7 +594,7 @@ token_t * match_CURDATE(token_t * tokens){
 /*
  * Function: match_CURRENT_DATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -616,7 +616,7 @@ token_t * match_CURRENT_DATE(token_t * tokens){
 /*
  * Function: match_CURRENT_TIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -645,7 +645,7 @@ token_t * match_CURRENT_TIME(token_t * tokens){
 /*
  * Function: match_CURRENT_TIMESTAMP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -674,7 +674,7 @@ token_t * match_CURRENT_TIMESTAMP(token_t * tokens){
 /*
  * Function: match_CURTIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -703,7 +703,7 @@ token_t * match_CURTIME(token_t * tokens){
 /*
  * Function: match_DATE_ADD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -730,7 +730,7 @@ token_t * match_DATE_ADD(token_t * tokens){
 /*
  * Function: match_DATE_SUB
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -757,7 +757,7 @@ token_t * match_DATE_SUB(token_t * tokens){
 /*
  * Function: match_DATEDIFF
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -782,7 +782,7 @@ token_t * match_DATEDIFF(token_t * tokens){
 /*
  * Function: match_DATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -805,7 +805,7 @@ token_t * match_DATE(token_t * tokens){
 /*
  * Function: match_DATE_FORMAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -830,7 +830,7 @@ token_t * match_DATE_FORMAT(token_t * tokens){
 /*
  * Function: match_DATE_SUB
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -857,7 +857,7 @@ token_t * match_DATE_SUB(token_t * tokens){
 /*
  * Function: match_DAY
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -880,7 +880,7 @@ token_t * match_DAY(token_t * tokens){
 /*
  * Function: match_DAYNAME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -903,7 +903,7 @@ token_t * match_DAYNAME(token_t * tokens){
 /*
  * Function: match_DAYOFMONTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -926,7 +926,7 @@ token_t * match_DAYOFMONTH(token_t * tokens){
 /*
  * Function: match_DAYOFWEEK
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -949,7 +949,7 @@ token_t * match_DAYOFWEEK(token_t * tokens){
 /*
  * Function: match_DAYOFYEAR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -972,7 +972,7 @@ token_t * match_DAYOFYEAR(token_t * tokens){
 /*
  * Function: match_DEGREES
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -995,7 +995,7 @@ token_t * match_DEGREES(token_t * tokens){
 /*
  * Function: match_ELT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1026,7 +1026,7 @@ token_t * match_ELT(token_t * tokens){
 /*
  * Function: match_EXPORT_SET
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1069,7 +1069,7 @@ token_t * match_EXPORT_SET(token_t * tokens){
 /*
  * Function: match_EXP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1092,7 +1092,7 @@ token_t * match_EXP(token_t * tokens){
 /*
  * Function: match_EXTRACT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1117,7 +1117,7 @@ token_t * match_EXTRACT(token_t * tokens){
 /*
  * Function: match_FIELD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1148,7 +1148,7 @@ token_t * match_FIELD(token_t * tokens){
 /*
  * Function: match_FIND_IN_SET
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1173,7 +1173,7 @@ token_t * match_FIND_IN_SET(token_t * tokens){
 /*
  * Function: match_FLOOR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1196,7 +1196,7 @@ token_t * match_FLOOR(token_t * tokens){
 /*
  * Function: match_FORMAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1221,7 +1221,7 @@ token_t * match_FORMAT(token_t * tokens){
 /*
  * Function: match_FORMAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1254,7 +1254,7 @@ token_t * match_FORMAT(token_t * tokens){
 /*
  * Function: match_FROM_BASE64
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1277,7 +1277,7 @@ token_t * match_FROM_BASE64(token_t * tokens){
 /*
  * Function: match_FROM_DAYS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1300,7 +1300,7 @@ token_t * match_FROM_DAYS(token_t * tokens){
 /*
  * Function: match_FROM_UNIXTIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1331,7 +1331,7 @@ token_t * match_FROM_UNIXTIME(token_t * tokens){
 /*
  * Function: match_HEX
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1354,7 +1354,7 @@ token_t * match_HEX(token_t * tokens){
 /*
  * Function: match_HEX
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1388,7 +1388,7 @@ token_t * match_HEX(token_t * tokens){
 /*
  * Function: match_HOUR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1411,7 +1411,7 @@ token_t * match_HOUR(token_t * tokens){
 /*
  * Function: match_INSERT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1440,7 +1440,7 @@ token_t * match_INSERT(token_t * tokens){
 /*
  * Function: match_INSTR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1465,7 +1465,7 @@ token_t * match_INSTR(token_t * tokens){
 /*
  * Function: match_LAST_DAY
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1488,7 +1488,7 @@ token_t * match_LAST_DAY(token_t * tokens){
 /*
  * Function: match_LCASE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1511,7 +1511,7 @@ token_t * match_LCASE(token_t * tokens){
 /*
  * Function: match_LEFT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1536,7 +1536,7 @@ token_t * match_LEFT(token_t * tokens){
 /*
  * Function: match_LENGTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1559,7 +1559,7 @@ token_t * match_LENGTH(token_t * tokens){
 /*
  * Function: match_LN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1582,7 +1582,7 @@ token_t * match_LN(token_t * tokens){
 /*
  * Function: match_LOAD_FILE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1605,7 +1605,7 @@ token_t * match_LOAD_FILE(token_t * tokens){
 /*
  * Function: match_LOCALTIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1634,7 +1634,7 @@ token_t * match_LOCALTIME(token_t * tokens){
 /*
  * Function: match_LOCALTIMESTAMP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1663,7 +1663,7 @@ token_t * match_LOCALTIMESTAMP(token_t * tokens){
 /*
  * Function: match_LOCATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1696,7 +1696,7 @@ token_t * match_LOCATE(token_t * tokens){
 /*
  * Function: match_LOG10
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1719,7 +1719,7 @@ token_t * match_LOG10(token_t * tokens){
 /*
  * Function: match_LOG2
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1742,7 +1742,7 @@ token_t * match_LOG2(token_t * tokens){
 /*
  * Function: match_LOG
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1773,7 +1773,7 @@ token_t * match_LOG(token_t * tokens){
 /*
  * Function: match_LOWER
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1796,7 +1796,7 @@ token_t * match_LOWER(token_t * tokens){
 /*
  * Function: match_LPAD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1823,7 +1823,7 @@ token_t * match_LPAD(token_t * tokens){
 /*
  * Function: match_LTRIM
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1846,7 +1846,7 @@ token_t * match_LTRIM(token_t * tokens){
 /*
  * Function: match_MAKEDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1871,7 +1871,7 @@ token_t * match_MAKEDATE(token_t * tokens){
 /*
  * Function: match_MAKE_SET
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1900,7 +1900,7 @@ token_t * match_MAKE_SET(token_t * tokens){
 /*
  * Function: match_MAKETIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1927,7 +1927,7 @@ token_t * match_MAKETIME(token_t * tokens){
 /*
  * Function: match_MICROSECOND
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1950,7 +1950,7 @@ token_t * match_MICROSECOND(token_t * tokens){
 /*
  * Function: match_MID
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -1977,7 +1977,7 @@ token_t * match_MID(token_t * tokens){
 /*
  * Function: match_MINUTE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2000,7 +2000,7 @@ token_t * match_MINUTE(token_t * tokens){
 /*
  * Function: match_MOD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2025,7 +2025,7 @@ token_t * match_MOD(token_t * tokens){
 /*
  * Function: match_MONTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2048,7 +2048,7 @@ token_t * match_MONTH(token_t * tokens){
 /*
  * Function: match_MONTHNAME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2071,7 +2071,7 @@ token_t * match_MONTHNAME(token_t * tokens){
 /*
  * Function: match_NOW
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2100,7 +2100,7 @@ token_t * match_NOW(token_t * tokens){
 /*
  * Function: match_OCTET_LENGTH
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2123,7 +2123,7 @@ token_t * match_OCTET_LENGTH(token_t * tokens){
 /*
  * Function: match_OCT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2146,7 +2146,7 @@ token_t * match_OCT(token_t * tokens){
 /*
  * Function: match_ORD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2169,7 +2169,7 @@ token_t * match_ORD(token_t * tokens){
 /*
  * Function: match_PERIOD_ADD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2194,7 +2194,7 @@ token_t * match_PERIOD_ADD(token_t * tokens){
 /*
  * Function: match_PERIOD_DIFF
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2219,7 +2219,7 @@ token_t * match_PERIOD_DIFF(token_t * tokens){
 /*
  * Function: match_PI
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2241,7 +2241,7 @@ token_t * match_PI(token_t * tokens){
 /*
  * Function: match_POSITION
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2266,7 +2266,7 @@ token_t * match_POSITION(token_t * tokens){
 /*
  * Function: match_POWER
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2291,7 +2291,7 @@ token_t * match_POWER(token_t * tokens){
 /*
  * Function: match_POW
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2316,7 +2316,7 @@ token_t * match_POW(token_t * tokens){
 /*
  * Function: match_QUARTER
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2339,7 +2339,7 @@ token_t * match_QUARTER(token_t * tokens){
 /*
  * Function: match_QUOTE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2362,7 +2362,7 @@ token_t * match_QUOTE(token_t * tokens){
 /*
  * Function: match_RADIANS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2385,7 +2385,7 @@ token_t * match_RADIANS(token_t * tokens){
 /*
  * Function: match_RAND
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2414,7 +2414,7 @@ token_t * match_RAND(token_t * tokens){
 /*
  * Function: match_REPEAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2439,7 +2439,7 @@ token_t * match_REPEAT(token_t * tokens){
 /*
  * Function: match_REPLACE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2466,7 +2466,7 @@ token_t * match_REPLACE(token_t * tokens){
 /*
  * Function: match_REVERSE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2489,7 +2489,7 @@ token_t * match_REVERSE(token_t * tokens){
 /*
  * Function: match_RIGHT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2514,7 +2514,7 @@ token_t * match_RIGHT(token_t * tokens){
 /*
  * Function: match_ROUND
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2545,7 +2545,7 @@ token_t * match_ROUND(token_t * tokens){
 /*
  * Function: match_RPAD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2572,7 +2572,7 @@ token_t * match_RPAD(token_t * tokens){
 /*
  * Function: match_RTRIM
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2595,7 +2595,7 @@ token_t * match_RTRIM(token_t * tokens){
 /*
  * Function: match_SECOND
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2618,7 +2618,7 @@ token_t * match_SECOND(token_t * tokens){
 /*
  * Function: match_SEC_TO_TIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2641,7 +2641,7 @@ token_t * match_SEC_TO_TIME(token_t * tokens){
 /*
  * Function: match_SIGN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2664,7 +2664,7 @@ token_t * match_SIGN(token_t * tokens){
 /*
  * Function: match_SIN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2687,7 +2687,7 @@ token_t * match_SIN(token_t * tokens){
 /*
  * Function: match_SOUNDEX
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2710,7 +2710,7 @@ token_t * match_SOUNDEX(token_t * tokens){
 /*
  * Function: match_SPACE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2733,7 +2733,7 @@ token_t * match_SPACE(token_t * tokens){
 /*
  * Function: match_SQRT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2756,7 +2756,7 @@ token_t * match_SQRT(token_t * tokens){
 /*
  * Function: match_STR_TO_DATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2781,7 +2781,7 @@ token_t * match_STR_TO_DATE(token_t * tokens){
 /*
  * Function: match_SUBDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2808,7 +2808,7 @@ token_t * match_SUBDATE(token_t * tokens){
 /*
  * Function: match_SUBDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2833,7 +2833,7 @@ token_t * match_SUBDATE(token_t * tokens){
 /*
  * Function: match_SUBSTRING_INDEX
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2860,7 +2860,7 @@ token_t * match_SUBSTRING_INDEX(token_t * tokens){
 /*
  * Function: match_SUBSTRING
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2885,7 +2885,7 @@ token_t * match_SUBSTRING(token_t * tokens){
 /*
  * Function: match_SUBSTRING
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2910,7 +2910,7 @@ token_t * match_SUBSTRING(token_t * tokens){
 /*
  * Function: match_SUBSTRING
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2937,7 +2937,7 @@ token_t * match_SUBSTRING(token_t * tokens){
 /*
  * Function: match_SUBSTR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2962,7 +2962,7 @@ token_t * match_SUBSTR(token_t * tokens){
 /*
  * Function: match_SUBSTR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -2987,7 +2987,7 @@ token_t * match_SUBSTR(token_t * tokens){
 /*
  * Function: match_SUBSTR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3014,7 +3014,7 @@ token_t * match_SUBSTR(token_t * tokens){
 /*
  * Function: match_SUBTIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3039,7 +3039,7 @@ token_t * match_SUBTIME(token_t * tokens){
 /*
  * Function: match_SYSDATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3068,7 +3068,7 @@ token_t * match_SYSDATE(token_t * tokens){
 /*
  * Function: match_TAN
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3091,7 +3091,7 @@ token_t * match_TAN(token_t * tokens){
 /*
  * Function: match_TIMEDIFF
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3116,7 +3116,7 @@ token_t * match_TIMEDIFF(token_t * tokens){
 /*
  * Function: match_TIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3139,7 +3139,7 @@ token_t * match_TIME(token_t * tokens){
 /*
  * Function: match_TIME_FORMAT
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3164,7 +3164,7 @@ token_t * match_TIME_FORMAT(token_t * tokens){
 /*
  * Function: match_TIMESTAMPADD
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3191,7 +3191,7 @@ token_t * match_TIMESTAMPADD(token_t * tokens){
 /*
  * Function: match_TIMESTAMPDIFF
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3218,7 +3218,7 @@ token_t * match_TIMESTAMPDIFF(token_t * tokens){
 /*
  * Function: match_TIMESTAMP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3249,7 +3249,7 @@ token_t * match_TIMESTAMP(token_t * tokens){
 /*
  * Function: match_TIME_TO_SEC
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3272,7 +3272,7 @@ token_t * match_TIME_TO_SEC(token_t * tokens){
 /*
  * Function: match_TO_BASE64
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3295,7 +3295,7 @@ token_t * match_TO_BASE64(token_t * tokens){
 /*
  * Function: match_TO_DAYS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3318,7 +3318,7 @@ token_t * match_TO_DAYS(token_t * tokens){
 /*
  * Function: match_TO_SECONDS
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3341,7 +3341,7 @@ token_t * match_TO_SECONDS(token_t * tokens){
 /*
  * Function: match_TRIM
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3395,7 +3395,7 @@ token_t * match_TRIM(token_t * tokens){
 /*
  * Function: match_TRUNCATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3420,7 +3420,7 @@ token_t * match_TRUNCATE(token_t * tokens){
 /*
  * Function: match_UCASE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3443,7 +3443,7 @@ token_t * match_UCASE(token_t * tokens){
 /*
  * Function: match_UNHEX
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3466,7 +3466,7 @@ token_t * match_UNHEX(token_t * tokens){
 /*
  * Function: match_UNIX_TIMESTAMP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3495,7 +3495,7 @@ token_t * match_UNIX_TIMESTAMP(token_t * tokens){
 /*
  * Function: match_UTC_DATE
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3517,7 +3517,7 @@ token_t * match_UTC_DATE(token_t * tokens){
 /*
  * Function: match_UTC_TIMESTAMP
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3546,7 +3546,7 @@ token_t * match_UTC_TIMESTAMP(token_t * tokens){
 /*
  * Function: match_UTC_TIME
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3575,7 +3575,7 @@ token_t * match_UTC_TIME(token_t * tokens){
 /*
  * Function: match_WEEK
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3606,7 +3606,7 @@ token_t * match_WEEK(token_t * tokens){
 /*
  * Function: match_WEEKDAY
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3629,7 +3629,7 @@ token_t * match_WEEKDAY(token_t * tokens){
 /*
  * Function: match_WEEKOFYEAR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3652,7 +3652,7 @@ token_t * match_WEEKOFYEAR(token_t * tokens){
 /*
  * Function: match_YEAR
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3675,7 +3675,7 @@ token_t * match_YEAR(token_t * tokens){
 /*
  * Function: match_YEARWEEK
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3698,7 +3698,7 @@ token_t * match_YEARWEEK(token_t * tokens){
 /*
  * Function: match_YEARWEEK
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3723,7 +3723,7 @@ token_t * match_YEARWEEK(token_t * tokens){
 /*
  * Function: match_alpha
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3731,16 +3731,22 @@ token_t * match_YEARWEEK(token_t * tokens){
  *     Failure: Returns NULL
  */
 token_t * match_alpha(token_t * tokens){
-    // alpha: A-Z | a-z
+    // alpha: {A-Z}| {a-z}
     token_t * token=tokens;                //make a copy of the pointer
 
     // Begin OR block
     token_t * or_temp_27=token;
-    if ( token != NULL && token_cmp(token,'A-Z') != NULL ) token=next_token(token);
+
+    // begin group block
+    if ( token =! NULL ) {
+       // range
+       if ( token != NULL && token_cmp_range(token,'A','Z') != NULL ) token=next_token(token);
+    } // end group block
 
     if ( token == NULL ) {        
        token=or_temp_27;
-       if ( token != NULL ) token = match_a-z(token);
+       // range
+       if ( token != NULL && token_cmp_range(token,'a','z') != NULL ) token=next_token(token);
     }
 
 
@@ -3750,7 +3756,7 @@ token_t * match_alpha(token_t * tokens){
 /*
  * Function: match_string
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3758,34 +3764,17 @@ token_t * match_alpha(token_t * tokens){
  *     Failure: Returns NULL
  */
 token_t * match_string(token_t * tokens){
-    // string: '[*]'|"[*]"
+    // string: '*'|"*"
     token_t * token=tokens;                //make a copy of the pointer
 
-    if ( token != NULL && token_cmp(token,''') != NULL ) token=next_token(token);
-
-    // begin optional block
-    if ( token =! NULL ) {
-       token_t * opt_temp_28=token;
-       if ( token != NULL && token_cmp(token,'*') != NULL ) token=next_token(token);
-       if ( token == NULL ) token=opt_temp_28;
-    }// end optional block
     // Begin OR block
-    token_t * or_temp_29=token;
-    // end OR Block
-    if ( token != NULL && token_cmp(token,''') != NULL ) token=next_token(token);
+    token_t * or_temp_28=token;
+    if ( token != NULL && token_cmp(token,'\'*\'') != NULL ) token=next_token(token);
 
     if ( token == NULL ) {        
-       token=or_temp_29;
-       if ( token != NULL && token_cmp(token,'"') != NULL ) token=next_token(token);
+       token=or_temp_28;
+       if ( token != NULL && token_cmp(token,'"*"') != NULL ) token=next_token(token);
     }
-
-    // begin optional block
-    if ( token =! NULL ) {
-       token_t * opt_temp_30=token;
-       if ( token != NULL && token_cmp(token,'*') != NULL ) token=next_token(token);
-       if ( token == NULL ) token=opt_temp_30;
-    }// end optional block
-    if ( token != NULL && token_cmp(token,'"') != NULL ) token=next_token(token);
 
 
     return token;
@@ -3794,7 +3783,7 @@ token_t * match_string(token_t * tokens){
 /*
  * Function: match_sign
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3806,11 +3795,11 @@ token_t * match_sign(token_t * tokens){
     token_t * token=tokens;                //make a copy of the pointer
 
     // Begin OR block
-    token_t * or_temp_31=token;
+    token_t * or_temp_29=token;
     if ( token != NULL && token_cmp(token,'-') != NULL ) token=next_token(token);
 
     if ( token == NULL ) {        
-       token=or_temp_31;
+       token=or_temp_29;
        if ( token != NULL && token_cmp(token,'+') != NULL ) token=next_token(token);
     }
 
@@ -3821,7 +3810,7 @@ token_t * match_sign(token_t * tokens){
 /*
  * Function: match_unsigned_int
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3829,17 +3818,11 @@ token_t * match_sign(token_t * tokens){
  *     Failure: Returns NULL
  */
 token_t * match_unsigned_int(token_t * tokens){
-    // unsigned_int: [0-9]+
+    // unsigned_int: 0-9
     token_t * token=tokens;                //make a copy of the pointer
 
-
-    // begin optional block
-    if ( token =! NULL ) {
-       token_t * opt_temp_32=token;
-       if ( token != NULL && token_cmp(token,'0-9') != NULL ) token=next_token(token);
-       if ( token == NULL ) token=opt_temp_32;
-    }// end optional block
-    if ( token != NULL && token_cmp(token,'+') != NULL ) token=next_token(token);
+    // range
+    if ( token != NULL && token_cmp_range(token,'0','9') != NULL ) token=next_token(token);
 
 
     return token;
@@ -3848,7 +3831,7 @@ token_t * match_unsigned_int(token_t * tokens){
 /*
  * Function: match_signed_int
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3869,7 +3852,7 @@ token_t * match_signed_int(token_t * tokens){
 /*
  * Function: match_integer
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3881,11 +3864,11 @@ token_t * match_integer(token_t * tokens){
     token_t * token=tokens;                //make a copy of the pointer
 
     // Begin OR block
-    token_t * or_temp_33=token;
+    token_t * or_temp_30=token;
     if ( token != NULL ) token = match_unsigned_int(token);
 
     if ( token == NULL ) {        
-       token=or_temp_33;
+       token=or_temp_30;
        if ( token != NULL ) token = match_signed_int(token);
     }
 
@@ -3896,7 +3879,7 @@ token_t * match_integer(token_t * tokens){
 /*
  * Function: match_number
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match
@@ -3908,18 +3891,18 @@ token_t * match_number(token_t * tokens){
     token_t * token=tokens;                //make a copy of the pointer
 
     // Begin OR block
-    token_t * or_temp_34=token;
+    token_t * or_temp_31=token;
     if ( token != NULL ) token = match_int(token);
 
     if ( token == NULL ) {        
-       token=or_temp_34;
+       token=or_temp_31;
        if ( token != NULL ) token = match_int(token);
        if ( token != NULL && token_cmp(token,'.') != NULL ) token=next_token(token);
        if ( token != NULL ) token = match_unsigned_int(token);
     }
 
     if ( token == NULL ) {        
-       token=or_temp_34;
+       token=or_temp_31;
        if ( token != NULL && token_cmp(token,'.') != NULL ) token=next_token(token);
        if ( token != NULL ) token = match_unsigned_int(token);
     }
@@ -3927,10 +3910,10 @@ token_t * match_number(token_t * tokens){
 
     // begin optional block
     if ( token =! NULL ) {
-       token_t * opt_temp_35=token;
+       token_t * opt_temp_32=token;
        if ( token != NULL && token_cmp(token,'E') != NULL ) token=next_token(token);
        if ( token != NULL ) token = match_int(token);
-       if ( token == NULL ) token=opt_temp_35;
+       if ( token == NULL ) token=opt_temp_32;
     }// end optional block
 
 
@@ -3940,7 +3923,7 @@ token_t * match_number(token_t * tokens){
 /*
  * Function: match_functions
  * -----------------------------
- *   Generated: 2019-10-23
+ *   Generated: 2019-10-24
  *      tokens: a pointer to the curent element in a linked list of tokens to search
  * 
  *     Success: Returns a the token AFTER the curent pattern match

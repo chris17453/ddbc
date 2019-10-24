@@ -108,7 +108,17 @@ int token_cmp(token_t *token,char* match){
     return 1;
 }
 
-
+// compare a character range
+int token_cmp_range(token_t *token,char* match1,char* match2){
+    int needle1_len=strlen(match1);
+    int needle2_len=strlen(match2);
+    if (needle1_len!=1) return NULL;
+    if (needle3_len!=1) return NULL;
+    if (token->data_length!=1) return NULL;
+    
+    if token->data[0]>=match1 and token->data[0]<=match2) return 1;
+    return NULL;
+}
 
 
 //struct token *new_token_list(){

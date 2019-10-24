@@ -1,6 +1,6 @@
 import datetime
 import pprint
-
+import re
 functions=[
  {  'ABS':                  'ABS ( X )'  }, 
  {  'ACOS':                 'ACOS ( X )'  }, 
@@ -150,10 +150,10 @@ functions=[
  {  'YEARWEEK':             'YEARWEEK ( date )'  }, 
  {  'YEARWEEK':             'YEARWEEK ( date, mode )'  }, 
 
- {  'alpha'               :  'A-Z | a-z' },
- {  'string'              :  '\'[*]\'|"[*]"' },
+ {  'alpha'               :  '{A-Z}| {a-z}' },
+ {  'string'              :  '\' ^'+ *\'|"*"' },
  {  'sign'                :  "- | + " },
- {  'unsigned_int'        :  '[0-9]+' },
+ {  'unsigned_int'        :  '0-9' },
  {  'signed_int'          :  'sign integer' },
  {  'integer'             :  'unsigned_int | signed_int ' },
  {  'number'              :  'int | { int . unsigned_int } |  { . unsigned_int }  [E int]' },
@@ -201,9 +201,12 @@ print("""
 def clean_pattern(pattern):
     pattern=pattern.strip()
     pattern=pattern.replace("|"," | ")
+    pattern=pattern.replace("{"," { ")
+    pattern=pattern.replace("}"," } ")
     pattern=pattern.replace("]"," ] ")
     pattern=pattern.replace("["," [ ")
     pattern=pattern.replace(","," , ")
+    pattern=pattern.replace("-"," - ")
     pattern=pattern.replace("  "," ")
     pattern=pattern.strip()
     return pattern
@@ -361,6 +364,9 @@ def build_function_templates(tokens,depth=0):
         token=tokens[index]
 
         if index+1<len(tokens):
+
+                
+
             if in_or==0:
                 if tokens[index+1] =='|':
             
@@ -370,6 +376,12 @@ def build_function_templates(tokens,depth=0):
                     in_or=1
                     #index+=1
                     #continue
+
+            if tokens[index+1] =='-':
+                print padd+"// range"
+                print padd+"if ( token != NULL && token_cmp_range(token,'{0}','{1}') != NULL ) token=next_token(token);".format(token,tokens[index+2])
+                index+=3
+                continue
             
         
         if index>0 and in_or!=0:
@@ -389,6 +401,8 @@ def build_function_templates(tokens,depth=0):
             continue
 
         if isinstance(token,str):
+            
+            token= token.replace("'","\\ \'")
             if token[0]>='A' and token[0]<='Z' or (( token[0]<'a' or token[0]>'z') and ( token[0]<'A' or token[0]>'Z')):
                 print padd+"if ( token != NULL && token_cmp(token,'{0}') != NULL ) token=next_token(token);".format(token)
             else:
