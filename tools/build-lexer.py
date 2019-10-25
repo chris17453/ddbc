@@ -151,7 +151,7 @@ functions=[
  {  'YEARWEEK':             'YEARWEEK ( date, mode )'  }, 
 
  {  'alpha'               :  '{A-Z}| {a-z}' },
- {  'string'              :  '\' ^'+ *\'|"*"' },
+ {  'string'              :  '\' ^+'+ *\'|"*"' },
  {  'sign'                :  "- | + " },
  {  'unsigned_int'        :  '0-9' },
  {  'signed_int'          :  'sign integer' },
@@ -207,6 +207,8 @@ def clean_pattern(pattern):
     pattern=pattern.replace("["," [ ")
     pattern=pattern.replace(","," , ")
     pattern=pattern.replace("-"," - ")
+    pattern=pattern.replace("^"," ^ ")
+    pattern=pattern.replace("+"," + ")
     pattern=pattern.replace("  "," ")
     pattern=pattern.strip()
     return pattern
