@@ -1,6 +1,8 @@
 import datetime
 import pprint
 import re
+from tpl import tpl
+
 functions=[
  {  'ABS':                  'ABS ( X )'  }, 
  {  'ACOS':                 'ACOS ( X )'  }, 
@@ -150,13 +152,45 @@ functions=[
  {  'YEARWEEK':             'YEARWEEK ( date )'  }, 
  {  'YEARWEEK':             'YEARWEEK ( date, mode )'  }, 
 
- {  'alpha'               :  '{A-Z}| {a-z}' },
- {  'string'              :  '\' ^+'+ *\'|"*"' },
- {  'sign'                :  "- | + " },
- {  'unsigned_int'        :  '0-9' },
- {  'signed_int'          :  'sign integer' },
- {  'integer'             :  'unsigned_int | signed_int ' },
- {  'number'              :  'int | { int . unsigned_int } |  { . unsigned_int }  [E int]' },
+ {  'digit'               :  '[0-9]+' },
+ {  'EXPONENT'            :  '[Ee]{sign}?{digit}+' },
+ {  'LITERAL'             :  '[A-Za-z]+' },
+ #{  'string'              :  '\"()'^\'+\'|"^"+"' },
+ {  'sign'                :  "[-+]" },
+ {  'unsigned_int'        :  '{digit}+' },
+ {  'signed_int'          :  '{sign} {unsigned_int}' },
+ {  'integer'             :  '{sign}? {unsigned_int}' },
+ {  'number'              :  '{int}("."?{unsigned_int})?{EXPONENT}?' },
+ 
+
+#(???) =() group togeather
+#{???} =?  internal definition reference
+#[?]   =?  one of anything in this bracket
+#?     =?  previous item was optional
+#+     =+  last item can may repeat unlimited times
+#-     =-  range
+#|     =|  this expression or expresison
+#^     =^  NOT next expresion
+#.     =.  everything
+#*     =*  zero or more of previous item
+
+#(???) ={}   group togeather
+#???   =???  internal definition reference
+#[?]   =?    optional one of anything in this bracket
+#+     =+  last item can may repeat unlimited times
+#-     =-    range
+#|     =|    this expression or expresison
+#^     =^  NOT next expresion
+#.     =.  everything
+#*     =*  zero or more of previous item
+
+
+# white [ \t]+
+# digit [0-9]
+# integer {digit}+
+# exponent [eE][+-]?{integer}
+# real {integer}("."{integer})?{exponent}?
+ 
  #{  'number'              :  'int | { int { . | unsi1gned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
  # date 
  #fsp
@@ -211,6 +245,10 @@ def clean_pattern(pattern):
     pattern=pattern.replace("+"," + ")
     pattern=pattern.replace("  "," ")
     pattern=pattern.strip()
+
+
+
+
     return pattern
 
 
@@ -227,9 +265,9 @@ def function_header(name,depth,pattern):
  *              If the end of the list is reached the last token is passed
  *     Failure: Returns NULL
  */
-token_t * match_{0}(token_t * tokens){{
+token_t * match_{0}(haystack *hay){{
     // {0}: {2}
-    token_t * token=tokens;                //make a copy of the pointer
+    token_t * token=NULL;                //make a copy of the pointer
 """.format(name,datetime.datetime.now().strftime("%Y-%m-%d"),pattern)
         print o
 
@@ -307,9 +345,6 @@ def build_expression_levels(pattern,expression_depth):
     
     return tokens2
 
-
-
-
 def gather_matches(tokens):
     functions={}
     if isinstance(tokens,list):
@@ -324,7 +359,6 @@ def gather_matches(tokens):
         functions[tokens]=1
 
     return functions
-
 
 def build(name,pattern,depth=0):
     function_header(name,depth,pattern)
@@ -358,6 +392,8 @@ def build_function_templates(tokens,depth=0):
     
     if isinstance(tokens,str):
         tokens=[tokens]
+    
+    first_command=1
     while 1:
         #print index ,
         if index>=len(tokens):
@@ -366,9 +402,6 @@ def build_function_templates(tokens,depth=0):
         token=tokens[index]
 
         if index+1<len(tokens):
-
-                
-
             if in_or==0:
                 if tokens[index+1] =='|':
             
@@ -439,37 +472,42 @@ def build_function_templates(tokens,depth=0):
         index+=1
     
 
+
+
+
+
+
 for function in functions:
     for key in function:
         build(key,function[key])
-
-print """
-/*
- * Function: match_functions
- * -----------------------------
- *   Generated: {0}
- *      tokens: a pointer to the curent element in a linked list of tokens to search
- * 
- *     Success: Returns a the token AFTER the curent pattern match
- *              If the end of the list is reached the last token is passed
- *     Failure: Returns NULL
- */
-""".format(datetime.datetime.now().strftime("%Y-%m-%d"))
-        
-print "token_t * match_function(token_t* tokens) {";
-print "    token_t * token=NULL;";
-index=0
-for function in functions:
-    
-    for key in function:
-        if index==0:
-            print "    token=match_{0}(tokens);".format(key)
-        else:
-            print "    if (token!=NULL) return token; token=match_{0}(tokens);".format(key)
-        index+=1
-print "    return token;"
-print "} // end match functions";
-
-## TODO sub variables "acos(X)"
-## TODO RANGE A-Z
-## TODO ' * UNTIL '
+#
+#print """
+#/*
+# * Function: match_functions
+# * -----------------------------
+# *   Generated: {0}
+# *      tokens: a pointer to the curent element in a linked list of tokens to search
+# * 
+# *     Success: Returns a the token AFTER the curent pattern match
+# *              If the end of the list is reached the last token is passed
+# *     Failure: Returns NULL
+# */
+#""".format(datetime.datetime.now().strftime("%Y-%m-%d"))
+#        
+#print "token_t * match_function(token_t* tokens) {";
+#print "    token_t * token=NULL;";
+#index=0
+#for function in functions:
+#    
+#    for key in function:
+#        if index==0:
+#            print "    token=match_{0}(tokens);".format(key)
+#        else:
+#            print "    if (token!=NULL) return token; token=match_{0}(tokens);".format(key)
+#        index+=1
+#print "    return token;"
+#print "} // end match functions";
+#
+### TODO sub variables "acos(X)"
+### TODO RANGE A-Z
+### TODO ' * UNTIL '
