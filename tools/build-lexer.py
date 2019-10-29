@@ -1,231 +1,9 @@
 import datetime
-import pprint
+from pprint import pprint
 import re
 from tpl import tpl
-
-functions=[
- {  'ABS':                  'ABS ( X )'  }, 
- {  'ACOS':                 'ACOS ( X )'  }, 
- {  'ADDDATE':              'ADDDATE ( date, INTERVAL expr unit )'  }, 
- {  'ADDDATE':              'ADDDATE ( expr, days )'  }, 
- {  'ADDTIME':              'ADDTIME ( expr1, expr2 )'  }, 
- {  'ASCII':                'ASCII ( str )'  }, 
- {  'ASIN':                 'ASIN ( X )'  }, 
- {  'ATAN':                 'ATAN ( X )'  }, 
- {  'ATAN2':                'ATAN2 ( Y, X )'  }, 
- {  'BIN':                  'BIN ( N )'  }, 
- {  'BIT_LENGTH':           'BIT_LENGTH ( str )'  }, 
- {  'CEILING':              'CEILING ( X )'  }, 
- {  'CEIL':                 'CEIL ( X )'  }, 
- {  'CHARACTER_LENGTH':     'CHARACTER_LENGTH ( str )'  }, 
- {  'CHAR_LENGTH':          'CHAR_LENGTH ( str )'  }, 
- {  'CHAR':                 'CHAR ( N, ...  [ USING charset_name ] )'  }, 
- {  'CONCAT':               'CONCAT ( str1, str2, ... )'  }, 
- {  'CONCAT_WS':            'CONCAT_WS ( separator, str1, str2, ... )'  }, 
- {  'CONVERT_TZ':           'CONVERT_TZ ( dt, from_tz, to_tz )'  }, 
- {  'CONV':                 'CONV ( N, from_base, to_base )'  }, 
- {  'COS':                  'COS ( X )'  }, 
- {  'COT':                  'COT ( X )'  }, 
- {  'CRC32':                'CRC32 ( expr )'  }, 
- {  'CURDATE':              'CURDATE (  )'  }, 
- {  'CURRENT_DATE':         'CURRENT_DATE (  )'  }, 
- {  'CURRENT_TIME':         'CURRENT_TIME (  [ fsp ] )'  }, 
- {  'CURRENT_TIMESTAMP':    'CURRENT_TIMESTAMP (  [ fsp ] )'  }, 
- {  'CURTIME':              'CURTIME (  [ fsp ] )'  }, 
- {  'DATE_ADD':             'DATE_ADD ( date, INTERVAL expr unit )'  }, 
- {  'DATE_SUB':             'DATE_SUB ( date, INTERVAL expr unit )'  }, 
- {  'DATEDIFF':             'DATEDIFF ( expr1, expr2 )'  }, 
- {  'DATE':                 'DATE ( expr )'  }, 
- {  'DATE_FORMAT':          'DATE_FORMAT ( date, format )'  }, 
- {  'DATE_SUB':             'DATE_SUB ( date, INTERVAL expr unit )'  }, 
- {  'DAY':                  'DAY ( date )'  }, 
- {  'DAYNAME':              'DAYNAME ( date )'  }, 
- {  'DAYOFMONTH':           'DAYOFMONTH ( date )'  }, 
- {  'DAYOFWEEK':            'DAYOFWEEK ( date )'  }, 
- {  'DAYOFYEAR':            'DAYOFYEAR ( date )'  }, 
- {  'DEGREES':              'DEGREES ( X )'  }, 
- {  'ELT':                  'ELT ( N, str1, str2, str3, ... )'  }, 
- {  'EXPORT_SET':           'EXPORT_SET ( bits, on, off [ , separator [ , number_of_bits ] ] )'  }, 
- {  'EXP':                  'EXP ( X )'  }, 
- {  'EXTRACT':              'EXTRACT ( unit FROM date )'  }, 
- {  'FIELD':                'FIELD ( str, str1, str2, str3, ... )'  }, 
- {  'FIND_IN_SET':          'FIND_IN_SET ( str, strlist )'  }, 
- {  'FLOOR':                'FLOOR ( X )'  }, 
- {  'FORMAT':               'FORMAT ( X, D )'  }, 
- {  'FORMAT':               'FORMAT ( X, D [ , locale ] )'  }, 
- {  'FROM_BASE64':          'FROM_BASE64 ( str )'  }, 
- {  'FROM_DAYS':            'FROM_DAYS ( N )'  }, 
- {  'FROM_UNIXTIME':        'FROM_UNIXTIME ( unix_timestamp [ , format ] )'  }, 
- #{  'GET_FORMAT':           "''GET_FORMAT ( { DATE|TIME|DATETIME  },  { \'EUR\'|\'USA\'|\'JIS\'|\'ISO\'|\'INTERNAL\' } )" }, 
- {  'HEX':                  'HEX ( N_or_S )'  }, 
- {  'HEX':                  'HEX ( { str|N  } )'  }, 
- {  'HOUR':                 'HOUR ( time )'  }, 
- {  'INSERT':               'INSERT ( str, pos, len, newstr )'  }, 
- {  'INSTR':                'INSTR ( str, substr )'  }, 
- {  'LAST_DAY':             'LAST_DAY ( date )'  }, 
- {  'LCASE':                'LCASE ( str )'  }, 
- {  'LEFT':                 'LEFT ( str, len )'  }, 
- {  'LENGTH':               'LENGTH ( str )'  }, 
- {  'LN':                   'LN ( X )'  }, 
- {  'LOAD_FILE':            'LOAD_FILE ( file_name )'  }, 
- {  'LOCALTIME':            'LOCALTIME (  [ fsp ] )'  }, 
- {  'LOCALTIMESTAMP':       'LOCALTIMESTAMP (  [ fsp ] )'  }, 
- {  'LOCATE':               'LOCATE ( substr, str [ , pos ] )'  }, 
- {  'LOG10':                'LOG10 ( X )'  }, 
- {  'LOG2':                 'LOG2 ( X )'  }, 
- {  'LOG':                  'LOG (  [ B ], X )'  }, 
- {  'LOWER':                'LOWER ( str )'  }, 
- {  'LPAD':                 'LPAD ( str, len, padstr )'  }, 
- {  'LTRIM':                'LTRIM ( str )'  }, 
- {  'MAKEDATE':             'MAKEDATE ( year, dayofyear )'  }, 
- {  'MAKE_SET':             'MAKE_SET ( bits, str1, str2, ... )'  }, 
- {  'MAKETIME':             'MAKETIME ( hour, minute, second )'  }, 
- {  'MICROSECOND':          'MICROSECOND ( expr )'  }, 
- {  'MID':                  'MID ( str, pos, len )'  }, 
- {  'MINUTE':               'MINUTE ( time )'  }, 
- {  'MOD':                  'MOD ( N, M )'  }, 
- {  'MONTH':                'MONTH ( date )'  }, 
- {  'MONTHNAME':            'MONTHNAME ( date )'  }, 
- {  'NOW':                  'NOW (  [ fsp ] )'  }, 
- {  'OCTET_LENGTH':         'OCTET_LENGTH ( str )'  }, 
- {  'OCT':                  'OCT ( N )'  }, 
- {  'ORD':                  'ORD ( str )'  }, 
- {  'PERIOD_ADD':           'PERIOD_ADD ( P, N )'  }, 
- {  'PERIOD_DIFF':          'PERIOD_DIFF ( P1, P2 )'  }, 
- {  'PI':                   'PI (  )'  }, 
- {  'POSITION':             'POSITION ( substr IN str )'  }, 
- {  'POWER':                'POWER ( X, Y )'  }, 
- {  'POW':                  'POW ( X, Y )'  }, 
- {  'QUARTER':              'QUARTER ( date )'  }, 
- {  'QUOTE':                'QUOTE ( str )'  }, 
- {  'RADIANS':              'RADIANS ( X )'  }, 
- {  'RAND':                 'RAND (  [ N ] )'  }, 
- {  'REPEAT':               'REPEAT ( str, count )'  }, 
- {  'REPLACE':              'REPLACE ( str, from_str, to_str )'  }, 
- {  'REVERSE':              'REVERSE ( str )'  }, 
- {  'RIGHT':                'RIGHT ( str, len )'  }, 
- {  'ROUND':                'ROUND ( X [ , D ] )'  }, 
- {  'RPAD':                 'RPAD ( str, len, padstr )'  }, 
- {  'RTRIM':                'RTRIM ( str )'  }, 
- {  'SECOND':               'SECOND ( time )'  }, 
- {  'SEC_TO_TIME':          'SEC_TO_TIME ( seconds )'  }, 
- {  'SIGN':                 'SIGN ( X )'  }, 
- {  'SIN':                  'SIN ( X )'  }, 
- {  'SOUNDEX':              'SOUNDEX ( str )'  }, 
- {  'SPACE':                'SPACE ( N )'  }, 
- {  'SQRT':                 'SQRT ( X )'  }, 
- {  'STR_TO_DATE':          'STR_TO_DATE ( str, format )'  }, 
- {  'SUBDATE':              'SUBDATE ( date, INTERVAL expr unit )'  }, 
- {  'SUBDATE':              'SUBDATE ( expr, days )'  }, 
- {  'SUBSTRING_INDEX':      'SUBSTRING_INDEX ( str, delim, count )'  }, 
- {  'SUBSTRING':            'SUBSTRING ( str, pos )'  }, 
- {  'SUBSTRING':            'SUBSTRING ( str FROM pos )'  }, 
- {  'SUBSTRING':            'SUBSTRING ( str, pos, len )'  }, 
- {  'SUBSTR':               'SUBSTR ( str, pos )'  }, 
- {  'SUBSTR':               'SUBSTR ( str FROM pos )'  }, 
- {  'SUBSTR':               'SUBSTR ( str, pos, len )'  }, 
- {  'SUBTIME':              'SUBTIME ( expr1, expr2 )'  }, 
- {  'SYSDATE':              'SYSDATE (  [ fsp ] )'  }, 
- {  'TAN':                  'TAN ( X )'  }, 
- {  'TIMEDIFF':             'TIMEDIFF ( expr1, expr2 )'  }, 
- {  'TIME':                 'TIME ( expr )'  }, 
- {  'TIME_FORMAT':          'TIME_FORMAT ( time, format )'  }, 
- {  'TIMESTAMPADD':         'TIMESTAMPADD ( unit, interval, datetime_expr )'  }, 
- {  'TIMESTAMPDIFF':        'TIMESTAMPDIFF ( unit, datetime_expr1, datetime_expr2 )'  }, 
- {  'TIMESTAMP':            'TIMESTAMP ( expr1 [ , expr2 ] )'  }, 
- {  'TIME_TO_SEC':          'TIME_TO_SEC ( time )'  }, 
- {  'TO_BASE64':            'TO_BASE64 ( str )'  }, 
- {  'TO_DAYS':              'TO_DAYS ( date )'  }, 
- {  'TO_SECONDS':           'TO_SECONDS ( expr )'  }, 
- {  'TRIM':                 'TRIM (  [ { BOTH | LEADING | TRAILING  }  [ remstr ] FROM ] str )'  }, 
- {  'TRUNCATE':             'TRUNCATE ( X, D )'  }, 
- {  'UCASE':                'UCASE ( str )'  }, 
- {  'UNHEX':                'UNHEX ( str )'  }, 
- {  'UNIX_TIMESTAMP':       'UNIX_TIMESTAMP ( [ date ] )'  }, 
- {  'UTC_DATE':             'UTC_DATE (  )'  }, 
- {  'UTC_TIMESTAMP':        'UTC_TIMESTAMP ( [ fsp ] )'  }, 
- {  'UTC_TIME':             'UTC_TIME ( [ fsp ] )'  }, 
- {  'WEEK':                 'WEEK ( date [ , mode ] )'  }, 
- {  'WEEKDAY':              'WEEKDAY ( date )'  }, 
- {  'WEEKOFYEAR':           'WEEKOFYEAR ( date )'  }, 
- {  'YEAR':                 'YEAR ( date )'  }, 
- {  'YEARWEEK':             'YEARWEEK ( date )'  }, 
- {  'YEARWEEK':             'YEARWEEK ( date, mode )'  }, 
-
- {  'digit'               :  '[0-9]+' },
- {  'EXPONENT'            :  '[Ee]{sign}?{digit}+' },
- {  'LITERAL'             :  '[A-Za-z]+' },
- #{  'string'              :  '\"()'^\'+\'|"^"+"' },
- {  'sign'                :  "[-+]" },
- {  'unsigned_int'        :  '{digit}+' },
- {  'signed_int'          :  '{sign} {unsigned_int}' },
- {  'integer'             :  '{sign}? {unsigned_int}' },
- {  'number'              :  '{int}("."?{unsigned_int})?{EXPONENT}?' },
  
 
-#(???) =() group togeather
-#{???} =?  internal definition reference
-#[?]   =?  one of anything in this bracket
-#?     =?  previous item was optional
-#+     =+  last item can may repeat unlimited times
-#-     =-  range
-#|     =|  this expression or expresison
-#^     =^  NOT next expresion
-#.     =.  everything
-#*     =*  zero or more of previous item
-
-#(???) ={}   group togeather
-#???   =???  internal definition reference
-#[?]   =?    optional one of anything in this bracket
-#+     =+  last item can may repeat unlimited times
-#-     =-    range
-#|     =|    this expression or expresison
-#^     =^  NOT next expresion
-#.     =.  everything
-#*     =*  zero or more of previous item
-
-
-# white [ \t]+
-# digit [0-9]
-# integer {digit}+
-# exponent [eE][+-]?{integer}
-# real {integer}("."{integer})?{exponent}?
- 
- #{  'number'              :  'int | { int { . | unsi1gned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
- # date 
- #fsp
- #str
- #remstr
- #expr
- #time
- #format
- #expr1
- #expr2
- #pos
- #len
- #days
- #unit
- #seconds
- #bits
- #str1
- #str2
- #charset_name
- #separator
- #dt, from_tz, to_tz
- #N, from_base, to_base
- #bits, on, off, separator, number_of_bits
- #locale
- #N_or_S
- #N
- #X
- #D
- #interval, datetime_expr
- #datetime_expr1
- #datetime_expr2
- #delim
- # count
-]
-# template out the matching
 
 print("""
 #include "headers/bytecode.h"
@@ -234,43 +12,45 @@ print("""
 
 def clean_pattern(pattern):
     pattern=pattern.strip()
-    pattern=pattern.replace("|"," | ")
-    pattern=pattern.replace("{"," { ")
-    pattern=pattern.replace("}"," } ")
-    pattern=pattern.replace("]"," ] ")
-    pattern=pattern.replace("["," [ ")
-    pattern=pattern.replace(","," , ")
-    pattern=pattern.replace("-"," - ")
-    pattern=pattern.replace("^"," ^ ")
-    pattern=pattern.replace("+"," + ")
-    pattern=pattern.replace("  "," ")
-    pattern=pattern.strip()
+    found=None
+    new_pattern=""
+    dont_break_quoted_blocks=None
+    in_character_block=None
+    for i in pattern:
+    
+        if dont_break_quoted_blocks:
+                if found:
+                    new_pattern+=i
+                    if i==found:
+                        found=None
+                    continue
 
-
-
-
-    return pattern
-
-
-def function_header(name,depth,pattern):
-    if depth==0:
-        o="""
-/*
- * Function: match_{0}
- * -----------------------------
- *   Generated: {1}
- *      tokens: a pointer to the curent element in a linked list of tokens to search
- * 
- *     Success: Returns a the token AFTER the curent pattern match
- *              If the end of the list is reached the last token is passed
- *     Failure: Returns NULL
- */
-token_t * match_{0}(haystack *hay){{
-    // {0}: {2}
-    token_t * token=NULL;                //make a copy of the pointer
-""".format(name,datetime.datetime.now().strftime("%Y-%m-%d"),pattern)
-        print o
-
+                if i=="'":
+                    found="'"
+                elif i=='"':
+                    found='"'
+                if found:
+                    new_pattern+=i
+                    continue
+         
+        
+        if i=='[':
+            in_character_block=True
+        if in_character_block==True:
+            new_pattern+=" "+i+" "
+            if i==']':
+                in_character_block=None
+            continue
+        
+        if found == None:
+            if  i in ("|","(",")","[","]",",","-","^","+","*",".","?"):
+                new_pattern+=" "+i+" "
+            else:
+                new_pattern+=i
+        else:
+            new_pattern+=i
+    #print new_pattern
+    return new_pattern
 
 def get_padd(depth,spacer):
     padd=''
@@ -281,10 +61,20 @@ def get_padd(depth,spacer):
 
 uid_int=1
     
+# '??' string
+# "??" string
+# {??} Ex: {digit}    
+# +    Ex: [a-z]+      repeat unlimited times
+# *    Ex: ([a-z]+)*   0 or more times    
+# ( )  Ex: ( [a-z]+ )  group
+# [ ]  Ex: [A-Za-z.]   any of these characters
+# ?    Ex: {method}?   optional
+# -    EX: [x-y]       range
+
 def uid():
     global uid_int
     uid_int+=1
-    return uid_int;
+    return uid_int
 
 def build_expression_levels(pattern,expression_depth):
     pattern=clean_pattern(pattern)
@@ -294,16 +84,17 @@ def build_expression_levels(pattern,expression_depth):
 
     index=0
     while 1:
+        #print index
         if index>=len(tokens):
             break
         token=tokens[index]
-        if token=='{':
+        if token=='(':
             sub_tokens=[]
             depth=0
             for sub_index in range(index,len(tokens)):
                 sub_token=tokens[sub_index]
-                if sub_token=='{': depth+=1 
-                if sub_token=='}': depth-=1 
+                if sub_token=='(': depth+=1 
+                if sub_token==')': depth-=1 
                 if depth==0:
                     sub_tokens.append(sub_token)
                     pattern2=" ".join(sub_tokens)
@@ -316,6 +107,7 @@ def build_expression_levels(pattern,expression_depth):
                 else:
                     if token!='':
                         sub_tokens.append(sub_token)
+            index+=1
             continue
         
         if token=='[':
@@ -331,18 +123,18 @@ def build_expression_levels(pattern,expression_depth):
                     if pattern==pattern2:
                         tokens2.append(sub_tokens)    
                     else:
-                        tokens2.append({'type':'optional','data':build_expression_levels(pattern2[1:-1],expression_depth+1)}) 
+                        tokens2.append({'type':'char','data':build_expression_levels(pattern2[1:-1],expression_depth+1)}) 
                     index=sub_index+1
                     break
                 else:
                     if token!='':
                         sub_tokens.append(sub_token)
+            index+=1
             continue
         if token!='':
             tokens2.append(token)
         index+=1
-    
-    
+    # end loops
     return tokens2
 
 def gather_matches(tokens):
@@ -360,154 +152,245 @@ def gather_matches(tokens):
 
     return functions
 
-def build(name,pattern,depth=0):
-    function_header(name,depth,pattern)
-        
+def group_expressions(tokens,token_type=None):
+    if isinstance(tokens,str):
+        return tokens
+
+    elif isinstance(tokens,dict):
+        tokens2={'type':tokens['type'],'data':[]}
+        tokens2['data']=group_expressions(tokens['data'],tokens['type'])
+        return tokens2
     
+    elif isinstance(tokens,list):
+        tokens2=[]
+        index=0
+        in_or=0
+        while index<len(tokens):
+            
+            if token_type=="char":
+                if len(tokens)>index+2:
+                    if tokens[index+1]=='-':
+                        tokens2.append({'type':'range','data':[group_expressions(tokens[index]),group_expressions(tokens[index+2])]})
+                        index+=3
+                        continue
+            
+            if len(tokens)>index+1:
+                if token_type!='char' and token_type!='range':
+                    if tokens[index]=='^':
+                        tokens2.append({'type':'not'     ,'data':group_expressions(tokens[index+1])})
+                        index+=2
+                        continue
+                    if tokens[index+1]=='?':
+                        tokens2.append({'type':'optional','data':group_expressions(tokens[index])})
+                        index+=2
+                        continue
+                    if tokens[index+1]=='*':
+                        tokens2.append({'type':'zero_or_more','data':group_expressions(tokens[index])})
+                        index+=2
+                        continue
+                    if tokens[index+1]=='+':
+                        tokens2.append({'type':'one_or_more','data':group_expressions(tokens[index])})
+                        index+=2
+                        continue
+
+                if in_or==0 and tokens[index+1]=='|':
+                    sub=[]
+                    in_or=1
+            if tokens[index]=='|':
+                index+=1
+                continue
+            if in_or==1:
+                sub.append(group_expressions(tokens[index],token_type))
+            else:
+                tokens2.append(group_expressions(tokens[index],token_type))
+            if len(tokens)>index+1:
+                if in_or==1 and tokens[index]!='|' and tokens[index+1]!='|':
+                    tokens2.append({'type':'or','data':sub})
+                    in_or=0
+            index+=1
+        if in_or==1:
+            tokens2.append({'type':'or','data':sub})
+        return tokens2
+
+def build(name,pattern,depth=0):
+    # load data / set variables
     tokens=build_expression_levels(pattern,0)
-    #pprint.pprint(tokens)
-
-
-
+    # pprint(tokens,indent=2)
+    # print " ---"
+    tokens=group_expressions(tokens)
     list_of_match_functions=gather_matches(tokens)
-    #pprint.pprint(list_of_match_functions)
+    # pprint(tokens,indent=2)
+    
+    if depth==0:
+        t=tpl("templates/templates.txt")
+        t.add("compare_function","function_name",name)
+        t.add("compare_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
+        t.add("compare_function","body", build_function_templates(tokens) )
+        o=t.build("compare_function")
+    else:
+        o=build_function_templates(tokens)
+    
+    return o
 
-    templates=build_function_templates(tokens)
-    #pprint.pprint(templates)
-
-
-    print "\n"
-    print "    return token;"
-    print "}} // end match_{0}".format(name)
-
-
-def build_function_templates(tokens,depth=0):
+def build_function_templates(tokens,token_type=None,depth=0):
+    t="eh"
     index=0
     spacer="   "
     padd=get_padd(depth,spacer)
     in_or=0
     #print tokens
-    if isinstance(tokens,dict):
-        tokens=tokens['data']
     
-    if isinstance(tokens,str):
-        tokens=[tokens]
+
+    o=""
     
-    first_command=1
-    while 1:
-        #print index ,
-        if index>=len(tokens):
-            break
-        
-        token=tokens[index]
+    
+    if token_type=='char':
+        if isinstance(tokens,str):
+            token= tokens.replace("'","\\ \'")
+            t=tpl("templates/templates.txt")
+            t.add("or_compare","compare_value",token)
+            o+=t.build("or_compare")
+            return o
+    else:
+        if isinstance(tokens,str):
+            token= tokens.replace("'","\\ \'")
+            #print token
+            if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}'))  :
+                token=token[1:-1]
 
-        if index+1<len(tokens):
-            if in_or==0:
-                if tokens[index+1] =='|':
-            
-                    or_uid="or_temp_{0}".format(uid())
-                    print padd+"// Begin OR block"
-                    print padd+"token_t * {0}=token;".format(or_uid)
-                    in_or=1
-                    #index+=1
-                    #continue
+                t=tpl("templates/templates.txt")
+                t.add("compare_method","function_name",token)
+                o+=t.build("compare_method")
 
-            if tokens[index+1] =='-':
-                print padd+"// range"
-                print padd+"if ( token != NULL && token_cmp_range(token,'{0}','{1}') != NULL ) token=next_token(token);".format(token,tokens[index+2])
-                index+=3
-                continue
-            
-        
-        if index>0 and in_or!=0:
-            if token!='|' and tokens[index-1] !='|':
-                print padd+"// end OR Block"
-                in_or=0
-
-        if token=='|':
-            print ""
-            print padd+"if ( token == NULL ) {{        ".format(token)
-            #print tokens
-            print padd+spacer+"token={0};".format(or_uid)
-
-            build_function_templates(tokens[index+1],depth+1)
-            print padd+"}"
-            index+=2;
-            continue
-
-        if isinstance(token,str):
-            
-            token= token.replace("'","\\ \'")
-            if token[0]>='A' and token[0]<='Z' or (( token[0]<'a' or token[0]>'z') and ( token[0]<'A' or token[0]>'Z')):
-                print padd+"if ( token != NULL && token_cmp(token,'{0}') != NULL ) token=next_token(token);".format(token)
             else:
-                print padd+"if ( token != NULL ) token = match_{0}(token);".format(token)
-            index+=1
-            continue
-        
-        if isinstance(token,dict):
-            if token['type']=='optional':
-                print ""
-                opt_uid="opt_temp_{0}".format(uid())
-                print padd+"// begin optional block"
-                print padd+"if ( token =! NULL ) {{".format(token)
-                print padd+spacer+"token_t * {0}=token;".format(opt_uid)
-                build_function_templates(token,depth+1)
-                print padd+spacer+"if ( token == NULL ) token={0};".format(opt_uid)
-                print padd+"}// end optional block"
-                index+=1
-                continue
+                t=tpl("templates/templates.txt")
+                t.add("compare","compare_value_length",str(len(token)))
+                t.add("compare","compare_value",token)
+                o+=t.build("compare")
+            return o
+    
+            
+    
+    
+    if isinstance(tokens,list):
+        if token_type=='char':
+            o=[]
+            for token in tokens:
+                o.append(build_function_templates(token,token_type,depth).strip())
+            return " || \n".join(o)
+        else:
+            for token in tokens:
+                o+=""+build_function_templates(token,token_type,depth)
+            return o
 
-            if token['type']=='group':
-                print ""
-                print padd+"// begin group block"
-                print padd+"if ( token =! NULL ) {{".format(token)
-                build_function_templates(token,depth+1)
-                print padd+"} // end group block"
-                index+=1
-                continue
+    
+    if isinstance(tokens,dict):
+        token=tokens
+        if token['type']=='one_or_more':
+            t=tpl("templates/templates.txt")
+            t.add("one_or_more","body",build_function_templates(token['data'],token['type'],depth))
+            o+=t.build("one_or_more")
+            return o
 
-#if isinstance(token,str):
+        if token['type']=='char':
+            opt_uid="opt_temp_{0}".format(uid())
+            t=tpl("templates/templates.txt")
+            t.add("char","conditions",build_function_templates(token['data'],token['type'],depth))
+            o+=t.build("char")
+            return o
         
-        index+=1
+        if token['type']=='range':
+            opt_uid="opt_temp_{0}".format(uid())
+            t=tpl("templates/templates.txt")
+            t.add("range","range_1",tokens['data'][0])
+            t.add("range","range_2",tokens['data'][1])
+            o+=t.build("range")
+            return o
+
+        if token['type']=='optional':
+            opt_uid="opt_temp_{0}".format(uid())
+            t=tpl("templates/templates.txt")
+            t.add("optional","body",build_function_templates(token['data'],token['type'],depth+1))
+            t.add("optional","token_uid",opt_uid)
+            o+=t.build("optional")
+            return o
+
+        if token['type']=='group':
+            t=tpl("templates/templates.txt")
+            t.add("group","body",build_function_templates(token['data'],token['type'],depth+1))
+            o+=t.build("group")
+            return o
+
+        if token['type']=='or':
+            t=tpl("templates/templates.txt")
+            t.add("or","body",build_function_templates(token['data'],token['type'],depth+1))
+            o+=t.build("or")
+            return o
+    return ""
     
 
 
 
-
-
-
-for function in functions:
-    for key in function:
-        build(key,function[key])
+#[{ 'data': [{ 'data': '-', 'type': 'one_or_more'}], 'type': 'char'}]
+#[ { 'data': { 'data': ['A', '-', 'Z', 'a', '-', 'z'], 'type': 'char'},
+#    'type': 'one_or_more'}]
+#[ { 'data': [ { 'data': [ '"',
+#                          { 'data': { 'data': ['^', '"'], 'type': 'group'},
+#                            'type': 'one_or_more'},
+#                          '"'],
+#                'type': 'group'},
+#              { 'data': [ "'",
+#                          { 'data': { 'data': ['^', "'"], 'type': 'group'},
+#                            'type': 'one_or_more'},
+#                          "'"],
+#                'type': 'group'}],
+#    'type': 'or'}]
+#[{ 'data': { 'data': ['0', '-', '9'], 'type': 'char'}, 'type': 'one_or_more'}]
+#['{sign}', '{unsigned_int}']
+#[{ 'data': ['{unsigned_int}', '{signed_int}'], 'type': 'or'}]
+#[{ 'data': ['E', 'e'], 'type': 'char'}, '{integer}']
+#[ { 'data': [ '{integer}',
+#              { 'data': ['{integer}', '.', '{unsigned_int}'],
+#                'type': 'group'},
+#              { 'data': ['.', '{unsigned_int}'], 'type': 'group'}],
+#    'type': 'or'},
+#  { 'data': '{exponent}', 'type': 'optional'}]
 #
-#print """
-#/*
-# * Function: match_functions
-# * -----------------------------
-# *   Generated: {0}
-# *      tokens: a pointer to the curent element in a linked list of tokens to search
-# * 
-# *     Success: Returns a the token AFTER the curent pattern match
-# *              If the end of the list is reached the last token is passed
-# *     Failure: Returns NULL
-# */
-#""".format(datetime.datetime.now().strftime("%Y-%m-%d"))
-#        
-#print "token_t * match_function(token_t* tokens) {";
-#print "    token_t * token=NULL;";
-#index=0
-#for function in functions:
-#    
-#    for key in function:
-#        if index==0:
-#            print "    token=match_{0}(tokens);".format(key)
-#        else:
-#            print "    if (token!=NULL) return token; token=match_{0}(tokens);".format(key)
-#        index+=1
-#print "    return token;"
-#print "} // end match functions";
-#
-### TODO sub variables "acos(X)"
-### TODO RANGE A-Z
-### TODO ' * UNTIL '
+
+
+def build_match(file):
+    t=tpl("templates/templates.txt")
+    functions=[]
+    with open(file,"r") as content:
+        for line in content:
+            key,data_pattern=line.split(":",1)
+            functions.append({key:data_pattern})
+
+
+    for function in functions:
+        for key in function:
+            o=build(key,function[key])
+            print(o)
+
+    index=0
+    for function in functions:
+        for key in function:
+            if index==0:
+                fragment="\n"+t.build("match_functions_first_var",{'function_name':key})
+            else:
+                fragment=t.build("match_functions_second_var",{'function_name':key})
+            t.add("match_functions","body",fragment)
+            index+=1
+    
+    t.add("match_functions","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
+    o=t.build("match_functions")
+    #print o
+
+
+## TODO sub variables "acos(X)"
+## TODO RANGE A-Z
+## TODO ' * UNTIL '
+
+
+#build_match("tools/functions.def")
+build_match("tools/templates/base.def")

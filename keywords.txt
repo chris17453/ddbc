@@ -40,3 +40,40 @@ UNION
 VALUES
 WHEN
 WHERE 
+
+
+ #{  'number'              :  'int | { int { . | unsi1gned_int | [ r ] } unsigned_int } |  { . unsigned_int }  [E int]' },
+ # date 
+ #fsp
+ #str
+ #remstr
+ #expr
+ #time
+ #format
+ #expr1
+ #expr2
+ #pos
+ #len
+ #days
+ #unit
+ #seconds
+ #bits
+ #str1
+ #str2
+ #charset_name
+ #separator
+ #dt, from_tz, to_tz
+ #N, from_base, to_base
+ #bits, on, off, separator, number_of_bits
+ #locale
+ #N_or_S
+ #N
+ #X
+ #D
+ #interval, datetime_expr
+ #datetime_expr1
+ #datetime_expr2
+ #delim
+ # count
+
+# template out the matching

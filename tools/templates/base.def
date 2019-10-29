@@ -1,0 +1,8 @@
+string:               ( "(^")+") | (' (^')+')
+integer:              {unsigned_int} | {signed_int}
+real:                 {integer} | ( {integer} . {unsigned_int} ) |  ( . {unsigned_int} )  {exponent}?
+alpha:                [A-Za-z]+
+unsigned_int:         [0-9]+
+sign:                 [-+]
+exponent:             [Ee] {integer}
+signed_int:           {sign} {unsigned_int}
