@@ -1,72 +1,88 @@
- # node->value     = memory pointer
- # node->OK   = 0=False, 1=True
- # node->len    = length of memory
- # node->pos     = character position in memory, -1  is past length of memory
+headers:
+/********************************************
+* Generated: {date_time}                    *
+********************************************/
+
+#include <stdio.h>
+#include "headers/stack.h"
+#include "headers/func.h"
 
 
-strcicmp:
-int strcicmp(char const *a, char const *b)
-{
-    for (;; a++, b++) {
-        int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-        if (d != 0 || !*a)
-            return d;
-    }
+node_t:
+
+// this holds the string you are tokenizing
+typedef struct{
+    int   length;
+    int   pos;
+    void *value;
+    stack_t *stack;
 }
-# temp_position, bopdy
+node_t;
+
+stricmp:
+
+
+// node values are only compared if string length is the same, no need to validate
+// comparitors is against a precompiled value thats already case optimised
+// returns 0 for equal
+int stricmp(node_t *n, char const *b){
+    int d=0;
+    for (int i=0;i<n->len;i++) {
+        d = tolower(node[i]) - b[i];
+        if (d != 0 ) return d;
+    }
+    return 0;
+}
 
 or:
 // or group
-if( node->pos!=-1 && node->OK==1) {
-    push(node->pos); //save position
+if( n->pos!=-1 && n->OK==1) {
+    push(n->stack,n->pos); //save position
     {body}
-    pop(); //remove saved position
+    pop(n->stack); //remove saved position
 }//end ok
 
 or_list_item:
 // well this
-if (node->OK!=1) {  //if bad, retry wrapper
-    node->OK=1; 
-    node->pos=peek(); 
+if (n->OK!=1) {  //if bad, retry wrapper
+    n->OK=1; 
+    n->pos=peek(n->stack); 
 {body}
 }
 //then that
 
-# temp_position, bopdy
 one_or_more:
-push(node->pos);              // one or more
-if( node->pos!=-1 && node->OK==1) {
-push(node->pos);
+push(n->stack,n->pos);              // one or more
+if( n->pos!=-1 && n->OK==1) {
+push(n->stack,n->pos);
 {body}
-if(node->OK==0) { node->pos=peek(); }      // one or more loop OK test
-pop();
+if(n->OK==0) { n->pos=peek(n->stack); }      // one or more loop OK test
+pop(n->stack);
 } // end one or more
-if(node->pos>==peek()){ node->OK=0; }      // one or more OK test
-pop();
+if(n->pos>==peek(n->stack)){ n->OK=0; }      // one or more OK test
+pop(n->stack);
                                                             
 
 zero_or_more:
-if( node->pos!=-1 && node->OK==1) {
-push(node->pos);              // zero or more
+if( n->pos!=-1 && n->OK==1) {
+push(n->stack,n->pos);              // zero or more
 {body}
-if(node->OK==0) { node->pos=peek(); }      // weo or more loop OK test
+if(n->OK==0) { n->pos=peek(n->stack); }      // weo or more loop OK test
 } // end zero or more
-pop();
+pop(n->stack);
 
 
 
 
-#compare_value
 compare:
-if( node->pos!=-1 && node->OK==1 && node->len=={compare_value_length} && strcmpi(node, '{compare_value}')==0) {
-    node->OK=1;
-    node->pos+={compare_value_length};
-    if(node->pos>=node->len) node->pos= -1;
+if( n->pos!=-1 && n->OK==1 && n->len=={compare_value_length} && strcmpi(n, '{compare_value}')==0) {
+    n->OK=1;
+    n->pos+={compare_value_length};
+    if(n->pos>=n->len) n->pos= -1;
 } else {
-    node->OK=0;
+    n->OK=0;
 }
 
-# node_uid,body
 optional:
 // begin optional block
 if ( node =! NULL ) {
@@ -76,17 +92,14 @@ if ( node =! NULL ) {
 } // end optional block
 
 
-# function_name, date_time
 compare_function:
 
 // Function : match_{function_name}
-// Generated: {date_time}
-node_t * match_{function_name}(node_t *hay){
+node_t * match_{function_name}(node_t *n){
 {body}
-return node;
+return n;
 }
 
-# body
 match_functions:
 /*
  * Function: match_functions
@@ -98,68 +111,68 @@ match_functions:
  *              If the end of the list is reached the last node is passed
  *     Failure: Returns NULL
  */
-node_t * match_function(node_t* node) {
-    node_t * node=NULL;";
+node_t * match_function(char *data) {
+    node_t * n=malloc(sizeof(node_t));
+    n->value=data;
+    n->len=strlen(data);
+    n->pos=0;
+    n->stack=createStack(100);
+
 {body}
-    return node;
+    return n;
 } // end match functions
 
 
-# function_name
 match_functions_first_var:
-    node=match_{function_name}(nodes);
+    n=match_{function_name}(nodes);
 
-# function_name
 match_functions_second_var:
-    if (node!=NULL) return node; node=match_{function_name}(nodes);
+    if (n.pos!=-1 && n->OK=1) return node; 
+    n=match_{function_name}(nodes);
 
 
 
-# *      nodes: a pointer to the curent element in a linked list of nodes to search
-# * 
-# *     OK: Returns a the node AFTER the curent pattern match
-# *              If the end of the list is reached the last node is passed
-# *     Failure: Returns NULL
- 
+
 not:
 //NOT
-if( node->pos!=-1 && node->OK==1) {
-    push(node->pos);
+if( n->pos!=-1 && n->OK==1) {
+    push(n->stack,n->pos);
     {body}
-    if (node->OK==1) {
-        node->OK=0;
-        node->pos=peek()
+    if (n->OK==1) {
+        n->OK=0;
+        n->pos=peek(n->stack);
     } else { 
-        node->OK=1;
+        n->OK=1;
     }
-    pop()
+    pop(n->stack);
 }//end NOT
 
- # range_1,range_2
 range:
-(node->value[node->pos]>='{range_1}' && node->value[node->pos]<='{range_2}')
+(n->value[n->pos]>='{range_1}' && n->value[n->pos]<='{range_2}')
 
 char:
-if( node->pos!=-1 && node->OK==1 && ( 
+if( n->pos!=-1 && n->OK==1 && ( 
 {conditions}
 ) ) {
-    node->OK=1;
-    node->pos++; 
-    if(node->pos>=node->len) node->pos= -1;
+    n->OK=1;
+    n->pos++; 
+    if(n->pos>=n->len) n->pos= -1;
 } else {     
-    node->OK=0;
+    n->OK=0;
 } // end char
 
 or_compare:
- node->value[node->pos]=='{compare_value}'
+ n->value[n->pos]=='{compare_value}'
 
-# function_name
 compare_method:
-if( node->pos!=-1 && node->OK==1 ) { node = match_{function_name}(node); } //compare_function
+if( n->pos!=-1 && n->OK==1 ) { n = match_{function_name}(n); } //compare_function
 
-# body
+
 group:
 // begin group block
-if( node->pos!=-1 && node->OK==1) {
+if( n->pos!=-1 && n->OK==1) {
 {body}
 } // end group block
+
+signature:
+node_t * match_{body}(node_t *n);

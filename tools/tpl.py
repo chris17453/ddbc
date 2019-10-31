@@ -29,8 +29,8 @@ class tpl:
                 if len(clean_line)<1:
                     continue
                 # skip comments
-                if clean_line[0]=='#': 
-                    continue
+                #if clean_line[0]=='#': 
+                #    continue
                 
                 if clean_line[-1]==":":
                     func=line[0:-2]

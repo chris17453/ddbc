@@ -1,13 +1,11 @@
+import argparse
+import os
+import sys
 import datetime
 from pprint import pprint
 import re
 from tpl import tpl
- 
 
-
-print("""
-#include "headers/bytecode.h"
-""")
 
 
 def clean_pattern(pattern):
@@ -253,7 +251,7 @@ def build_function_templates(tokens,token_type=None,depth=0):
             return o
     else:
         if isinstance(tokens,str):
-            token= tokens.replace("'","\\ \'")
+            token= tokens.replace("'","\\\'")
             #print token
             if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}'))  :
                 token=token[1:-1]
@@ -357,7 +355,12 @@ def build_function_templates(tokens,token_type=None,depth=0):
 
 
 def build_match(file):
+    o=""
     t=tpl("templates/templates.txt")
+    t.add("headers","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
+    o+=t.build("headers")
+    o+=t.build("stricmp")
+    
     functions=[]
     with open(file,"r") as content:
         for line in content:
@@ -367,8 +370,7 @@ def build_match(file):
 
     for function in functions:
         for key in function:
-            o=build(key,function[key])
-            print(o)
+            o+=build(key,function[key])
 
     index=0
     for function in functions:
@@ -381,25 +383,35 @@ def build_match(file):
             index+=1
     
     t.add("match_functions","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
-    o=t.build("match_functions")
-    #print o
+    o+=t.build("match_functions")
+    print o
+
+def build_headers(file):
+    functions=[]
+    with open(file,"r") as content:
+        for line in content:
+            key,data_pattern=line.split(":",1)
+            functions.append({key:data_pattern})
+
+    o=""
+    
+    t=tpl("templates/templates.txt")
+    o+=t.build("node_t")
+    
+    for function in functions:
+        for key in function:
+            t=tpl("templates/templates.txt")
+            t.add("signature","body",key)
+            o+=t.build("signature")
+    print o
 
 
-## TODO sub variables "acos(X)"
-## TODO RANGE A-Z
-## TODO ' * UNTIL '
-
-
-#build_match("tools/functions.def")
-build_match("tools/templates/base.def")
-# [ {'data':[ {  'data':['"', {    'data':{      'data':[ {      'data': '"', 'type':'not'}    ], 'type':'group'}  , 'type':'one_or_more'}, '"'], 'type':'group'}  , 
-#   {'data':["'", {    'data':{      'data':[ {      'data': "'", 'type':'not'}    ], 'type':'group'}  , 'type':'one_or_more'}, "'"], 'type':'group'}], 'type':'or'}
-
-
-
-# typedef struct{
-#     int    length;
-#     int    pos;
-#     int    OK;
-#     void * value;
-# } node;
+if __name__=='__main__':
+    parser = argparse.ArgumentParser("expressonator", usage='%(prog)s [options]', description="""create a c file for expression consumption""", epilog="")
+    parser.add_argument('-i', help='return headers', action='store_true')
+    args = parser.parse_args()
+    template="tools/templates/base.def"
+    if args.i:
+        build_headers(template)
+    else:
+        build_match(template)

@@ -1,4 +1,5 @@
-# include "headers/bytecode.h"
+//# include "headers/bytecode.h"
+#include "headers/func.h"
 
 int main(){
     char  *query_str=" \n\
@@ -46,7 +47,7 @@ Zllo    -- this is another comment /* */ fe\n\
 
     printf("Starting\n");
     printf("Query: %s\n \n",query_str);
-    token_t * tokens=bytecode(query_str);
+    match_functions(query_str)
     //print_tokens(tokens);
 
 
