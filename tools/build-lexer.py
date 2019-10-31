@@ -267,6 +267,13 @@ def build_function_templates(tokens,token_type=None,depth=0):
                 t.add("compare","compare_value_length",str(len(token)))
                 t.add("compare","compare_value",token)
                 o+=t.build("compare")
+
+
+            if token_type=='or':
+                t=tpl("templates/templates.txt")
+                t.add("or_list_item","body",o)
+                o=t.build("or_list_item")
+
             return o
     
             
@@ -278,6 +285,18 @@ def build_function_templates(tokens,token_type=None,depth=0):
             for token in tokens:
                 o.append(build_function_templates(token,token_type,depth).strip())
             return " || \n".join(o)
+        elif token_type=='or':
+            index=0
+            for token in tokens:
+                if index>0:
+                    t=tpl("templates/templates.txt")
+                    t.add("or_list_item","body",build_function_templates(token,token_type,depth))
+                    o+=t.build("or_list_item")
+                else:
+                    o+=build_function_templates(token,token_type,depth)
+                index+=1
+
+            return o
         else:
             for token in tokens:
                 o+=""+build_function_templates(token,token_type,depth)
@@ -326,36 +345,15 @@ def build_function_templates(tokens,token_type=None,depth=0):
             t.add("or","body",build_function_templates(token['data'],token['type'],depth+1))
             o+=t.build("or")
             return o
+
+        if token['type']=='not':
+            t=tpl("templates/templates.txt")
+            t.add("not","body",build_function_templates(token['data'],token['type'],depth+1))
+            o+=t.build("not")
+            return o
+
     return ""
     
-
-
-
-#[{ 'data': [{ 'data': '-', 'type': 'one_or_more'}], 'type': 'char'}]
-#[ { 'data': { 'data': ['A', '-', 'Z', 'a', '-', 'z'], 'type': 'char'},
-#    'type': 'one_or_more'}]
-#[ { 'data': [ { 'data': [ '"',
-#                          { 'data': { 'data': ['^', '"'], 'type': 'group'},
-#                            'type': 'one_or_more'},
-#                          '"'],
-#                'type': 'group'},
-#              { 'data': [ "'",
-#                          { 'data': { 'data': ['^', "'"], 'type': 'group'},
-#                            'type': 'one_or_more'},
-#                          "'"],
-#                'type': 'group'}],
-#    'type': 'or'}]
-#[{ 'data': { 'data': ['0', '-', '9'], 'type': 'char'}, 'type': 'one_or_more'}]
-#['{sign}', '{unsigned_int}']
-#[{ 'data': ['{unsigned_int}', '{signed_int}'], 'type': 'or'}]
-#[{ 'data': ['E', 'e'], 'type': 'char'}, '{integer}']
-#[ { 'data': [ '{integer}',
-#              { 'data': ['{integer}', '.', '{unsigned_int}'],
-#                'type': 'group'},
-#              { 'data': ['.', '{unsigned_int}'], 'type': 'group'}],
-#    'type': 'or'},
-#  { 'data': '{exponent}', 'type': 'optional'}]
-#
 
 
 def build_match(file):
@@ -394,13 +392,14 @@ def build_match(file):
 
 #build_match("tools/functions.def")
 build_match("tools/templates/base.def")
+# [ {'data':[ {  'data':['"', {    'data':{      'data':[ {      'data': '"', 'type':'not'}    ], 'type':'group'}  , 'type':'one_or_more'}, '"'], 'type':'group'}  , 
+#   {'data':["'", {    'data':{      'data':[ {      'data': "'", 'type':'not'}    ], 'type':'group'}  , 'type':'one_or_more'}, "'"], 'type':'group'}], 'type':'or'}
 
 
-typedef struct{
-    int    length;
-    int    pos;
-    int    OK;
-    int    pin[100];
-    int    pin_pos;
-    void * value;
-} node;
+
+# typedef struct{
+#     int    length;
+#     int    pos;
+#     int    OK;
+#     void * value;
+# } node;

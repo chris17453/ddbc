@@ -2,8 +2,6 @@
  # node->OK   = 0=False, 1=True
  # node->len    = length of memory
  # node->pos     = character position in memory, -1  is past length of memory
- # node->pin       = pinned character position for an inner loop
- # node->big_pin   = pinned character position for an outer loop
 
 
 strcicmp:
@@ -18,41 +16,49 @@ int strcicmp(char const *a, char const *b)
 # temp_position, bopdy
 
 or:
-// or
-if ( node->OK == 0 ) {
-    node->OK=1;
-    if( node->pos!=-1 && node->OK==1) {
-        token={temp_position};
+// or group
+if( node->pos!=-1 && node->OK==1) {
+    push(node->pos); //save position
     {body}
-    }
+    pop(); //remove saved position
 }//end ok
+
+or_list_item:
+// well this
+if (node->OK!=1) {  //if bad, retry wrapper
+    node->OK=1; 
+    node->pos=peek(); 
+{body}
+}
+//then that
 
 # temp_position, bopdy
 one_or_more:
-node->big_pin=node->pos;              // one or more
+push(node->pos);              // one or more
 if( node->pos!=-1 && node->OK==1) {
-node->pin=node->pos;              // one or more
+push(node->pos);
 {body}
-if(node->OK==0) { node->pos=node->pin; }      // one or more loop OK test
+if(node->OK==0) { node->pos=peek(); }      // one or more loop OK test
+pop();
 } // end one or more
-if(node->pos>==node->big_pin){ node->OK=0; }      // one or more OK test
+if(node->pos>==peek()){ node->OK=0; }      // one or more OK test
+pop();
                                                             
 
 zero_or_more:
 if( node->pos!=-1 && node->OK==1) {
-node->pin=node->pos;              // zero or more
+push(node->pos);              // zero or more
 {body}
-if(node->OK==0) { node->pos=node->pin; }      // weo or more loop OK test
+if(node->OK==0) { node->pos=peek(); }      // weo or more loop OK test
 } // end zero or more
+pop();
 
 
-not:
-//NOT X
 
 
 #compare_value
 compare:
-if( node->pos!=-1 && node->OK==1 && token->len=={compare_value_length} && strcmpi(node,'{compare_value}')==0) {
+if( node->pos!=-1 && node->OK==1 && node->len=={compare_value_length} && strcmpi(node, '{compare_value}')==0) {
     node->OK=1;
     node->pos+={compare_value_length};
     if(node->pos>=node->len) node->pos= -1;
@@ -60,13 +66,13 @@ if( node->pos!=-1 && node->OK==1 && token->len=={compare_value_length} && strcmp
     node->OK=0;
 }
 
-# token_uid,body
+# node_uid,body
 optional:
 // begin optional block
-if ( token =! NULL ) {
-    token_t * {token_uid}=token;
+if ( node =! NULL ) {
+    node_t * {node_uid}=node;
 {body}
-    if ( token == NULL ) token={token_uid};
+    if ( node == NULL ) node={node_uid};
 } // end optional block
 
 
@@ -86,36 +92,48 @@ match_functions:
  * Function: match_functions
  * -----------------------------
  *   Generated: {date_time}
- *      tokens: a pointer to the curent element in a linked list of tokens to search
+ *      nodes: a pointer to the curent element in a linked list of nodes to search
  * 
- *     OK: Returns a the token AFTER the curent pattern match
- *              If the end of the list is reached the last token is passed
+ *     OK: Returns a the node AFTER the curent pattern match
+ *              If the end of the list is reached the last node is passed
  *     Failure: Returns NULL
  */
 node_t * match_function(node_t* node) {
-    token_t * token=NULL;";
+    node_t * node=NULL;";
 {body}
-    return token;
+    return node;
 } // end match functions
 
 
 # function_name
 match_functions_first_var:
-    token=match_{function_name}(tokens);
+    node=match_{function_name}(nodes);
 
 # function_name
 match_functions_second_var:
-    if (token!=NULL) return token; token=match_{function_name}(tokens);
+    if (node!=NULL) return node; node=match_{function_name}(nodes);
 
 
 
-# *      tokens: a pointer to the curent element in a linked list of tokens to search
+# *      nodes: a pointer to the curent element in a linked list of nodes to search
 # * 
-# *     OK: Returns a the token AFTER the curent pattern match
-# *              If the end of the list is reached the last token is passed
+# *     OK: Returns a the node AFTER the curent pattern match
+# *              If the end of the list is reached the last node is passed
 # *     Failure: Returns NULL
  
-
+not:
+//NOT
+if( node->pos!=-1 && node->OK==1) {
+    push(node->pos);
+    {body}
+    if (node->OK==1) {
+        node->OK=0;
+        node->pos=peek()
+    } else { 
+        node->OK=1;
+    }
+    pop()
+}//end NOT
 
  # range_1,range_2
 range:
