@@ -394,3 +394,13 @@ def build_match(file):
 
 #build_match("tools/functions.def")
 build_match("tools/templates/base.def")
+
+
+typedef struct{
+    int    length;
+    int    pos;
+    int    OK;
+    int    pin[100];
+    int    pin_pos;
+    void * value;
+} node;

@@ -16,13 +16,16 @@ int strcicmp(char const *a, char const *b)
     }
 }
 # temp_position, bopdy
+
 or:
 // or
-if( node->pos!=-1 && node->OK==1) {
-    token={temp_position};
-{body}
-
-}
+if ( node->OK == 0 ) {
+    node->OK=1;
+    if( node->pos!=-1 && node->OK==1) {
+        token={temp_position};
+    {body}
+    }
+}//end ok
 
 # temp_position, bopdy
 one_or_more:
