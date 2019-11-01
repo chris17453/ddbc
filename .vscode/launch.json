@@ -9,7 +9,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/builds/ddb2",
+            "program": "${workspaceFolder}/builds/ddbc",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "cd ddb2; /usr/lib64/ccache/gcc -Wall -g ddb.c bytecode.c tokens.c -o ../builds/ddb2",
+            "command": "make build",
             
             "group": {
                 "kind": "build",

@@ -6,3 +6,4 @@ unsigned_int:         [0-9]+
 sign:                 [-+]
 exponent:             [Ee] {integer}
 signed_int:           {sign} {unsigned_int}
+whitespace:           [\t\s]+

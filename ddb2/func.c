@@ -25,34 +25,53 @@ int stricmp(node_t * n, const char *b)
   return 0;
 }
 
+void print_n(node_t * n)
+{
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
+}
+
+int n_OK(node_t * n)
+{
+  print_n(n);
+  if (n->pos != -1 && n->OK == 1)
+    return 1;
+  return 0;
+}
+
 // Function : match_string
 node_t *match_string(node_t * n)
 {
   printf("In functions match_string\n");
   // or group
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);     //save position
     // begin group block
-    if (n->pos != -1 && n->OK == 1) {
-      if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
+    if (n_OK(n) == 1) {
+      printf("Comparing LEFT  %s\n", n->value);
+      printf("Comparing RIGHT %s\n", (char *) "\"");
+      if (n_OK(n) == 1 && n->len == 2 && stricmp(n, (const char *) "\"") == 0) {
         n->OK = 1;
-        n->pos += 1;
+        n->pos += 2;
         if (n->pos >= n->len)
           n->pos = -1;
       } else {
         n->OK = 0;
       }
       push(n->stack, n->pos);   // one or more
-      if (n->pos != -1 && n->OK == 1) {
+      if (n_OK(n) == 1) {
         push(n->stack, n->pos);
         // begin group block
-        if (n->pos != -1 && n->OK == 1) {
+        if (n_OK(n) == 1) {
           //NOT
-          if (n->pos != -1 && n->OK == 1) {
+          if (n_OK(n) == 1) {
             push(n->stack, n->pos);
-            if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
+            printf("Comparing LEFT  %s\n", n->value);
+            printf("Comparing RIGHT %s\n", (char *) "\"");
+            if (n_OK(n) == 1 && n->len == 2 && stricmp(n, (const char *) "\"") == 0) {
               n->OK = 1;
-              n->pos += 1;
+              n->pos += 2;
               if (n->pos >= n->len)
                 n->pos = -1;
             } else {
@@ -79,9 +98,11 @@ node_t *match_string(node_t * n)
         n->OK = 0;
       }                         // one or more OK test
       pop(n->stack);
-      if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
+      printf("Comparing LEFT  %s\n", n->value);
+      printf("Comparing RIGHT %s\n", (char *) "\"");
+      if (n_OK(n) == 1 && n->len == 2 && stricmp(n, (const char *) "\"") == 0) {
         n->OK = 1;
-        n->pos += 1;
+        n->pos += 2;
         if (n->pos >= n->len)
           n->pos = -1;
       } else {
@@ -94,26 +115,30 @@ node_t *match_string(node_t * n)
       n->OK = 1;
       n->pos = peek(n->stack);
       // begin group block
-      if (n->pos != -1 && n->OK == 1) {
-        if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
+      if (n_OK(n) == 1) {
+        printf("Comparing LEFT  %s\n", n->value);
+        printf("Comparing RIGHT %s\n", (char *) "'");
+        if (n_OK(n) == 1 && n->len == 1 && stricmp(n, (const char *) "'") == 0) {
           n->OK = 1;
-          n->pos += 2;
+          n->pos += 1;
           if (n->pos >= n->len)
             n->pos = -1;
         } else {
           n->OK = 0;
         }
         push(n->stack, n->pos); // one or more
-        if (n->pos != -1 && n->OK == 1) {
+        if (n_OK(n) == 1) {
           push(n->stack, n->pos);
           // begin group block
-          if (n->pos != -1 && n->OK == 1) {
+          if (n_OK(n) == 1) {
             //NOT
-            if (n->pos != -1 && n->OK == 1) {
+            if (n_OK(n) == 1) {
               push(n->stack, n->pos);
-              if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
+              printf("Comparing LEFT  %s\n", n->value);
+              printf("Comparing RIGHT %s\n", (char *) "'");
+              if (n_OK(n) == 1 && n->len == 1 && stricmp(n, (const char *) "'") == 0) {
                 n->OK = 1;
-                n->pos += 2;
+                n->pos += 1;
                 if (n->pos >= n->len)
                   n->pos = -1;
               } else {
@@ -140,9 +165,11 @@ node_t *match_string(node_t * n)
           n->OK = 0;
         }                       // one or more OK test
         pop(n->stack);
-        if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
+        printf("Comparing LEFT  %s\n", n->value);
+        printf("Comparing RIGHT %s\n", (char *) "'");
+        if (n_OK(n) == 1 && n->len == 1 && stricmp(n, (const char *) "'") == 0) {
           n->OK = 1;
-          n->pos += 2;
+          n->pos += 1;
           if (n->pos >= n->len)
             n->pos = -1;
         } else {
@@ -168,13 +195,13 @@ node_t *match_integer(node_t * n)
 {
   printf("In functions match_integer\n");
   // or group
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);     //save position
     // well this
     if (n->OK != 1) {           //if bad, retry wrapper
       n->OK = 1;
       n->pos = peek(n->stack);
-      if (n->pos != -1 && n->OK == 1) {
+      if (n_OK(n) == 1) {
         n = match_unsigned_int(n);
       }                         //compare_function
 
@@ -188,7 +215,7 @@ node_t *match_integer(node_t * n)
       if (n->OK != 1) {         //if bad, retry wrapper
         n->OK = 1;
         n->pos = peek(n->stack);
-        if (n->pos != -1 && n->OK == 1) {
+        if (n_OK(n) == 1) {
           n = match_signed_int(n);
         }                       //compare_function
 
@@ -212,13 +239,13 @@ node_t *match_real(node_t * n)
 {
   printf("In functions match_real\n");
   // or group
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);     //save position
     // well this
     if (n->OK != 1) {           //if bad, retry wrapper
       n->OK = 1;
       n->pos = peek(n->stack);
-      if (n->pos != -1 && n->OK == 1) {
+      if (n_OK(n) == 1) {
         n = match_integer(n);
       }                         //compare_function
 
@@ -229,11 +256,13 @@ node_t *match_real(node_t * n)
       n->OK = 1;
       n->pos = peek(n->stack);
       // begin group block
-      if (n->pos != -1 && n->OK == 1) {
-        if (n->pos != -1 && n->OK == 1) {
+      if (n_OK(n) == 1) {
+        if (n_OK(n) == 1) {
           n = match_integer(n);
         }                       //compare_function
-        if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '.') == 0) {
+        printf("Comparing LEFT  %s\n", n->value);
+        printf("Comparing RIGHT %s\n", (char *) ".");
+        if (n_OK(n) == 1 && n->len == 1 && stricmp(n, (const char *) ".") == 0) {
           n->OK = 1;
           n->pos += 1;
           if (n->pos >= n->len)
@@ -241,7 +270,7 @@ node_t *match_real(node_t * n)
         } else {
           n->OK = 0;
         }
-        if (n->pos != -1 && n->OK == 1) {
+        if (n_OK(n) == 1) {
           n = match_unsigned_int(n);
         }                       //compare_function
 
@@ -254,8 +283,10 @@ node_t *match_real(node_t * n)
       n->OK = 1;
       n->pos = peek(n->stack);
       // begin group block
-      if (n->pos != -1 && n->OK == 1) {
-        if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '.') == 0) {
+      if (n_OK(n) == 1) {
+        printf("Comparing LEFT  %s\n", n->value);
+        printf("Comparing RIGHT %s\n", (char *) ".");
+        if (n_OK(n) == 1 && n->len == 1 && stricmp(n, (const char *) ".") == 0) {
           n->OK = 1;
           n->pos += 1;
           if (n->pos >= n->len)
@@ -263,7 +294,7 @@ node_t *match_real(node_t * n)
         } else {
           n->OK = 0;
         }
-        if (n->pos != -1 && n->OK == 1) {
+        if (n_OK(n) == 1) {
           n = match_unsigned_int(n);
         }                       //compare_function
 
@@ -275,9 +306,9 @@ node_t *match_real(node_t * n)
     pop(n->stack);              //remove saved position
   }                             //end ok
   // begin optional block
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    if (n->pos != -1 && n->OK == 1) {
+    if (n_OK(n) == 1) {
       n = match_exponent(n);
     }                           //compare_function
 
@@ -299,9 +330,9 @@ node_t *match_alpha(node_t * n)
 {
   printf("In functions match_alpha\n");
   push(n->stack, n->pos);       // one or more
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    if (n->pos != -1 && n->OK == 1 && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z')
+    if (n_OK(n) == 1 && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z')
         )) {
       n->OK = 1;
       n->pos++;
@@ -332,9 +363,9 @@ node_t *match_unsigned_int(node_t * n)
 {
   printf("In functions match_unsigned_int\n");
   push(n->stack, n->pos);       // one or more
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    if (n->pos != -1 && n->OK == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9')
+    if (n_OK(n) == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9')
         )) {
       n->OK = 1;
       n->pos++;
@@ -364,7 +395,7 @@ node_t *match_unsigned_int(node_t * n)
 node_t *match_sign(node_t * n)
 {
   printf("In functions match_sign\n");
-  if (n->pos != -1 && n->OK == 1 && (n->value[n->pos] == '-' || n->value[n->pos] == '+')) {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '-' || n->value[n->pos] == '+')) {
     n->OK = 1;
     n->pos++;
     if (n->pos >= n->len)
@@ -383,7 +414,7 @@ node_t *match_sign(node_t * n)
 node_t *match_exponent(node_t * n)
 {
   printf("In functions match_exponent\n");
-  if (n->pos != -1 && n->OK == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e')) {
+  if (n_OK(n) == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e')) {
     n->OK = 1;
     n->pos++;
     if (n->pos >= n->len)
@@ -391,7 +422,7 @@ node_t *match_exponent(node_t * n)
   } else {
     n->OK = 0;
   }                             // end char
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     n = match_integer(n);
   }                             //compare_function
 
@@ -405,12 +436,44 @@ node_t *match_exponent(node_t * n)
 node_t *match_signed_int(node_t * n)
 {
   printf("In functions match_signed_int\n");
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     n = match_sign(n);
   }                             //compare_function
-  if (n->pos != -1 && n->OK == 1) {
+  if (n_OK(n) == 1) {
     n = match_unsigned_int(n);
   }                             //compare_function
+
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
+  return n;
+}
+
+// Function : match_whitespace
+node_t *match_whitespace(node_t * n)
+{
+  printf("In functions match_whitespace\n");
+  push(n->stack, n->pos);       // one or more
+  if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ')) {
+      n->OK = 1;
+      n->pos++;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }                           // end char
+
+    if (n->OK == 0) {
+      n->pos = peek(n->stack);
+    }                           // one or more loop OK test
+    pop(n->stack);
+  }                             // end one or more
+  if (n->pos >= peek(n->stack)) {
+    n->OK = 0;
+  }                             // one or more OK test
+  pop(n->stack);
 
   printf("POS:%d\n", n->pos);
   printf("OK:%d\n", n->OK);
@@ -442,27 +505,30 @@ node_t *match_function(char *data)
   printf("--\n");
 
   n = match_string(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_integer(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_real(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_alpha(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_unsigned_int(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_sign(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_exponent(n);
-  if (n->pos != -1 && n->OK == 1)
+  if (n_OK(n) == 1)
     return n;
   n = match_signed_int(n);
+  if (n_OK(n) == 1)
+    return n;
+  n = match_whitespace(n);
 
   return n;
 }                               // end match functions

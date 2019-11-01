@@ -9,5 +9,8 @@ func:
 build: func
 	@cd ddb2; /usr/bin/gcc -Wall -g  stack.c func.c ddb.c -o ../builds/ddbc
 
+run:
+	@builds/ddbc
+
 func-test:
-	@python tools/build-lexer.py  | indent -kr -ci2 -cli2 -i2 -l150 -nut
+	@python tools/build-lexer.py 

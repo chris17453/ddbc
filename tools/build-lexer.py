@@ -14,15 +14,15 @@ def clean_pattern(pattern):
     new_pattern=""
     dont_break_quoted_blocks=None
     in_character_block=None
+    escaped=None
     for i in pattern:
     
-        if dont_break_quoted_blocks:
+        if dont_break_quoted_blocks==True:
                 if found:
                     new_pattern+=i
                     if i==found:
                         found=None
                     continue
-
                 if i=="'":
                     found="'"
                 elif i=='"':
@@ -30,7 +30,17 @@ def clean_pattern(pattern):
                 if found:
                     new_pattern+=i
                     continue
-         
+        
+        if escaped==None and  i=='\\':
+            escaped=True
+            new_pattern+=" "+i
+            continue
+        
+        if escaped==True:
+            escaped=None
+            new_pattern+=i+" "
+            continue
+        
         
         if i=='[':
             in_character_block=True
@@ -39,7 +49,8 @@ def clean_pattern(pattern):
             if i==']':
                 in_character_block=None
             continue
-        
+
+
         if found == None:
             if  i in ("|","(",")","[","]",",","-","^","+","*",".","?"):
                 new_pattern+=" "+i+" "
@@ -245,15 +256,19 @@ def build_function_templates(tokens,token_type=None,depth=0):
     if token_type=='char':
         if isinstance(tokens,str):
             token= tokens.replace("'","\\ \'")
+            token= tokens.replace("\"","\\\"")
             t=tpl("templates/templates.txt")
+            if token=="\s":
+                token=" "
             t.add("or_compare","compare_value",token)
             o+=t.build("or_compare")
             return o
     else:
         if isinstance(tokens,str):
             token= tokens.replace("'","\\\'")
+            token= tokens.replace("\"","\\\"")
             #print token
-            if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}'))  :
+            if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}')):
                 token=token[1:-1]
 
                 t=tpl("templates/templates.txt")
