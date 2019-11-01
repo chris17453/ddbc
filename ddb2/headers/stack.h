@@ -3,11 +3,11 @@
 #include <stdlib.h> 
 
 // A structure to represent a stack 
-typedef struct { 
+typedef struct stack_t{ 
     int top; 
     unsigned capacity; 
     int* array; 
-}  stack_t; 
+}stack_t; 
   
 stack_t *  createStack (unsigned capacity);
 int        isFull      (stack_t* stack);

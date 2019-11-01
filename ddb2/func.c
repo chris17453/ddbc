@@ -1,17 +1,24 @@
 /********************************************
-* Generated: 2019-10-31                    *
+* Generated: 2019-11-01                    *
 ********************************************/
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 #include "headers/stack.h"
 #include "headers/func.h"
 // node values are only compared if string length is the same, no need to validate
 // comparitors is against a precompiled value thats already case optimised
 // returns 0 for equal
-int stricmp(node_t * n, char const *b)
+int stricmp(node_t * n, const char *b)
 {
   int d = 0;
+  printf("Compare %s\n", b);
   for (int i = 0; i < n->len; i++) {
-    d = tolower(node[i]) - b[i];
+    if (n->value[i] >= 'A' && n->value[i] <= 'Z') {
+      d = (unsigned char) n->value[i] - (unsigned char) 'A' - (unsigned char) b[i];
+    } else {
+      d = (unsigned char) n->value[i] - (unsigned char) b[i];
+    }
     if (d != 0)
       return d;
   }
@@ -21,12 +28,13 @@ int stricmp(node_t * n, char const *b)
 // Function : match_string
 node_t *match_string(node_t * n)
 {
+  printf("In functions match_string\n");
   // or group
   if (n->pos != -1 && n->OK == 1) {
     push(n->stack, n->pos);     //save position
     // begin group block
     if (n->pos != -1 && n->OK == 1) {
-      if (n->pos != -1 && n->OK == 1 && n->len == 1 && strcmpi(n, '"') == 0) {
+      if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
         n->OK = 1;
         n->pos += 1;
         if (n->pos >= n->len)
@@ -42,7 +50,7 @@ node_t *match_string(node_t * n)
           //NOT
           if (n->pos != -1 && n->OK == 1) {
             push(n->stack, n->pos);
-            if (n->pos != -1 && n->OK == 1 && n->len == 1 && strcmpi(n, '"') == 0) {
+            if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
               n->OK = 1;
               n->pos += 1;
               if (n->pos >= n->len)
@@ -67,11 +75,11 @@ node_t *match_string(node_t * n)
         }                       // one or more loop OK test
         pop(n->stack);
       }                         // end one or more
-      if (n->pos >== peek(n->stack)) {
+      if (n->pos >= peek(n->stack)) {
         n->OK = 0;
       }                         // one or more OK test
       pop(n->stack);
-      if (n->pos != -1 && n->OK == 1 && n->len == 1 && strcmpi(n, '"') == 0) {
+      if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '"') == 0) {
         n->OK = 1;
         n->pos += 1;
         if (n->pos >= n->len)
@@ -87,7 +95,7 @@ node_t *match_string(node_t * n)
       n->pos = peek(n->stack);
       // begin group block
       if (n->pos != -1 && n->OK == 1) {
-        if (n->pos != -1 && n->OK == 1 && n->len == 2 && strcmpi(n, '\'') == 0) {
+        if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
           n->OK = 1;
           n->pos += 2;
           if (n->pos >= n->len)
@@ -103,7 +111,7 @@ node_t *match_string(node_t * n)
             //NOT
             if (n->pos != -1 && n->OK == 1) {
               push(n->stack, n->pos);
-              if (n->pos != -1 && n->OK == 1 && n->len == 2 && strcmpi(n, '\'') == 0) {
+              if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
                 n->OK = 1;
                 n->pos += 2;
                 if (n->pos >= n->len)
@@ -128,11 +136,11 @@ node_t *match_string(node_t * n)
           }                     // one or more loop OK test
           pop(n->stack);
         }                       // end one or more
-        if (n->pos >== peek(n->stack)) {
+        if (n->pos >= peek(n->stack)) {
           n->OK = 0;
         }                       // one or more OK test
         pop(n->stack);
-        if (n->pos != -1 && n->OK == 1 && n->len == 2 && strcmpi(n, '\'') == 0) {
+        if (n->pos != -1 && n->OK == 1 && n->len == 2 && stricmp(n, (const char *) '\'') == 0) {
           n->OK = 1;
           n->pos += 2;
           if (n->pos >= n->len)
@@ -149,12 +157,16 @@ node_t *match_string(node_t * n)
     pop(n->stack);              //remove saved position
   }                             //end ok
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_integer
 node_t *match_integer(node_t * n)
 {
+  printf("In functions match_integer\n");
   // or group
   if (n->pos != -1 && n->OK == 1) {
     push(n->stack, n->pos);     //save position
@@ -189,12 +201,16 @@ node_t *match_integer(node_t * n)
     pop(n->stack);              //remove saved position
   }                             //end ok
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_real
 node_t *match_real(node_t * n)
 {
+  printf("In functions match_real\n");
   // or group
   if (n->pos != -1 && n->OK == 1) {
     push(n->stack, n->pos);     //save position
@@ -217,7 +233,7 @@ node_t *match_real(node_t * n)
         if (n->pos != -1 && n->OK == 1) {
           n = match_integer(n);
         }                       //compare_function
-        if (n->pos != -1 && n->OK == 1 && n->len == 1 && strcmpi(n, '.') == 0) {
+        if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '.') == 0) {
           n->OK = 1;
           n->pos += 1;
           if (n->pos >= n->len)
@@ -239,7 +255,7 @@ node_t *match_real(node_t * n)
       n->pos = peek(n->stack);
       // begin group block
       if (n->pos != -1 && n->OK == 1) {
-        if (n->pos != -1 && n->OK == 1 && n->len == 1 && strcmpi(n, '.') == 0) {
+        if (n->pos != -1 && n->OK == 1 && n->len == 1 && stricmp(n, (const char *) '.') == 0) {
           n->OK = 1;
           n->pos += 1;
           if (n->pos >= n->len)
@@ -259,24 +275,29 @@ node_t *match_real(node_t * n)
     pop(n->stack);              //remove saved position
   }                             //end ok
   // begin optional block
-  if (node = !NULL) {
-    node_t * {
-    node_uid}
-    = node;
+  if (n->pos != -1 && n->OK == 1) {
+    push(n->stack, n->pos);
     if (n->pos != -1 && n->OK == 1) {
       n = match_exponent(n);
     }                           //compare_function
 
-    if (node == NULL)
-      node = { node_uid };
+    if (n->OK == 0) {
+      n->OK = 1;
+      n->pos = peek(n->stack);
+    }                           // weo or more loop OK test
+    pop(n->stack);
   }                             // end optional block
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_alpha
 node_t *match_alpha(node_t * n)
 {
+  printf("In functions match_alpha\n");
   push(n->stack, n->pos);       // one or more
   if (n->pos != -1 && n->OK == 1) {
     push(n->stack, n->pos);
@@ -295,17 +316,21 @@ node_t *match_alpha(node_t * n)
     }                           // one or more loop OK test
     pop(n->stack);
   }                             // end one or more
-  if (n->pos >== peek(n->stack)) {
+  if (n->pos >= peek(n->stack)) {
     n->OK = 0;
   }                             // one or more OK test
   pop(n->stack);
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_unsigned_int
 node_t *match_unsigned_int(node_t * n)
 {
+  printf("In functions match_unsigned_int\n");
   push(n->stack, n->pos);       // one or more
   if (n->pos != -1 && n->OK == 1) {
     push(n->stack, n->pos);
@@ -324,17 +349,21 @@ node_t *match_unsigned_int(node_t * n)
     }                           // one or more loop OK test
     pop(n->stack);
   }                             // end one or more
-  if (n->pos >== peek(n->stack)) {
+  if (n->pos >= peek(n->stack)) {
     n->OK = 0;
   }                             // one or more OK test
   pop(n->stack);
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_sign
 node_t *match_sign(node_t * n)
 {
+  printf("In functions match_sign\n");
   if (n->pos != -1 && n->OK == 1 && (n->value[n->pos] == '-' || n->value[n->pos] == '+')) {
     n->OK = 1;
     n->pos++;
@@ -344,12 +373,16 @@ node_t *match_sign(node_t * n)
     n->OK = 0;
   }                             // end char
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_exponent
 node_t *match_exponent(node_t * n)
 {
+  printf("In functions match_exponent\n");
   if (n->pos != -1 && n->OK == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e')) {
     n->OK = 1;
     n->pos++;
@@ -362,12 +395,16 @@ node_t *match_exponent(node_t * n)
     n = match_integer(n);
   }                             //compare_function
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 // Function : match_signed_int
 node_t *match_signed_int(node_t * n)
 {
+  printf("In functions match_signed_int\n");
   if (n->pos != -1 && n->OK == 1) {
     n = match_sign(n);
   }                             //compare_function
@@ -375,13 +412,16 @@ node_t *match_signed_int(node_t * n)
     n = match_unsigned_int(n);
   }                             //compare_function
 
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
   return n;
 }
 
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-10-31
+*   Generated: 2019-11-01
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
@@ -390,34 +430,39 @@ node_t *match_signed_int(node_t * n)
 */
 node_t *match_function(char *data)
 {
+  printf("In functions\n");
   node_t *n = malloc(sizeof(node_t));
   n->value = data;
   n->len = strlen(data);
   n->pos = 0;
+  n->OK = 1;
   n->stack = createStack(100);
+  printf("POS:%d\n", n->pos);
+  printf("OK:%d\n", n->OK);
+  printf("--\n");
 
-  n = match_string(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_integer(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_real(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_alpha(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_unsigned_int(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_sign(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_exponent(nodes);
-  if (n.pos != -1 && n->OK = 1)
-    return node;
-  n = match_signed_int(nodes);
+  n = match_string(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_integer(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_real(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_alpha(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_unsigned_int(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_sign(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_exponent(n);
+  if (n->pos != -1 && n->OK == 1)
+    return n;
+  n = match_signed_int(n);
 
   return n;
 }                               // end match functions

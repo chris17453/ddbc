@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 //# include "headers/bytecode.h"
 #include "headers/func.h"
 
@@ -47,7 +49,7 @@ Zllo    -- this is another comment /* */ fe\n\
 
     printf("Starting\n");
     printf("Query: %s\n \n",query_str);
-    match_functions(query_str)
+    match_function(query_str);
     //print_tokens(tokens);
 
 

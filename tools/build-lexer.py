@@ -403,6 +403,11 @@ def build_headers(file):
             t=tpl("templates/templates.txt")
             t.add("signature","body",key)
             o+=t.build("signature")
+
+    t=tpl("templates/templates.txt")
+    t.add("signature","body",key)
+    o+=t.build("signature2")
+
     print o
 
 

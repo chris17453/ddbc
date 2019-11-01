@@ -4,6 +4,9 @@ headers:
 ********************************************/
 
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
 #include "headers/stack.h"
 #include "headers/func.h"
 
@@ -11,11 +14,12 @@ headers:
 node_t:
 
 // this holds the string you are tokenizing
-typedef struct{
-    int   length;
+typedef struct node_t{
+    int   len;
     int   pos;
-    void *value;
-    stack_t *stack;
+    int   OK;
+    char  *value;
+    struct stack_t *stack;
 }
 node_t;
 
@@ -25,10 +29,15 @@ stricmp:
 // node values are only compared if string length is the same, no need to validate
 // comparitors is against a precompiled value thats already case optimised
 // returns 0 for equal
-int stricmp(node_t *n, char const *b){
+int stricmp(node_t *n, const char * b){
     int d=0;
+    printf("Compare %s\n",b);
     for (int i=0;i<n->len;i++) {
-        d = tolower(node[i]) - b[i];
+        if (n->value[i]>='A' && n->value[i]<='Z'){
+            d = (unsigned char) n->value[i]-(unsigned char)'A'- (unsigned char)b[i];
+        } else {
+            d = (unsigned char) n->value[i]- (unsigned char)b[i];
+        }
         if (d != 0 ) return d;
     }
     return 0;
@@ -59,7 +68,7 @@ push(n->stack,n->pos);
 if(n->OK==0) { n->pos=peek(n->stack); }      // one or more loop OK test
 pop(n->stack);
 } // end one or more
-if(n->pos>==peek(n->stack)){ n->OK=0; }      // one or more OK test
+if(n->pos>=peek(n->stack)){ n->OK=0; }      // one or more OK test
 pop(n->stack);
                                                             
 
@@ -68,14 +77,14 @@ if( n->pos!=-1 && n->OK==1) {
 push(n->stack,n->pos);              // zero or more
 {body}
 if(n->OK==0) { n->pos=peek(n->stack); }      // weo or more loop OK test
-} // end zero or more
 pop(n->stack);
+} // end zero or more
 
 
 
 
 compare:
-if( n->pos!=-1 && n->OK==1 && n->len=={compare_value_length} && strcmpi(n, '{compare_value}')==0) {
+if( n->pos!=-1 && n->OK==1 && n->len=={compare_value_length} && stricmp(n,(const char * ) '{compare_value}')==0) {
     n->OK=1;
     n->pos+={compare_value_length};
     if(n->pos>=n->len) n->pos= -1;
@@ -85,10 +94,14 @@ if( n->pos!=-1 && n->OK==1 && n->len=={compare_value_length} && strcmpi(n, '{com
 
 optional:
 // begin optional block
-if ( node =! NULL ) {
-    node_t * {node_uid}=node;
-{body}
-    if ( node == NULL ) node={node_uid};
+if( n->pos!=-1 && n->OK==1) {
+    push(n->stack,n->pos);
+    {body}
+    if(n->OK==0) { 
+        n->OK=1; 
+        n->pos=peek(n->stack); 
+    }      // weo or more loop OK test
+    pop(n->stack);
 } // end optional block
 
 
@@ -96,7 +109,12 @@ compare_function:
 
 // Function : match_{function_name}
 node_t * match_{function_name}(node_t *n){
+    printf("In functions match_{function_name}\n");
 {body}
+
+printf("POS:%d\n",n->pos);
+printf("OK:%d\n",n->OK);
+printf("--\n");
 return n;
 }
 
@@ -112,11 +130,17 @@ match_functions:
  *     Failure: Returns NULL
  */
 node_t * match_function(char *data) {
+    printf("In functions\n");
     node_t * n=malloc(sizeof(node_t));
     n->value=data;
     n->len=strlen(data);
     n->pos=0;
+    n->OK=1;
     n->stack=createStack(100);
+
+printf("POS:%d\n",n->pos);
+printf("OK:%d\n",n->OK);
+printf("--\n");
 
 {body}
     return n;
@@ -124,11 +148,11 @@ node_t * match_function(char *data) {
 
 
 match_functions_first_var:
-    n=match_{function_name}(nodes);
+    n=match_{function_name}(n);
 
 match_functions_second_var:
-    if (n.pos!=-1 && n->OK=1) return node; 
-    n=match_{function_name}(nodes);
+    if (n->pos!=-1 && n->OK==1) return n; 
+    n=match_{function_name}(n);
 
 
 
@@ -176,3 +200,7 @@ if( n->pos!=-1 && n->OK==1) {
 
 signature:
 node_t * match_{body}(node_t *n);
+
+
+signature2:
+node_t *match_function(char * data);
