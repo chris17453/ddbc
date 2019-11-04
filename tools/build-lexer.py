@@ -231,17 +231,19 @@ def build(name,pattern,depth=0):
     # pprint(tokens,indent=2)
     
     if depth==0:
-        t=tpl("templates/templates.txt")
-        t.add("compare_function","function_name",name)
-        t.add("compare_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
-        t.add("compare_function","body", build_function_templates(tokens) )
-        o=t.build("compare_function")
-    else:
-        o=build_function_templates(tokens)
+        t=tpl("templates/match_function.c")
+        t.add("match_function","function_name",name)
+        t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
+        t.add("match_function","body", build_function_templates(tokens,name=name) )
+        o=t.build("match_function")
+    #else:
+    #o=build_function_templates(tokens)
     
     return o
 
-def build_function_templates(tokens,token_type=None,depth=0):
+
+
+def build_function_templates(tokens,token_type=None,depth=0,name=None):
     t="eh"
     index=0
     spacer="   "
@@ -255,11 +257,16 @@ def build_function_templates(tokens,token_type=None,depth=0):
     
     if token_type=='char':
         if isinstance(tokens,str):
-            token= tokens.replace("'","\\ \'")
-            token= tokens.replace("\"","\\\"")
+            token= tokens.replace("'","\\\'")
             t=tpl("templates/templates.txt")
             if token=="\s":
                 token=" "
+            if token=="\|":
+                token="|"
+            if token=="\(":
+                token="("
+            if token=="\)":
+                token=")"
             t.add("or_compare","compare_value",token)
             o+=t.build("or_compare")
             return o
@@ -271,9 +278,15 @@ def build_function_templates(tokens,token_type=None,depth=0):
             if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}')):
                 token=token[1:-1]
 
+                
                 t=tpl("templates/templates.txt")
-                t.add("compare_method","function_name",token)
-                o+=t.build("compare_method")
+                if token==name:
+                    template_name="compare_method_self"
+                else:
+                    template_name="compare_method"
+
+                t.add(template_name,"function_name",token)
+                o+=t.build(template_name)
 
             else:
                 t=tpl("templates/templates.txt")
@@ -284,8 +297,8 @@ def build_function_templates(tokens,token_type=None,depth=0):
 
             if token_type=='or':
                 t=tpl("templates/templates.txt")
-                t.add("or_list_item","body",o)
-                o=t.build("or_list_item")
+                t.add("or_list_item1","body",o)
+                o=t.build("or_list_item1")
 
             return o
     
@@ -296,23 +309,27 @@ def build_function_templates(tokens,token_type=None,depth=0):
         if token_type=='char':
             o=[]
             for token in tokens:
-                o.append(build_function_templates(token,token_type,depth).strip())
+                o.append(build_function_templates(token,token_type,depth,name=name).strip())
             return " || \n".join(o)
         elif token_type=='or':
             index=0
+            tokens2=[]
+         
             for token in tokens:
-                if index>0:
+                if index==0:
                     t=tpl("templates/templates.txt")
-                    t.add("or_list_item","body",build_function_templates(token,token_type,depth))
-                    o+=t.build("or_list_item")
+                    t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name))
+                    o+=t.build("or_list_item1")
                 else:
-                    o+=build_function_templates(token,token_type,depth)
+                    t=tpl("templates/templates.txt")
+                    t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name))
+                    o+=t.build("or_list_item+1")
                 index+=1
 
             return o
         else:
             for token in tokens:
-                o+=""+build_function_templates(token,token_type,depth)
+                o+=""+build_function_templates(token,token_type,depth,name=name)
             return o
 
     
@@ -320,14 +337,14 @@ def build_function_templates(tokens,token_type=None,depth=0):
         token=tokens
         if token['type']=='one_or_more':
             t=tpl("templates/templates.txt")
-            t.add("one_or_more","body",build_function_templates(token['data'],token['type'],depth))
+            t.add("one_or_more","body",build_function_templates(token['data'],token['type'],depth,name=name))
             o+=t.build("one_or_more")
             return o
 
         if token['type']=='char':
             opt_uid="opt_temp_{0}".format(uid())
             t=tpl("templates/templates.txt")
-            t.add("char","conditions",build_function_templates(token['data'],token['type'],depth))
+            t.add("char","conditions",build_function_templates(token['data'],token['type'],depth,name=name))
             o+=t.build("char")
             return o
         
@@ -342,46 +359,95 @@ def build_function_templates(tokens,token_type=None,depth=0):
         if token['type']=='optional':
             opt_uid="opt_temp_{0}".format(uid())
             t=tpl("templates/templates.txt")
-            t.add("optional","body",build_function_templates(token['data'],token['type'],depth+1))
+            t.add("optional","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
             t.add("optional","token_uid",opt_uid)
             o+=t.build("optional")
             return o
 
         if token['type']=='group':
             t=tpl("templates/templates.txt")
-            t.add("group","body",build_function_templates(token['data'],token['type'],depth+1))
+            t.add("group","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
             o+=t.build("group")
             return o
 
         if token['type']=='or':
             t=tpl("templates/templates.txt")
-            t.add("or","body",build_function_templates(token['data'],token['type'],depth+1))
+            t.add("or","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
             o+=t.build("or")
             return o
 
         if token['type']=='not':
             t=tpl("templates/templates.txt")
-            t.add("not","body",build_function_templates(token['data'],token['type'],depth+1))
+            t.add("not","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
             o+=t.build("not")
             return o
 
     return ""
     
+def load_definitions(file):
+    functions=[]
+    data_pattern=None
+
+    with open(file,"r") as content:
+        for line in content:
+
+            data_line=line.strip()
+            if data_line == '---': 
+                break
+     
+            if data_line.isspace() or data_line==None or len(data_line)==0:
+                continue
+            if data_line[0]=='#':
+                continue
+            if ':' in data_line:
+                if data_pattern:
+                    functions.append({key:data_pattern})
+                key,data_pattern=data_line.split(":",1)
+                data_pattern=data_pattern.strip()+" "
+                if data_pattern[0]=='|':
+                    if data_pattern[1:].isspace()==False:
+                        data_pattern="| ("+data_pattern[1:] + ") "
+                    else: 
+                        data_pattern=""
+                else:
+                    if data_pattern.isspace()==False:
+                        data_pattern="( "+data_pattern + " )"
+                    else: 
+                        data_pattern=""
+
+
+            else:
+                data_line=data_line.strip()
+                if data_line[0]=='|':
+                    if data_line.isspace()==False:
+                        data_line="| ( "+data_line[1:] + " ) "
+                    else:
+                        data_line=""
+                else:
+                    if data_line.isspace()==False:
+                        data_line="( "+data_line + " ) "
+                    else:
+                        data_line=""
+
+                data_pattern += data_line
+
+    if data_pattern:
+        functions.append({key:data_pattern})
+    
+    #print functions
+    return functions
+
 
 
 def build_match(file):
     o=""
-    t=tpl("templates/templates.txt")
+    t=tpl("templates/match_functions.c")
     t.add("headers","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
     o+=t.build("headers")
     o+=t.build("stricmp")
     
-    functions=[]
-    with open(file,"r") as content:
-        for line in content:
-            key,data_pattern=line.split(":",1)
-            functions.append({key:data_pattern})
-
+    functions=load_definitions(file)
+    
 
     for function in functions:
         for key in function:
@@ -402,12 +468,8 @@ def build_match(file):
     print o
 
 def build_headers(file):
-    functions=[]
-    with open(file,"r") as content:
-        for line in content:
-            key,data_pattern=line.split(":",1)
-            functions.append({key:data_pattern})
-
+    functions=load_definitions(file)
+    
     o=""
     
     t=tpl("templates/templates.txt")

@@ -18,86 +18,68 @@ typedef struct node_t{
     int   len;
     int   pos;
     int   OK;
+    int   depth;
     char  *value;
     struct stack_t *stack;
 }
 node_t;
 
-stricmp:
-
-
-// node values are only compared if string length is the same, no need to validate
-// comparitors is against a precompiled value thats already case optimised
-// returns 0 for equal
-int stricmp(node_t *n, const char * b){
-    int d=0;
-    printf("Compare %s\n",b);
-    for (int i=0;i<n->len;i++) {
-        if (n->value[i]>='A' && n->value[i]<='Z'){
-            d = (unsigned char) n->value[i]-(unsigned char)'A'- (unsigned char)b[i];
-        } else {
-            d = (unsigned char) n->value[i]- (unsigned char)b[i];
-        }
-        if (d != 0 ) return d;
-    }
-    return 0;
-}
-
-void print_n(node_t *n){
-    printf("POS:%d\n",n->pos);
-    printf("OK:%d\n",n->OK);
-    printf("--\n");
-
-}
-int n_OK(node_t *n){
-    print_n(n);
-    if ( n->pos!=-1 && n->OK==1 ) return 1;
-    return 0;
-}
-
 or:
-// or group
+//OR
 if( n_OK(n)==1 ) {
-    push(n->stack,n->pos); //save position
+    push(n->stack,n->pos);
     {body}
-    pop(n->stack); //remove saved position
-}//end ok
-
-or_list_item:
-// well this
-if (n->OK!=1 ) {  //if bad, retry wrapper
-    n->OK=1; 
-    n->pos=peek(n->stack); 
-{body}
+    pop(n->stack);
 }
-//then that
+
+or_list_item1:
+//item
+{body}
+if (n->OK==0) {
+    n->pos=peek(n->stack); 
+}
+
+or_list_item+1:
+//item+1
+if (n->OK==0 ) {
+n->OK=1;
+{body}
+    if (n->OK==0) {
+        n->pos=peek(n->stack); 
+    }
+} 
+
 
 one_or_more:
-push(n->stack,n->pos);              // one or more
-if( n_OK(n)==1 ) {
+//one or more
 push(n->stack,n->pos);
-{body}
-if(n->OK==0) { n->pos=peek(n->stack); }      // one or more loop OK test
-pop(n->stack);
-} // end one or more
-if(n->pos>=peek(n->stack)){ n->OK=0; }      // one or more OK test
+while( n_OK(n)==1 ) {
+    push(n->stack,n->pos);
+    {body}
+    if(n->OK==0) { n->pos=peek(n->stack); } 
+    pop(n->stack);
+}
+if(n->pos==peek(n->stack)){ 
+    n->OK=0; 
+} else {
+    n->OK=1; 
+}
 pop(n->stack);
                                                             
 
 zero_or_more:
+//zero or more
 if( n_OK(n)==1 ) {
-push(n->stack,n->pos);              // zero or more
-{body}
-if(n->OK==0) { n->pos=peek(n->stack); }      // weo or more loop OK test
-pop(n->stack);
-} // end zero or more
+    push(n->stack,n->pos);
+    {body}
+    if(n->OK==0) { n->pos=peek(n->stack); }
+    pop(n->stack);
+} 
 
 
 
 
 compare:
-printf("Comparing LEFT  %s\n",n->value);
-printf("Comparing RIGHT %s\n",(char * )"{compare_value}");
 if( n_OK(n)==1 && stricmp(n,(const char * ) "{compare_value}")==0) {
     n->OK=1;
     n->pos+={compare_value_length};
@@ -107,66 +89,18 @@ if( n_OK(n)==1 && stricmp(n,(const char * ) "{compare_value}")==0) {
 }
 
 optional:
-// begin optional block
+//optional
 if( n_OK(n)==1 ) {
     push(n->stack,n->pos);
     {body}
     if(n->OK==0) { 
         n->OK=1; 
         n->pos=peek(n->stack); 
-    }      // weo or more loop OK test
+    }
     pop(n->stack);
-} // end optional block
-
-
-compare_function:
-
-// Function : match_{function_name}
-node_t * match_{function_name}(node_t *n){
-    printf("In functions match_{function_name}\n");
-{body}
-
-printf("POS:%d\n",n->pos);
-printf("OK:%d\n",n->OK);
-printf("--\n");
-return n;
 }
 
-match_functions:
-/*
- * Function: match_functions
- * -----------------------------
- *   Generated: {date_time}
- *      nodes: a pointer to the curent element in a linked list of nodes to search
- * 
- *     OK: Returns a the node AFTER the curent pattern match
- *              If the end of the list is reached the last node is passed
- *     Failure: Returns NULL
- */
-node_t * match_function(char *data) {
-    printf("In functions\n");
-    node_t * n=malloc(sizeof(node_t));
-    n->value=data;
-    n->len=strlen(data);
-    n->pos=0;
-    n->OK=1;
-    n->stack=createStack(100);
 
-printf("POS:%d\n",n->pos);
-printf("OK:%d\n",n->OK);
-printf("--\n");
-
-{body}
-    return n;
-} // end match functions
-
-
-match_functions_first_var:
-    n=match_{function_name}(n);
-
-match_functions_second_var:
-    if (n_OK(n)==1 ) return n; 
-    n=match_{function_name}(n);
 
 
 
@@ -181,6 +115,8 @@ if( n_OK(n)==1 ) {
         n->pos=peek(n->stack);
     } else { 
         n->OK=1;
+        n->pos+=1;
+        if(n->pos>=n->len) n->pos= -1;
     }
     pop(n->stack);
 }//end NOT
@@ -203,17 +139,24 @@ or_compare:
  n->value[n->pos]=='{compare_value}'
 
 compare_method:
-if( n_OK(n)==1 ) { n = match_{function_name}(n); } //compare_function
+    //other
+    if( n_OK(n)==1 ) { n = match_{function_name}(n,name); }
+
+compare_method_self:
+    //self
+    if(strcmp(name,last_method)==0) {
+        if( n_OK(n)==1 && start_pos!=n->pos) { n = match_{function_name}(n,name); }
+    }
 
 
 group:
-// begin group block
+// GROUP
 if( n_OK(n)==1 ) {
-{body}
-} // end group block
+    {body}
+}
 
 signature:
-node_t * match_{body}(node_t *n);
+node_t * match_{body}(node_t *n,const char *last_method);
 
 
 signature2:

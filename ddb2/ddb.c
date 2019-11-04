@@ -4,13 +4,19 @@
 #include "headers/func.h"
 
 int main(){
-    char  *query_str=" \n\
-    select COUNT(*) AS number,*,(SELECT first_name FROM test.mock LIMIT 1) as first_name\n\
+   
+    char  *query_str="select COUNT AS number,bob as first_name\n\
     FROM test.mock as f1 \n\
-    INNER JOIN test as j1 ON f1.firstname=j1 \n\
-    LEFT OUTER JOIN test as j2 ON f1.firstname=j2 \n\
-    RIGHT OUTER JOIN test as j3 ON f1.firstname=j3 \n\
     WHERE first_name='bob' \n\
+    and id=0x04F \n\
+    and id=0xFFaf04F \n\
+    and id=0x00 \n\
+    and id=0b00 \n\
+    and id=0b01 \n\
+    and id=0b0101101 \n\
+    and id=0b01011401 \n\
+    and id=-11 \n\
+    and id=-11 \n\
     and id=-11 \n\
     and id=+11 \n\
     and id=+11.44E-11 \n\
@@ -20,16 +26,30 @@ int main(){
     and id=+11E1 \n\
     and id=11 \n\
     and id=111.1111111 \n\
-    and id=111.111111111111111 \n\
+    and id=111.111111111111111  \n\
+    and id=111.111111111111111 + 5 \n\
+    and id=111.111111111111111+45 \n\
     and last_name not 'sam' \n\
     and gender=F \n\
     and last_name in (SELECT last_name FROM test.mock LIMIT 10 WHERE last_name like '%sam%') as first_name\n\
     \n\
     \n\
+    /* this is a block comment */\
+   /* this is a multiline \
+   \
+   INNER JOIN test as j1 ON f1.firstname=j1 \n\
+    LEFT OUTER JOIN test as j2 ON f1.firstname=j2 \n\
+    RIGHT OUTER JOIN test as j3 ON f1.firstname=j3 \n\
+    \
+   \
+    block comment */\
+\
     heQ-- this is a comment\n\
 Zllo    -- this is another comment /* */ fe\n\
     -- this is also a comment 'quote'\n\
     -- this is also a comment \"double quote\"\n";
+    
+    //char *query_str="11E11";
     /*
         ;\n\
     b=:('rewrew')\n\

@@ -11,7 +11,7 @@ stack_t* createStack(unsigned capacity) {
     stack->capacity = capacity; 
     stack->top = -1; 
     stack->array = (int*)malloc(stack->capacity * sizeof(int)); 
-    printf("stack created\n"); 
+    //printf("stack created\n"); 
     return stack; 
 } 
   
@@ -32,7 +32,7 @@ void push(stack_t* stack, int item) {
         return; 
     }
     stack->array[++stack->top] = item; 
-    printf("%d pushed to stack\n", item); 
+    //printf("%d pushed to stack\n", item); 
 } 
   
 // Function to remove an item from stack.  It decreases top by 1 
@@ -42,7 +42,7 @@ int pop(stack_t* stack) {
         return INT_MIN; 
     }
     int item=stack->array[stack->top--]; 
-    printf("%d popped from stack\n", item); 
+    //printf("%d popped from stack\n", item); 
     return item;
 } 
   

@@ -1,9 +1,271 @@
-string:               ( "(^")+") | (' (^')+')
-integer:              {unsigned_int} | {signed_int}
-real:                 {integer} | ( {integer} . {unsigned_int} ) |  ( . {unsigned_int} )  {exponent}?
-alpha:                [A-Za-z]+
-unsigned_int:         [0-9]+
-sign:                 [-+]
-exponent:             [Ee] {integer}
-signed_int:           {sign} {unsigned_int}
-whitespace:           [\t\s]+
+select:
+    select
+     {whitespace}?   {select_expr}  
+$({whitespace}? [,] {whitespace}? {select_expr} {whitespace}?) ?
+
+
+
+
+expr: 
+     {expr} OR {expr} 
+  |  {expr} [\|\|] {expr} 
+  |  {expr} XOR {expr} 
+  |  {expr} AND {expr} 
+  |  {expr} && {expr} 
+  |  NOT {expr} 
+  |  !   {expr} 
+  |  {boolean_primary} IS NOT? ( {boolean} | {unknown}) 
+  |  {boolean_primary} 
+
+boolean_primary:
+     {boolean_primary} IS NOT? {null} 
+  |  {boolean_primary} <=> {predicate} 
+  |  {boolean_primary} {comparison_operator} {predicate} 
+# |  {boolean_primary} {comparison_operator} (ALL | ANY) (subquery) 
+  |  {predicate} 
+
+
+
+predicate:
+#   {bit_expr} NOT? IN (subquery)
+    {bit_expr} NOT? IN [\(] ({expr} ( [,] {expr})+)? [)]
+  | {bit_expr} NOT? BETWEEN {bit_expr} AND {predicate}
+  | {bit_expr} NOT? LIKE {simple_expr} (ESCAPE {simple_expr})?
+  | {bit_expr} NOT? REGEXP {bit_expr}
+  | {bit_expr}
+
+
+bit_expr:
+    {bit_expr} {operations}  {bit_expr}
+  | {bit_expr} {whitespace}?  [+-]   {whitespace}?  {interval_expr}
+  | {simple_expr}
+
+operations:   [\|]   
+            | [&]   
+            | [<][<]
+            | [>][>]
+            | [+]   
+            | [-]   
+            | [*]   
+            | [/]   
+            | DIV   
+            | MOD   
+            | [%]   
+            | [^]   
+  
+complex_expr:
+    {simple_expr} 
+  | {interval_expr}
+
+
+simple_expr:
+    {literal} 
+  | {identifier}
+
+
+literal: 
+          {hex} 
+        | {bit}
+        | {real} 
+        | {null} 
+        | {boolean} 
+        | {string} 
+
+
+
+
+# INTERVAL EXPRESSION
+
+
+YEARS:               {unsigned_int}
+QUARTERS:            {unsigned_int}
+MONTHS:              {unsigned_int}
+WEEKS:               {unsigned_int}
+DAYS:                {unsigned_int}
+HOURS:               {unsigned_int}
+MINUTES:             {unsigned_int}
+SECONDS:             {unsigned_int}
+MICROSECONDS:        {unsigned_int}
+
+MICROSECOND:         {MICROSECONDS}   MICROSECOND
+SECOND:              {SECONDS}        SECOND
+MINUTE:              {MINUTES}        MINUTE
+HOUR:                {HOURS}          HOUR
+DAY:                 {DAYS}           DAY
+WEEK:                {WEEKS}          WEEK
+MONTH:               {MONTHS}         MONTH
+QUARTER:             {QUARTERS}       QUARTER
+YEAR:                {YEARS}          YEAR
+SECOND_MICROSECOND:  ['] {SECONDS}[.]{MICROSECONDS} [']                              SECOND_MICROSECOND
+MINUTE_MICROSECOND:  ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  MINUTE_MICROSECOND
+MINUTE_SECOND:       ['] {MINUTES}[:]{SECONDS} [']                                   MINUTE_SECOND
+HOUR_MICROSECOND:    ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        HOUR_MICROSECOND
+HOUR_SECOND:         ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         HOUR_SECOND
+HOUR_MINUTE:         ['] {HOURS}[:]{MINUTES} [']                                     HOUR_MINUTE
+DAY_MICROSECOND:     ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] DAY_MICROSECOND
+DAY_SECOND:          ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  DAY_SECOND
+DAY_MINUTE:          ['] {DAYS} {HOURS} [:] {MINUTES} [']                            DAY_MINUTE
+DAY_HOUR:            ['] {DAYS} {HOURS} [']                                          DAY_HOUR
+YEAR_MONTH:          ['] {YEARS}-{MONTHS} [']                                        YEAR_MONTH
+
+interval_expr:
+    MICROSECOND
+  | SECOND
+  | MINUTE
+  | HOUR
+  | DAY
+  | WEEK
+  | MONTH
+  | QUARTER
+  | YEAR
+  | SECOND_MICROSECOND
+  | MINUTE_MICROSECOND
+  | MINUTE_SECOND
+  | HOUR_MICROSECOND
+  | HOUR_SECOND
+  | HOUR_MINUTE
+  | DAY_MICROSECOND
+  | DAY_SECOND
+  | DAY_MINUTE
+  | DAY_HOUR
+  | YEAR_MONTH
+
+
+# COMMENTS
+comment:              
+  {block_comment} 
+| {single_comment}
+
+block_comment:        
+  {left_comment} (^{right_comment})+ {right_comment} 
+
+single_comment:       
+  {inline_comment} (^{end_of_line})+ {end_of_line} 
+
+left_comment:         
+  [/][*]
+
+right_comment:        
+  [*][/]
+
+inline_comment:       
+  [-][-]
+
+
+# TYPES
+unknown:              
+  unknown
+
+hex:                  
+  [0][xX] [0-9A-Fa-f]+ 
+
+bit:                  
+  [0][b] [01]+
+
+null:                 
+    null 
+  | NULL
+
+true:                 
+    true 
+  | TRUE 
+
+false:                
+    false 
+  | FALSE
+
+boolean:              
+    {true} 
+  | {false}
+
+real:                 
+    {integer} [.] {unsigned_int} 
+  | [.] {unsigned_int} 
+  | {integer}
+  {exponent}? 
+
+integer:              
+    {signed_int} 
+  | {unsigned_int} 
+
+signed_int:           
+  {sign} {unsigned_int}
+
+unsigned_int:         
+  [0-9]+
+
+sign:                 
+  [-+]
+
+exponent:             
+  [Ee] {integer}
+
+identifier:           
+  [A-Za-z0-9$_]+
+
+alpha:                
+  [A-Za-z]+
+
+whitespace:           
+  [\t\s\n\r]+
+
+single_quote_string:  
+  ['] (^['])+ [']
+
+double_quote_string:  
+  ["] (^["])+ ["]
+
+string:               
+    {single_quote_string} 
+  | {double_quote_string}
+
+# OPERATORS
+# bit_shift_left:       [<][<]
+# bit_shift_right:      [>][>]
+# 
+# short_circuit_or:     [\|][\|]
+# short_circuit_and:    [&][&]
+# null_equal:           [<][=][>]
+# lessthan_equal:       [<][=]
+# greater_than_equal:   [>][=]
+# plus_equal:           [+][=]
+# minus_equal:          [-][=]
+# divide_equal:         [/][=]
+# multiply_equal:       [*][=]
+# modulus_equal:        [%][=]
+# less_than:            [<]
+# greater_than:         [>]
+# plus:                 [+]
+# minus:                [-]
+# divide:               [/]
+# multiply:             [*]
+# not:                  [!]
+# modulus:              [%]
+# assignment:           [=]
+
+
+
+
+#direction: ASC | DESC
+#position: [0-9]+
+#col_name: {identifier}
+#aggregate_group: (({col_name} | {expr} | {position})    {direction} )
+#where_condition: {expr}
+#table_references: {identifier}
+select_expr: 
+{expr} {whitespace}? ( as {whitespace}? {identifier} ) ?
+
+end_of_line:          
+  [\n][\r]?
+
+comparison_operator: 
+    [<][>]
+  | [>][=]
+  | [<][=]
+  | [!][=]
+  | [>]
+  | [<]
+  | [=]
+
+# CATCH ALL
+not_whitespace:       ^[\t\s\n\r]
