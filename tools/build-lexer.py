@@ -221,6 +221,33 @@ def group_expressions(tokens,token_type=None):
             tokens2.append({'type':'or','data':sub})
         return tokens2
 
+
+def get_var(name):
+    if len(name)>1:
+        if name[0]=='{' and name[-1]=='}':
+            return name[1:-1]
+    return None
+
+
+def recursive(tokens,name):
+    if isinstance(tokens,str):
+        if get_var(tokens)==name:
+            return 1
+        else:
+            return 0
+
+    elif isinstance(tokens,dict):
+        count=recursive(tokens['data'],name)
+        return count
+    
+    elif isinstance(tokens,list):
+        count=0
+        for token in tokens:
+            count+=recursive(token,name)
+        return count
+
+
+
 def build(name,pattern,depth=0):
     # load data / set variables
     tokens=build_expression_levels(pattern,0)
@@ -228,11 +255,15 @@ def build(name,pattern,depth=0):
     # print " ---"
     tokens=group_expressions(tokens)
     list_of_match_functions=gather_matches(tokens)
-    # pprint(tokens,indent=2)
+    pprint(tokens,indent=2)
     
     if depth==0:
         t=tpl("templates/match_function.c")
         t.add("match_function","function_name",name)
+        if recursive(tokens,name)==0:
+            t.add("match_function","recurse",0)
+        else:
+                t.add("match_function","recurse",1)
         t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
         t.add("match_function","body", build_function_templates(tokens,name=name) )
         o=t.build("match_function")
@@ -243,18 +274,16 @@ def build(name,pattern,depth=0):
 
 
 
-def build_function_templates(tokens,token_type=None,depth=0,name=None):
+def build_function_templates(tokens,token_type=None,depth=0,name=None,order=None):
     t="eh"
     index=0
     spacer="   "
     padd=get_padd(depth,spacer)
     in_or=0
     #print tokens
-    
 
     o=""
-    
-    
+
     if token_type=='char':
         if isinstance(tokens,str):
             token= tokens.replace("'","\\\'")
@@ -277,34 +306,26 @@ def build_function_templates(tokens,token_type=None,depth=0,name=None):
             #print token
             if  len(token)>1 and ((token[0]=='{' and  token[-1]=='}')):
                 token=token[1:-1]
-
-                
                 t=tpl("templates/templates.txt")
                 if token==name:
                     template_name="compare_method_self"
                 else:
                     template_name="compare_method"
-
+                t.add(template_name,"order",order)
                 t.add(template_name,"function_name",token)
                 o+=t.build(template_name)
-
             else:
                 t=tpl("templates/templates.txt")
+                t.add("compare","order",order)
                 t.add("compare","compare_value_length",str(len(token)))
                 t.add("compare","compare_value",token)
                 o+=t.build("compare")
-
-
             if token_type=='or':
                 t=tpl("templates/templates.txt")
                 t.add("or_list_item1","body",o)
                 o=t.build("or_list_item1")
-
             return o
-    
-            
-    
-    
+
     if isinstance(tokens,list):
         if token_type=='char':
             o=[]
@@ -318,18 +339,35 @@ def build_function_templates(tokens,token_type=None,depth=0,name=None):
             for token in tokens:
                 if index==0:
                     t=tpl("templates/templates.txt")
-                    t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name))
+                    t.add("or_list_item1","order",index)
+                    t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name,order=index))
                     o+=t.build("or_list_item1")
                 else:
                     t=tpl("templates/templates.txt")
-                    t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name))
+                    t.add("or_list_item+1","order",index)
+                    t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name,order=index))
                     o+=t.build("or_list_item+1")
                 index+=1
 
             return o
         else:
+            index=0;
             for token in tokens:
-                o+=""+build_function_templates(token,token_type,depth,name=name)
+                try:
+                    if get_var(token)==name and index==0:
+                        t=tpl("templates/templates.txt")
+                        t.add("or_list_item_self","order",index)
+                        t.add("or_list_item_self","body",build_function_templates(token,token_type,depth,name=name,order=index))
+                        o+=t.build("or_list_item_self")
+                except:
+                    o+=""+build_function_templates(token,token_type,depth,name=name,order=index)
+                    pass
+
+                try:
+                    if get_var(token)==name:
+                        index+=1
+                except:
+                    pass
             return o
 
     

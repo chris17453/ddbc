@@ -32,15 +32,22 @@ if( n_OK(n)==1 ) {
     pop(n->stack);
 }
 
+
+or_list_item_self:
+//item {order}  //skip if not called by self
+if (strcmp(name,last_method)!=0 ) {
+    n->OK=0;
+}
+
 or_list_item1:
-//item
+//item {order} 
 {body}
 if (n->OK==0) {
     n->pos=peek(n->stack); 
 }
 
 or_list_item+1:
-//item+1
+//item+1 {order}
 if (n->OK==0 ) {
 n->OK=1;
 {body}
@@ -80,6 +87,7 @@ if( n_OK(n)==1 ) {
 
 
 compare:
+// order {order}
 if( n_OK(n)==1 && stricmp(n,(const char * ) "{compare_value}")==0) {
     n->OK=1;
     n->pos+={compare_value_length};
@@ -139,14 +147,14 @@ or_compare:
  n->value[n->pos]=='{compare_value}'
 
 compare_method:
-    //other
-    if( n_OK(n)==1 ) { n = match_{function_name}(n,name); }
+    //external -> {order}
+    if( n_OK(n)==1 ) { n = match_{function_name}(n,name,depth+1); }
 
 compare_method_self:
-    //self
-    if(strcmp(name,last_method)==0) {
-        if( n_OK(n)==1 && start_pos!=n->pos) { n = match_{function_name}(n,name); }
-    }
+    //recursion -> {order}
+    //if(strcmp(name,last_method)==0) {
+    if( n_OK(n)==1 && start_pos!=n->pos) { n = match_{function_name}(n,name,depth+1); }
+    //}
 
 
 group:
@@ -156,7 +164,7 @@ if( n_OK(n)==1 ) {
 }
 
 signature:
-node_t * match_{body}(node_t *n,const char *last_method);
+node_t * match_{body}(node_t *n,const char *last_method,int depth);
 
 
 signature2:

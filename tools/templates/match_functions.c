@@ -6,6 +6,8 @@ headers:
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
 
 #include "headers/stack.h"
 #include "headers/func.h"
@@ -91,10 +93,10 @@ while (n->pos>-1){
 
 match_functions_first_var:
     n->OK=1;
-    n=match_{function_name}(n,(const char* )"functions");
+    n=match_{function_name}(n,(const char* )"functions",0);
     if (n_OK(n)==1 || n->pos==-1 ) continue; 
 
 match_functions_second_var:
     n->OK=1;
-    n=match_{function_name}(n,(const char *)"functions");
+    n=match_{function_name}(n,(const char *)"functions",0);
     if (n_OK(n)==1  || n->pos==-1 ) continue; 

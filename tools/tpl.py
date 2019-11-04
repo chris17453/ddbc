@@ -56,7 +56,11 @@ class tpl:
         #print vars
         for var in vars:
             #print "found "+var
-            output=output.replace('{{{0}}}'.format(var),vars[var])
+            try:
+                #print("\n// VARS: {0}-> {1} \n".format(var,vars[var] ) )
+                output=output.replace('{{{0}}}'.format(var),str(vars[var]))
+            except Exception as ex :
+                print("Error with {0} {1}".format(var,ex))
         
         lines=output.split("\n")
         depth=0
