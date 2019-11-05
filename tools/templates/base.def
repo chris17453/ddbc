@@ -1,7 +1,7 @@
 select:
     select
      {whitespace}?   {select_expr}  
-$({whitespace}? [,] {whitespace}? {select_expr} {whitespace}?) ?
+#$({whitespace}? [,] {whitespace}? {select_expr} {whitespace}?) ?
 
 
 

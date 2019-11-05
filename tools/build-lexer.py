@@ -255,20 +255,18 @@ def build(name,pattern,depth=0):
     # print " ---"
     tokens=group_expressions(tokens)
     list_of_match_functions=gather_matches(tokens)
-    pprint(tokens,indent=2)
-    
+    #pprint(tokens,indent=2)
+    o="\n"
     if depth==0:
         t=tpl("templates/match_function.c")
         t.add("match_function","function_name",name)
         if recursive(tokens,name)==0:
             t.add("match_function","recurse",0)
         else:
-                t.add("match_function","recurse",1)
+            t.add("match_function","recurse",1)
         t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
         t.add("match_function","body", build_function_templates(tokens,name=name) )
         o=t.build("match_function")
-    #else:
-    #o=build_function_templates(tokens)
     
     return o
 
