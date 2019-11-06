@@ -1,5 +1,5 @@
 /********************************************
-* Generated: 2019-11-04                    *
+* Generated: 2019-11-05                    *
 ********************************************/
 #include <stdio.h>
 #include <ctype.h>
@@ -60,12 +60,25 @@ node_t *match_select(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_select\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    // order 0
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "select") == 0) {
+      n->OK = 1;
+      n->pos += 6;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -79,6 +92,11 @@ node_t *match_select(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
       pop(n->stack);
+    }
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_select_expr(n, name, depth + 1);
     }
 
   }
@@ -108,30 +126,51 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_expr\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
-      //item 0  //skip if not called by self
-      if (strcmp(name, last_method) != 0) {
+      //---?
+      //recursion -> 0
+      if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+        n = match_expr(n, name, depth + 1);
+      }
+      //}
+      //---?
+      // order 1
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "OR") == 0) {
+        n->OK = 1;
+        n->pos += 2;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
         n->OK = 0;
       }
-
+      //---?
+      //recursion -> 2
+      if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+        n = match_expr(n, name, depth + 1);
+      }
+      //}
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //item+1 1
+//item+1 1
     if (n->OK == 0) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
+        //---?
+        //recursion -> 0
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
         }
+        //}
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '|' || n->value[n->pos] == '|')) {
           n->OK = 1;
           n->pos++;
@@ -140,102 +179,186 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
         } else {
           n->OK = 0;
         }                       // end char
-
+        //---?
+        //recursion -> 2
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 2
+//item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+//---?
+//recursion -> 0
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
+//---?
+// order 1
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "XOR") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
         }
-
+//---?
+//recursion -> 2
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 3
+//item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+//---?
+//recursion -> 0
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
+//---?
+// order 1
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "AND") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
         }
-
+//---?
+//recursion -> 2
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 4
+//item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+//---?
+//recursion -> 0
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
+//---?
+// order 1
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "&&") == 0) {
+          n->OK = 1;
+          n->pos += 2;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
         }
-
+//---?
+//recursion -> 2
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+          n = match_expr(n, name, depth + 1);
+        }
+//}
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 5
+//item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+//---?
+// order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "NOT") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
         }
-
+//item 1  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          n = match_expr(n, name, depth + 1);
+        }
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 6
+//item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+//---?
+// order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "!") == 0) {
+          n->OK = 1;
+          n->pos += 1;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
         }
-
+//item 1  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          n = match_expr(n, name, depth + 1);
+        }
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 7
+//item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-        //optional
+//---?
+//external -> 0
+        if (n_OK(n) == 1) {
+          n = match_boolean_primary(n, name, depth + 1);
+        }
+//---?
+// order 1
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "IS") == 0) {
+          n->OK = 1;
+          n->pos += 2;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+//---?
+//optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // order None
+// order None
           if (n_OK(n) == 1 && stricmp(n, (const char *) "NOT") == 0) {
             n->OK = 1;
             n->pos += 3;
@@ -244,74 +367,63 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
           } else {
             n->OK = 0;
           }
-
           if (n->OK == 0) {
             n->OK = 1;
             n->pos = peek(n->stack);
           }
           pop(n->stack);
         }
-        // GROUP
+//---?
+// GROUP
         if (n_OK(n) == 1) {
-          //OR
+//---?
+//OR
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
-            //item 0
-            //item 0
-            //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_boolean(n, name, depth + 1);
-            }
+//item 0
+//item 0
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
-            //item+1 1
+//item+1 1
             if (n->OK == 0) {
               n->OK = 1;
-              //item 1
-              //external -> 1
-              if (n_OK(n) == 1) {
-                n = match_unknown(n, name, depth + 1);
-              }
+//item 1
               if (n->OK == 0) {
                 n->pos = peek(n->stack);
               }
-
               if (n->OK == 0) {
                 n->pos = peek(n->stack);
               }
             }
-
             pop(n->stack);
           }
-
         }
-
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 8
+//item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
+// GROUP
       if (n_OK(n) == 1) {
-
+//---?
+//external -> 0
+        if (n_OK(n) == 1) {
+          n = match_boolean_primary(n, name, depth + 1);
+        }
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-
     pop(n->stack);
   }
-
   if (n->OK == 1) {
     for (int i = 0; i < n->depth; i++)
       printf(" ");
@@ -337,6 +449,7 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_boolean_primary\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
@@ -347,6 +460,17 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
       if (strcmp(name, last_method) != 0) {
         n->OK = 0;
       }
+      //---?
+      // order 1
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "IS") == 0) {
+        n->OK = 1;
+        n->pos += 2;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
+        n->OK = 0;
+      }
+      //---?
       //optional
       if (n_OK(n) == 1) {
         push(n->stack, n->pos);
@@ -366,6 +490,11 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         }
         pop(n->stack);
       }
+      //---?
+      //external -> 3
+      if (n_OK(n) == 1) {
+        n = match_null(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -379,6 +508,21 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
+        }
+        //---?
+        // order 1
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "<=>") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+        //---?
+        //external -> 2
+        if (n_OK(n) == 1) {
+          n = match_predicate(n, name, depth + 1);
         }
 
       }
@@ -396,6 +540,16 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
+        //---?
+        //external -> 1
+        if (n_OK(n) == 1) {
+          n = match_comparison_operator(n, name, depth + 1);
+        }
+        //---?
+        //external -> 2
+        if (n_OK(n) == 1) {
+          n = match_predicate(n, name, depth + 1);
+        }
 
       }
 
@@ -408,6 +562,11 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_predicate(n, name, depth + 1);
+        }
 
       }
 
@@ -444,8 +603,15 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_predicate\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_bit_expr(n, name, depth + 1);
+    }
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -465,6 +631,17 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       }
       pop(n->stack);
     }
+    //---?
+    // order 2
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "IN") == 0) {
+      n->OK = 1;
+      n->pos += 2;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '(')) {
       n->OK = 1;
       n->pos++;
@@ -474,17 +651,25 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       n->OK = 0;
     }                           // end char
 
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_expr(n, name, depth + 1);
+        }
+        //---?
         //one or more
         push(n->stack, n->pos);
         while (n_OK(n) == 1) {
           push(n->stack, n->pos);
           // GROUP
           if (n_OK(n) == 1) {
+            //---?
             if (n_OK(n) == 1 && (n->value[n->pos] == ',')) {
               n->OK = 1;
               n->pos++;
@@ -493,6 +678,11 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
             } else {
               n->OK = 0;
             }                   // end char
+            //---?
+            //external -> 1
+            if (n_OK(n) == 1) {
+              n = match_expr(n, name, depth + 1);
+            }
 
           }
 
@@ -518,20 +708,22 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
     }
 
   }
+  //---?
+  // order 1
+  if (n_OK(n) == 1 && stricmp(n, (const char *) "]") == 0) {
+    n->OK = 1;
+    n->pos += 1;
+    if (n->pos >= n->len)
+      n->pos = -1;
+  } else {
+    n->OK = 0;
+  }
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     //item 0
-    // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ")") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
@@ -543,6 +735,12 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -562,9 +760,34 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
           }
           pop(n->stack);
         }
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
+        //---?
+        // order 2
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "BETWEEN") == 0) {
+          n->OK = 1;
+          n->pos += 7;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
           n->OK = 0;
+        }
+        //---?
+        //external -> 3
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
+        //---?
+        // order 4
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "AND") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+        //item 5  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          n = match_predicate(n, name, depth + 1);
         }
 
       }
@@ -578,6 +801,12 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -597,11 +826,42 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
           }
           pop(n->stack);
         }
+        //---?
+        // order 2
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "LIKE") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+        //---?
+        //external -> 3
+        if (n_OK(n) == 1) {
+          n = match_simple_expr(n, name, depth + 1);
+        }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
           // GROUP
           if (n_OK(n) == 1) {
+            //---?
+            // order 0
+            if (n_OK(n) == 1 && stricmp(n, (const char *) "ESCAPE") == 0) {
+              n->OK = 1;
+              n->pos += 6;
+              if (n->pos >= n->len)
+                n->pos = -1;
+            } else {
+              n->OK = 0;
+            }
+            //---?
+            //external -> 1
+            if (n_OK(n) == 1) {
+              n = match_simple_expr(n, name, depth + 1);
+            }
 
           }
 
@@ -623,6 +883,12 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -642,6 +908,21 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
           }
           pop(n->stack);
         }
+        //---?
+        // order 2
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "REGEXP") == 0) {
+          n->OK = 1;
+          n->pos += 6;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+        //---?
+        //external -> 3
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
 
       }
 
@@ -654,6 +935,11 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_bit_expr(n, name, depth + 1);
+        }
 
       }
 
@@ -690,22 +976,35 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_bit_expr\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
-      //item 0  //skip if not called by self
-      if (strcmp(name, last_method) != 0) {
-        n->OK = 0;
+      //---?
+      //recursion -> 0
+      if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+        n = match_bit_expr(n, name, depth + 1);
       }
-
+      //}
+      //---?
+      //external -> 1
+      if (n_OK(n) == 1) {
+        n = match_operations(n, name, depth + 1);
+      }
+      //---?
+      //recursion -> 2
+      if (n_OK(n) == 1 && strcmp(name, last_method) == 0) {
+        n = match_bit_expr(n, name, depth + 1);
+      }
+      //}
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //item+1 1
+//item+1 1
     if (n->OK == 0) {
       n->OK = 1;
       // GROUP
@@ -714,6 +1013,7 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -728,6 +1028,7 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
           }
           pop(n->stack);
         }
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '+' || n->value[n->pos] == '-')) {
           n->OK = 1;
           n->pos++;
@@ -736,6 +1037,7 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -750,29 +1052,35 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
           }
           pop(n->stack);
         }
+        //---?
+        //external -> 4
+        if (n_OK(n) == 1) {
+          n = match_interval_expr(n, name, depth + 1);
+        }
 
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //item+1 2
+//item+1 2
     if (n->OK == 0) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_simple_expr(n, name, depth + 1);
+        }
 
       }
-
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-
     pop(n->stack);
   }
-
   if (n->OK == 1) {
     for (int i = 0; i < n->depth; i++)
       printf(" ");
@@ -798,12 +1106,14 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_operations\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
       if (n_OK(n) == 1 && (n->value[n->pos] == '|')) {
         n->OK = 1;
         n->pos++;
@@ -822,6 +1132,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '&')) {
           n->OK = 1;
           n->pos++;
@@ -842,6 +1153,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
           n->OK = 1;
           n->pos++;
@@ -850,6 +1162,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
           n->OK = 1;
           n->pos++;
@@ -870,6 +1183,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
           n->OK = 1;
           n->pos++;
@@ -878,6 +1192,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
           n->OK = 1;
           n->pos++;
@@ -898,6 +1213,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '+')) {
           n->OK = 1;
           n->pos++;
@@ -918,6 +1234,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '-')) {
           n->OK = 1;
           n->pos++;
@@ -938,6 +1255,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '*')) {
           n->OK = 1;
           n->pos++;
@@ -958,6 +1276,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '/')) {
           n->OK = 1;
           n->pos++;
@@ -978,6 +1297,16 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DIV") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -990,6 +1319,16 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "MOD") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -1002,6 +1341,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '%')) {
           n->OK = 1;
           n->pos++;
@@ -1022,6 +1362,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '^')) {
           n->OK = 1;
           n->pos++;
@@ -1066,12 +1407,18 @@ node_t *match_complex_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_complex_expr\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_simple_expr(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -1082,6 +1429,11 @@ node_t *match_complex_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_interval_expr(n, name, depth + 1);
+        }
 
       }
 
@@ -1118,12 +1470,18 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_simple_expr\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_literal(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -1134,6 +1492,11 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_identifier(n, name, depth + 1);
+        }
 
       }
 
@@ -1170,12 +1533,18 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_literal\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_hex(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -1186,6 +1555,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_bit(n, name, depth + 1);
+        }
 
       }
 
@@ -1198,6 +1572,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_real(n, name, depth + 1);
+        }
 
       }
 
@@ -1210,6 +1589,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_null(n, name, depth + 1);
+        }
 
       }
 
@@ -1222,6 +1606,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_boolean(n, name, depth + 1);
+        }
 
       }
 
@@ -1234,6 +1623,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_string(n, name, depth + 1);
+        }
 
       }
 
@@ -1270,8 +1664,14 @@ node_t *match_YEARS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_YEARS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1300,8 +1700,14 @@ node_t *match_QUARTERS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_QUARTERS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1330,8 +1736,14 @@ node_t *match_MONTHS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MONTHS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1360,8 +1772,14 @@ node_t *match_WEEKS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_WEEKS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1390,8 +1808,14 @@ node_t *match_DAYS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAYS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1420,8 +1844,14 @@ node_t *match_HOURS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_HOURS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1450,8 +1880,14 @@ node_t *match_MINUTES(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MINUTES\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1480,8 +1916,14 @@ node_t *match_SECONDS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_SECONDS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1510,8 +1952,14 @@ node_t *match_MICROSECONDS(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MICROSECONDS\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -1540,8 +1988,24 @@ node_t *match_MICROSECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MICROSECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_MICROSECONDS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "MICROSECOND") == 0) {
+      n->OK = 1;
+      n->pos += 11;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1570,8 +2034,24 @@ node_t *match_SECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_SECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND") == 0) {
+      n->OK = 1;
+      n->pos += 6;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1600,8 +2080,24 @@ node_t *match_MINUTE(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MINUTE\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE") == 0) {
+      n->OK = 1;
+      n->pos += 6;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1630,8 +2126,24 @@ node_t *match_HOUR(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_HOUR\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR") == 0) {
+      n->OK = 1;
+      n->pos += 4;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1660,8 +2172,24 @@ node_t *match_DAY(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAY\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_DAYS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY") == 0) {
+      n->OK = 1;
+      n->pos += 3;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1690,8 +2218,24 @@ node_t *match_WEEK(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_WEEK\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_WEEKS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEK") == 0) {
+      n->OK = 1;
+      n->pos += 4;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1720,8 +2264,24 @@ node_t *match_MONTH(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MONTH\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_MONTHS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTH") == 0) {
+      n->OK = 1;
+      n->pos += 5;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1750,8 +2310,24 @@ node_t *match_QUARTER(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_QUARTER\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_QUARTERS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "QUARTER") == 0) {
+      n->OK = 1;
+      n->pos += 7;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1780,8 +2356,24 @@ node_t *match_YEAR(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_YEAR\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_YEARS(n, name, depth + 1);
+    }
+    //---?
+    // order 1
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR") == 0) {
+      n->OK = 1;
+      n->pos += 4;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1810,8 +2402,10 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
   n->depth += 1;
   //printf("In functions match_SECOND_MICROSECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1820,6 +2414,12 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
       n->OK = 1;
       n->pos++;
@@ -1828,6 +2428,12 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_MICROSECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1836,6 +2442,16 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 5
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND_MICROSECOND") == 0) {
+      n->OK = 1;
+      n->pos += 18;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1864,8 +2480,10 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
   n->depth += 1;
   //printf("In functions match_MINUTE_MICROSECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1874,6 +2492,12 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -1882,6 +2506,12 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
       n->OK = 1;
       n->pos++;
@@ -1890,6 +2520,12 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 5
+    if (n_OK(n) == 1) {
+      n = match_MICROSECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1898,6 +2534,16 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 7
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_MICROSECOND") == 0) {
+      n->OK = 1;
+      n->pos += 18;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1926,8 +2572,10 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_MINUTE_SECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1936,6 +2584,12 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -1944,6 +2598,12 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1952,6 +2612,16 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 5
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_SECOND") == 0) {
+      n->OK = 1;
+      n->pos += 13;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -1980,8 +2650,10 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_HOUR_MICROSECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -1990,6 +2662,12 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -1998,6 +2676,12 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2006,6 +2690,12 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 5
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
       n->OK = 1;
       n->pos++;
@@ -2014,6 +2704,12 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 7
+    if (n_OK(n) == 1) {
+      n = match_MICROSECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2022,6 +2718,16 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 9
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MICROSECOND") == 0) {
+      n->OK = 1;
+      n->pos += 16;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2050,8 +2756,10 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_HOUR_SECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2060,6 +2768,12 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2068,6 +2782,12 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2076,6 +2796,12 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 5
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2084,6 +2810,16 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 7
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_SECOND") == 0) {
+      n->OK = 1;
+      n->pos += 11;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2112,8 +2848,10 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_HOUR_MINUTE\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2122,6 +2860,12 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2130,6 +2874,12 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2138,6 +2888,16 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 5
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MINUTE") == 0) {
+      n->OK = 1;
+      n->pos += 11;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2166,8 +2926,10 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAY_MICROSECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2176,6 +2938,17 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_DAYS(n, name, depth + 1);
+    }
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2184,6 +2957,12 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 4
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2192,6 +2971,12 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 6
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
       n->OK = 1;
       n->pos++;
@@ -2200,6 +2985,12 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 8
+    if (n_OK(n) == 1) {
+      n = match_MICROSECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2208,6 +2999,16 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 10
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MICROSECOND") == 0) {
+      n->OK = 1;
+      n->pos += 15;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2236,8 +3037,10 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAY_SECOND\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2246,6 +3049,17 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_DAYS(n, name, depth + 1);
+    }
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2254,6 +3068,12 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 4
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2262,6 +3082,12 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 6
+    if (n_OK(n) == 1) {
+      n = match_SECONDS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2270,6 +3096,16 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 8
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_SECOND") == 0) {
+      n->OK = 1;
+      n->pos += 10;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2298,8 +3134,10 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAY_MINUTE\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2308,6 +3146,17 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_DAYS(n, name, depth + 1);
+    }
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == ':')) {
       n->OK = 1;
       n->pos++;
@@ -2316,6 +3165,12 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 4
+    if (n_OK(n) == 1) {
+      n = match_MINUTES(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2324,6 +3179,16 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 6
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MINUTE") == 0) {
+      n->OK = 1;
+      n->pos += 10;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2352,8 +3217,10 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_DAY_HOUR\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2362,6 +3229,17 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_DAYS(n, name, depth + 1);
+    }
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_HOURS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2370,6 +3248,16 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 4
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_HOUR") == 0) {
+      n->OK = 1;
+      n->pos += 8;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2398,8 +3286,10 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_YEAR_MONTH\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2408,6 +3298,27 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_YEARS(n, name, depth + 1);
+    }
+    //---?
+    // order 2
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "-") == 0) {
+      n->OK = 1;
+      n->pos += 1;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
+    //---?
+    //external -> 3
+    if (n_OK(n) == 1) {
+      n = match_MONTHS(n, name, depth + 1);
+    }
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -2416,6 +3327,16 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    // order 5
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR_MONTH") == 0) {
+      n->OK = 1;
+      n->pos += 10;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -2444,12 +3365,23 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_interval_expr\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      // order 0
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "MICROSECOND") == 0) {
+        n->OK = 1;
+        n->pos += 11;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
+        n->OK = 0;
+      }
 
     }
     if (n->OK == 0) {
@@ -2460,6 +3392,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND") == 0) {
+          n->OK = 1;
+          n->pos += 6;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2472,6 +3414,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE") == 0) {
+          n->OK = 1;
+          n->pos += 6;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2484,6 +3436,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2496,6 +3458,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY") == 0) {
+          n->OK = 1;
+          n->pos += 3;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2508,6 +3480,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEK") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2520,6 +3502,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTH") == 0) {
+          n->OK = 1;
+          n->pos += 5;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2532,6 +3524,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "QUARTER") == 0) {
+          n->OK = 1;
+          n->pos += 7;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2544,6 +3546,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2556,6 +3568,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND_MICROSECOND") == 0) {
+          n->OK = 1;
+          n->pos += 18;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2568,6 +3590,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_MICROSECOND") == 0) {
+          n->OK = 1;
+          n->pos += 18;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2580,6 +3612,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_SECOND") == 0) {
+          n->OK = 1;
+          n->pos += 13;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2592,6 +3634,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MICROSECOND") == 0) {
+          n->OK = 1;
+          n->pos += 16;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2604,6 +3656,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_SECOND") == 0) {
+          n->OK = 1;
+          n->pos += 11;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2616,6 +3678,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MINUTE") == 0) {
+          n->OK = 1;
+          n->pos += 11;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2628,6 +3700,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MICROSECOND") == 0) {
+          n->OK = 1;
+          n->pos += 15;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2640,6 +3722,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_SECOND") == 0) {
+          n->OK = 1;
+          n->pos += 10;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2652,6 +3744,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MINUTE") == 0) {
+          n->OK = 1;
+          n->pos += 10;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2664,6 +3766,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_HOUR") == 0) {
+          n->OK = 1;
+          n->pos += 8;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2676,6 +3788,16 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR_MONTH") == 0) {
+          n->OK = 1;
+          n->pos += 10;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -2712,12 +3834,18 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_comment\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_block_comment(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -2728,6 +3856,11 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_single_comment(n, name, depth + 1);
+        }
 
       }
 
@@ -2764,14 +3897,22 @@ node_t *match_block_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_block_comment\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_left_comment(n, name, depth + 1);
+    }
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -2805,6 +3946,11 @@ node_t *match_block_comment(node_t * n, const char last_method[], int depth)
       n->OK = 1;
     }
     pop(n->stack);
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_right_comment(n, name, depth + 1);
+    }
 
   }
 
@@ -2833,14 +3979,22 @@ node_t *match_single_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_single_comment\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_inline_comment(n, name, depth + 1);
+    }
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -2874,6 +4028,11 @@ node_t *match_single_comment(node_t * n, const char last_method[], int depth)
       n->OK = 1;
     }
     pop(n->stack);
+    //---?
+    //external -> 2
+    if (n_OK(n) == 1) {
+      n = match_end_of_line(n, name, depth + 1);
+    }
 
   }
 
@@ -2902,8 +4061,10 @@ node_t *match_left_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_left_comment\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '/')) {
       n->OK = 1;
       n->pos++;
@@ -2912,6 +4073,7 @@ node_t *match_left_comment(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '*')) {
       n->OK = 1;
       n->pos++;
@@ -2948,8 +4110,10 @@ node_t *match_right_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_right_comment\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '*')) {
       n->OK = 1;
       n->pos++;
@@ -2958,6 +4122,7 @@ node_t *match_right_comment(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '/')) {
       n->OK = 1;
       n->pos++;
@@ -2994,8 +4159,10 @@ node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_inline_comment\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '-')) {
       n->OK = 1;
       n->pos++;
@@ -3004,6 +4171,7 @@ node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '-')) {
       n->OK = 1;
       n->pos++;
@@ -3040,8 +4208,19 @@ node_t *match_unknown(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_unknown\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    // order 0
+    if (n_OK(n) == 1 && stricmp(n, (const char *) "unknown") == 0) {
+      n->OK = 1;
+      n->pos += 7;
+      if (n->pos >= n->len)
+        n->pos = -1;
+    } else {
+      n->OK = 0;
+    }
 
   }
 
@@ -3070,8 +4249,10 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_hex\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '0')) {
       n->OK = 1;
       n->pos++;
@@ -3080,6 +4261,7 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == 'x' || n->value[n->pos] == 'X')) {
       n->OK = 1;
       n->pos++;
@@ -3088,6 +4270,7 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3142,8 +4325,10 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_bit\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '0')) {
       n->OK = 1;
       n->pos++;
@@ -3152,6 +4337,7 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == 'b')) {
       n->OK = 1;
       n->pos++;
@@ -3160,6 +4346,7 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3212,12 +4399,23 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_null\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      // order 0
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "null") == 0) {
+        n->OK = 1;
+        n->pos += 4;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
+        n->OK = 0;
+      }
 
     }
     if (n->OK == 0) {
@@ -3228,6 +4426,16 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "NULL") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -3264,12 +4472,23 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_true\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      // order 0
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "true") == 0) {
+        n->OK = 1;
+        n->pos += 4;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
+        n->OK = 0;
+      }
 
     }
     if (n->OK == 0) {
@@ -3280,6 +4499,16 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "TRUE") == 0) {
+          n->OK = 1;
+          n->pos += 4;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -3316,12 +4545,23 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_false\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      // order 0
+      if (n_OK(n) == 1 && stricmp(n, (const char *) "false") == 0) {
+        n->OK = 1;
+        n->pos += 5;
+        if (n->pos >= n->len)
+          n->pos = -1;
+      } else {
+        n->OK = 0;
+      }
 
     }
     if (n->OK == 0) {
@@ -3332,6 +4572,16 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "FALSE") == 0) {
+          n->OK = 1;
+          n->pos += 5;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
 
       }
 
@@ -3368,12 +4618,18 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_boolean\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_true(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -3384,6 +4640,11 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_false(n, name, depth + 1);
+        }
 
       }
 
@@ -3420,12 +4681,19 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_real\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_integer(n, name, depth + 1);
+      }
+      //---?
       if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
         n->OK = 1;
         n->pos++;
@@ -3434,6 +4702,11 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
       } else {
         n->OK = 0;
       }                         // end char
+      //---?
+      //external -> 2
+      if (n_OK(n) == 1) {
+        n = match_unsigned_int(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -3444,6 +4717,7 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '.')) {
           n->OK = 1;
           n->pos++;
@@ -3452,6 +4726,11 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
+        //external -> 1
+        if (n_OK(n) == 1) {
+          n = match_unsigned_int(n, name, depth + 1);
+        }
 
       }
 
@@ -3464,6 +4743,11 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_integer(n, name, depth + 1);
+        }
 
       }
 
@@ -3474,8 +4758,10 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -3518,12 +4804,18 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_integer\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_signed_int(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -3534,6 +4826,11 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_unsigned_int(n, name, depth + 1);
+        }
 
       }
 
@@ -3570,8 +4867,19 @@ node_t *match_signed_int(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_signed_int\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_sign(n, name, depth + 1);
+    }
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_unsigned_int(n, name, depth + 1);
+    }
 
   }
 
@@ -3600,8 +4908,10 @@ node_t *match_unsigned_int(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_unsigned_int\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3655,8 +4965,10 @@ node_t *match_sign(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_sign\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '-' || n->value[n->pos] == '+')) {
       n->OK = 1;
       n->pos++;
@@ -3693,8 +5005,10 @@ node_t *match_exponent(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_exponent\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e')) {
       n->OK = 1;
       n->pos++;
@@ -3703,6 +5017,11 @@ node_t *match_exponent(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
+    //external -> 1
+    if (n_OK(n) == 1) {
+      n = match_integer(n, name, depth + 1);
+    }
 
   }
 
@@ -3731,8 +5050,10 @@ node_t *match_identifier(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_identifier\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3787,8 +5108,10 @@ node_t *match_alpha(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_alpha\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3842,8 +5165,10 @@ node_t *match_whitespace(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_whitespace\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
@@ -3896,8 +5221,10 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
   n->depth += 1;
   //printf("In functions match_single_quote_string\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -3906,12 +5233,14 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -3949,6 +5278,7 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
       n->OK = 1;
     }
     pop(n->stack);
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       n->OK = 1;
       n->pos++;
@@ -3985,8 +5315,10 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
   n->depth += 1;
   //printf("In functions match_double_quote_string\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '"')) {
       n->OK = 1;
       n->pos++;
@@ -3995,12 +5327,14 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -4038,6 +5372,7 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
       n->OK = 1;
     }
     pop(n->stack);
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '"')) {
       n->OK = 1;
       n->pos++;
@@ -4074,12 +5409,18 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_string\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
+      //external -> 0
+      if (n_OK(n) == 1) {
+        n = match_single_quote_string(n, name, depth + 1);
+      }
 
     }
     if (n->OK == 0) {
@@ -4090,6 +5431,11 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        //external -> 0
+        if (n_OK(n) == 1) {
+          n = match_double_quote_string(n, name, depth + 1);
+        }
 
       }
 
@@ -4126,8 +5472,15 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_select_expr\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
+    //external -> 0
+    if (n_OK(n) == 1) {
+      n = match_expr(n, name, depth + 1);
+    }
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -4142,11 +5495,23 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
       }
       pop(n->stack);
     }
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
+        // order 0
+        if (n_OK(n) == 1 && stricmp(n, (const char *) "as") == 0) {
+          n->OK = 1;
+          n->pos += 2;
+          if (n->pos >= n->len)
+            n->pos = -1;
+        } else {
+          n->OK = 0;
+        }
+        //---?
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -4160,6 +5525,11 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
             n->pos = peek(n->stack);
           }
           pop(n->stack);
+        }
+        //---?
+        //external -> 2
+        if (n_OK(n) == 1) {
+          n = match_identifier(n, name, depth + 1);
         }
 
       }
@@ -4198,8 +5568,10 @@ node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_end_of_line\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     if (n_OK(n) == 1 && (n->value[n->pos] == '\n')) {
       n->OK = 1;
       n->pos++;
@@ -4208,6 +5580,7 @@ node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
     } else {
       n->OK = 0;
     }                           // end char
+    //---?
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -4254,12 +5627,14 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
   n->depth += 1;
   //printf("In functions match_comparison_operator\n");
   int start_pos = n->pos;
+  //---?
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      //---?
       if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
         n->OK = 1;
         n->pos++;
@@ -4268,6 +5643,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       } else {
         n->OK = 0;
       }                         // end char
+      //---?
       if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
         n->OK = 1;
         n->pos++;
@@ -4286,6 +5662,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
           n->OK = 1;
           n->pos++;
@@ -4294,6 +5671,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '=')) {
           n->OK = 1;
           n->pos++;
@@ -4314,6 +5692,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
           n->OK = 1;
           n->pos++;
@@ -4322,6 +5701,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '=')) {
           n->OK = 1;
           n->pos++;
@@ -4342,6 +5722,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '!')) {
           n->OK = 1;
           n->pos++;
@@ -4350,6 +5731,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         } else {
           n->OK = 0;
         }                       // end char
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '=')) {
           n->OK = 1;
           n->pos++;
@@ -4370,6 +5752,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
           n->OK = 1;
           n->pos++;
@@ -4390,6 +5773,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
           n->OK = 1;
           n->pos++;
@@ -4410,6 +5794,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        //---?
         if (n_OK(n) == 1 && (n->value[n->pos] == '=')) {
           n->OK = 1;
           n->pos++;
@@ -4454,8 +5839,10 @@ node_t *match_not_whitespace(node_t * n, const char last_method[], int depth)
   n->depth += 1;
   //printf("In functions match_not_whitespace\n");
   int start_pos = n->pos;
+  //---?
   // GROUP
   if (n_OK(n) == 1) {
+    //---?
     //NOT
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -4503,7 +5890,7 @@ node_t *match_not_whitespace(node_t * n, const char last_method[], int depth)
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-04
+*   Generated: 2019-11-05
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
