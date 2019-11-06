@@ -15,10 +15,11 @@ node_t:
 
 // this holds the string you are tokenizing
 typedef struct node_t{
-    int   len;
-    int   pos;
-    int   OK;
-    int   depth;
+    int    len;
+    int    pos;
+    int    OK;
+    int    depth;
+    const char  *last_function;
     char  *value;
     struct stack_t *stack;
 }

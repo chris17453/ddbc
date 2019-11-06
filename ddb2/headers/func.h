@@ -4,6 +4,7 @@ typedef struct node_t {
   int pos;
   int OK;
   int depth;
+  const char *last_function;
   char *value;
   struct stack_t *stack;
 } node_t;

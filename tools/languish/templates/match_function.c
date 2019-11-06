@@ -1,6 +1,7 @@
 match_function:
 node_t * match_{function_name}(node_t *n,const char last_method[],int depth){
     const char name[]="{function_name}";
+
     int recursion={recurse};
     n->depth+=1;
     //printf("In functions match_{function_name}\n");
@@ -22,6 +23,7 @@ node_t * match_{function_name}(node_t *n,const char last_method[],int depth){
         }
     }
     n->depth-=1;
+    n->last_function=name;
 
     return n;
 }

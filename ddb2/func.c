@@ -1,5 +1,5 @@
 /********************************************
-* Generated: 2019-11-05                    *
+* Generated: 2019-11-06                    *
 ********************************************/
 #include <stdio.h>
 #include <ctype.h>
@@ -116,6 +116,7 @@ node_t *match_select(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -439,6 +440,7 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -593,6 +595,7 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -966,6 +969,7 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1096,6 +1100,7 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1397,6 +1402,7 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1460,6 +1466,7 @@ node_t *match_complex_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1523,6 +1530,7 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1654,6 +1662,7 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1690,6 +1699,7 @@ node_t *match_YEARS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1726,6 +1736,7 @@ node_t *match_QUARTERS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1762,6 +1773,7 @@ node_t *match_MONTHS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1798,6 +1810,7 @@ node_t *match_WEEKS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1834,6 +1847,7 @@ node_t *match_DAYS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1870,6 +1884,7 @@ node_t *match_HOURS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1906,6 +1921,7 @@ node_t *match_MINUTES(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1942,6 +1958,7 @@ node_t *match_SECONDS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -1978,6 +1995,7 @@ node_t *match_MICROSECONDS(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2024,6 +2042,7 @@ node_t *match_MICROSECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2070,6 +2089,7 @@ node_t *match_SECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2116,6 +2136,7 @@ node_t *match_MINUTE(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2162,6 +2183,7 @@ node_t *match_HOUR(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2208,6 +2230,7 @@ node_t *match_DAY(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2254,6 +2277,7 @@ node_t *match_WEEK(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2300,6 +2324,7 @@ node_t *match_MONTH(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2346,6 +2371,7 @@ node_t *match_QUARTER(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2392,6 +2418,7 @@ node_t *match_YEAR(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2470,6 +2497,7 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2562,6 +2590,7 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2640,6 +2669,7 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2746,6 +2776,7 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2838,6 +2869,7 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -2916,6 +2948,7 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3027,6 +3060,7 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3124,6 +3158,7 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3207,6 +3242,7 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3276,6 +3312,7 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3355,6 +3392,7 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3824,6 +3862,7 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3887,6 +3926,7 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -3969,6 +4009,7 @@ node_t *match_block_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4051,6 +4092,7 @@ node_t *match_single_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4100,6 +4142,7 @@ node_t *match_left_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4149,6 +4192,7 @@ node_t *match_right_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4198,6 +4242,7 @@ node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4239,6 +4284,7 @@ node_t *match_unknown(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4315,6 +4361,7 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4389,6 +4436,7 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4462,6 +4510,7 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4535,6 +4584,7 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4608,6 +4658,7 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4671,6 +4722,7 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4794,6 +4846,7 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4857,6 +4910,7 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4898,6 +4952,7 @@ node_t *match_signed_int(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4955,6 +5010,7 @@ node_t *match_unsigned_int(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -4995,6 +5051,7 @@ node_t *match_sign(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5040,6 +5097,7 @@ node_t *match_exponent(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5098,6 +5156,7 @@ node_t *match_identifier(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5155,6 +5214,7 @@ node_t *match_alpha(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5211,6 +5271,7 @@ node_t *match_whitespace(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5305,6 +5366,7 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5399,6 +5461,7 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5462,6 +5525,7 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5558,6 +5622,7 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5617,6 +5682,7 @@ node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5829,6 +5895,7 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
@@ -5884,13 +5951,14 @@ node_t *match_not_whitespace(node_t * n, const char last_method[], int depth)
     }
   }
   n->depth -= 1;
+  n->last_function = name;
   return n;
 }
 
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-05
+*   Generated: 2019-11-06
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
