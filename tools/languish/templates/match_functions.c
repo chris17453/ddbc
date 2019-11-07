@@ -27,7 +27,7 @@ int stricmp(node_t *n, const char * b){
         char c=n->value[i+n->pos];
 
         if (c>='A' && c<='Z'){
-            d = (unsigned char) c-(unsigned char)'A'- (unsigned char)b[i];
+            d = (unsigned char)tolower(c)- (unsigned char)b[i];
         } else {
             d = (unsigned char) c- (unsigned char)b[i];
         }

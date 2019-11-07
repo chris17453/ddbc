@@ -1,43 +1,70 @@
+
+# COMMENTS
+comment:              
+  {block_comment} 
+| {single_comment}
+
+block_comment:        
+  {left_comment} (^{right_comment})+ {right_comment} 
+
+single_comment:       
+  {inline_comment} (^{end_of_line})+ {end_of_line} 
+
+left_comment:         
+  [/][*]
+
+right_comment:        
+  [*][/]
+
+inline_comment:       
+  [-][-]
+
+
+
+
 select:
     select
      {whitespace}?   {select_expr}  
-#$({whitespace}? [,] {whitespace}? {select_expr} {whitespace}?) ?
+    ({whitespace}? [,] {whitespace}? {select_expr} {whitespace}?) ?
+    ( FROM {identifier} ( as {whitespace}? {identifier} ) ?  (ON {where_expression})   )?
 
 
 
 
 expr: 
-     {expr} OR {expr} 
-  |  {expr} [\|\|] {expr} 
-  |  {expr} XOR {expr} 
-  |  {expr} AND {expr} 
-  |  {expr} && {expr} 
-  |  NOT {expr} 
-  |  !   {expr} 
-  |  {boolean_primary} IS NOT? ( {boolean} | {unknown}) 
+     {expr} {whitespace}   OR     {whitespace}  {expr} 
+  |  {expr} {whitespace}   [\|\|] {whitespace}  {expr} 
+  |  {expr} {whitespace}   XOR    {whitespace}  {expr} 
+  |  {expr} {whitespace}   AND    {whitespace}  {expr} 
+  |  {expr} {whitespace}   &&     {whitespace}  {expr} 
+  |  NOT {whitespace} {expr} 
+  |  !   {whitespace} {expr} 
+  |  {boolean_primary} IS ({whitespace} NOT)? {whitespace} ( {boolean} | {unknown}) 
   |  {boolean_primary} 
 
 boolean_primary:
-     {boolean_primary} IS NOT? {null} 
-  |  {boolean_primary} <=> {predicate} 
-  |  {boolean_primary} {comparison_operator} {predicate} 
-# |  {boolean_primary} {comparison_operator} (ALL | ANY) (subquery) 
+     {boolean_primary} {whitespace} IS ( {whitespace} NOT) ?  {whitespace} {null} 
+  |  {boolean_primary} {whitespace} <=>  {whitespace} {predicate} 
+  |  {boolean_primary} {whitespace} {comparison_operator}  {whitespace} {predicate} 
+# |  {boolean_primary} {whitespace} {comparison_operator}  {whitespace} (ALL | ANY)  {whitespace} (subquery) 
   |  {predicate} 
 
 
-
+where_expression:
+  {expr}
+  
 predicate:
 #   {bit_expr} NOT? IN (subquery)
-    {bit_expr} NOT? IN [\(] ({expr} ( [,] {expr})+)? [)]
-  | {bit_expr} NOT? BETWEEN {bit_expr} AND {predicate}
-  | {bit_expr} NOT? LIKE {simple_expr} (ESCAPE {simple_expr})?
-  | {bit_expr} NOT? REGEXP {bit_expr}
-  | {bit_expr}
+#    {bit_expr} NOT? IN [\(] ({expr} ( [,] {expr})+)? [\)]
+#  | {bit_expr} NOT? BETWEEN {bit_expr} AND {predicate}
+#  | {bit_expr} NOT? LIKE {simple_expr} (ESCAPE {simple_expr})?
+#  | {bit_expr} NOT? REGEXP {bit_expr}
+   {bit_expr}
 
 
 bit_expr:
-    {bit_expr} {operations}  {bit_expr}
-  | {bit_expr} {whitespace}?  [+-]   {whitespace}?  {interval_expr}
+    {bit_expr} {whitespace}? {operations}  {whitespace}? {bit_expr}
+#  | {bit_expr} {whitespace}?  [+-]   {whitespace}?  {interval_expr}
   | {simple_expr}
 
 operations:   [\|]   
@@ -55,7 +82,7 @@ operations:   [\|]
   
 complex_expr:
     {simple_expr} 
-  | {interval_expr}
+#  | {interval_expr}
 
 
 simple_expr:
@@ -77,79 +104,59 @@ literal:
 # INTERVAL EXPRESSION
 
 
-YEARS:               {unsigned_int}
-QUARTERS:            {unsigned_int}
-MONTHS:              {unsigned_int}
-WEEKS:               {unsigned_int}
-DAYS:                {unsigned_int}
-HOURS:               {unsigned_int}
-MINUTES:             {unsigned_int}
-SECONDS:             {unsigned_int}
-MICROSECONDS:        {unsigned_int}
-
-MICROSECOND:         {MICROSECONDS}   MICROSECOND
-SECOND:              {SECONDS}        SECOND
-MINUTE:              {MINUTES}        MINUTE
-HOUR:                {HOURS}          HOUR
-DAY:                 {DAYS}           DAY
-WEEK:                {WEEKS}          WEEK
-MONTH:               {MONTHS}         MONTH
-QUARTER:             {QUARTERS}       QUARTER
-YEAR:                {YEARS}          YEAR
-SECOND_MICROSECOND:  ['] {SECONDS}[.]{MICROSECONDS} [']                              SECOND_MICROSECOND
-MINUTE_MICROSECOND:  ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  MINUTE_MICROSECOND
-MINUTE_SECOND:       ['] {MINUTES}[:]{SECONDS} [']                                   MINUTE_SECOND
-HOUR_MICROSECOND:    ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        HOUR_MICROSECOND
-HOUR_SECOND:         ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         HOUR_SECOND
-HOUR_MINUTE:         ['] {HOURS}[:]{MINUTES} [']                                     HOUR_MINUTE
-DAY_MICROSECOND:     ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] DAY_MICROSECOND
-DAY_SECOND:          ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  DAY_SECOND
-DAY_MINUTE:          ['] {DAYS} {HOURS} [:] {MINUTES} [']                            DAY_MINUTE
-DAY_HOUR:            ['] {DAYS} {HOURS} [']                                          DAY_HOUR
-YEAR_MONTH:          ['] {YEARS}-{MONTHS} [']                                        YEAR_MONTH
-
-interval_expr:
-    MICROSECOND
-  | SECOND
-  | MINUTE
-  | HOUR
-  | DAY
-  | WEEK
-  | MONTH
-  | QUARTER
-  | YEAR
-  | SECOND_MICROSECOND
-  | MINUTE_MICROSECOND
-  | MINUTE_SECOND
-  | HOUR_MICROSECOND
-  | HOUR_SECOND
-  | HOUR_MINUTE
-  | DAY_MICROSECOND
-  | DAY_SECOND
-  | DAY_MINUTE
-  | DAY_HOUR
-  | YEAR_MONTH
-
-
-# COMMENTS
-comment:              
-  {block_comment} 
-| {single_comment}
-
-block_comment:        
-  {left_comment} (^{right_comment})+ {right_comment} 
-
-single_comment:       
-  {inline_comment} (^{end_of_line})+ {end_of_line} 
-
-left_comment:         
-  [/][*]
-
-right_comment:        
-  [*][/]
-
-inline_comment:       
-  [-][-]
+# YEARS:               {unsigned_int}
+# QUARTERS:            {unsigned_int}
+# MONTHS:              {unsigned_int}
+# WEEKS:               {unsigned_int}
+# DAYS:                {unsigned_int}
+# HOURS:               {unsigned_int}
+# MINUTES:             {unsigned_int}
+# SECONDS:             {unsigned_int}
+# MICROSECONDS:        {unsigned_int}
+# 
+# MICROSECOND:         {MICROSECONDS}   MICROSECOND
+# SECOND:              {SECONDS}        SECOND
+# MINUTE:              {MINUTES}        MINUTE
+# HOUR:                {HOURS}          HOUR
+# DAY:                 {DAYS}           DAY
+# WEEK:                {WEEKS}          WEEK
+# MONTH:               {MONTHS}         MONTH
+# QUARTER:             {QUARTERS}       QUARTER
+# YEAR:                {YEARS}          YEAR
+# SECOND_MICROSECOND:  ['] {SECONDS}[.]{MICROSECONDS} [']                              SECOND_MICROSECOND
+# MINUTE_MICROSECOND:  ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  MINUTE_MICROSECOND
+# MINUTE_SECOND:       ['] {MINUTES}[:]{SECONDS} [']                                   MINUTE_SECOND
+# HOUR_MICROSECOND:    ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        HOUR_MICROSECOND
+# HOUR_SECOND:         ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         HOUR_SECOND
+# HOUR_MINUTE:         ['] {HOURS}[:]{MINUTES} [']                                     HOUR_MINUTE
+# DAY_MICROSECOND:     ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] DAY_MICROSECOND
+# DAY_SECOND:          ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  DAY_SECOND
+# DAY_MINUTE:          ['] {DAYS} {HOURS} [:] {MINUTES} [']                            DAY_MINUTE
+# DAY_HOUR:            ['] {DAYS} {HOURS} [']                                          DAY_HOUR
+# YEAR_MONTH:          ['] {YEARS}-{MONTHS} [']                                        YEAR_MONTH
+# 
+# interval_expr:
+#     MICROSECOND
+#   | SECOND
+#   | MINUTE
+#   | HOUR
+#   | DAY
+#   | WEEK
+#   | MONTH
+#   | QUARTER
+#   | YEAR
+#   | SECOND_MICROSECOND
+#   | MINUTE_MICROSECOND
+#   | MINUTE_SECOND
+#   | HOUR_MICROSECOND
+#   | HOUR_SECOND
+#   | HOUR_MINUTE
+#   | DAY_MICROSECOND
+#   | DAY_SECOND
+#   | DAY_MINUTE
+#   | DAY_HOUR
+#   | YEAR_MONTH
+# 
 
 
 # TYPES
@@ -252,6 +259,7 @@ string:
 #aggregate_group: (({col_name} | {expr} | {position})    {direction} )
 #where_condition: {expr}
 #table_references: {identifier}
+
 select_expr: 
 {expr} {whitespace}? ( as {whitespace}? {identifier} ) ?
 

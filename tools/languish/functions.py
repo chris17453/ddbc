@@ -9,7 +9,12 @@ def build_functions(file):
     t.add("headers","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
     o+=t.build("headers")
     o+=t.build("stricmp")
-    
+
+    t=tpl("templates/debug.c")
+    o+=t.build("debug")
+        
+    t=tpl("templates/match_functions.c")
+
     functions=load_definitions(file)
     
 

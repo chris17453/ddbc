@@ -27,7 +27,7 @@ def build(name,pattern,depth=0):
 
 
 def build_string(tokens,token_type=None,depth=0,name=None,order=None):
-    o=""
+    o="//string\n"
     if token_type=='char':
         token= tokens.replace("'","\\\'")
         t=tpl("templates/or.c")
@@ -40,14 +40,14 @@ def build_string(tokens,token_type=None,depth=0,name=None,order=None):
         if token=="\)":
             token=")"
         t.add("or_compare","compare_value",token)
-        o=t.build("or_compare")
+        o+=t.build("or_compare")
         return o
     token= tokens.replace("'","\\\'")
     token= tokens.replace("\"","\\\"")
     if token_type=='or':
         t=tpl("templates/or.c")
         t.add("or_list_item1","body",o)
-        o=t.build("or_list_item1")
+        o+=t.build("or_list_item1")
         return o
 
     #print token
@@ -60,22 +60,47 @@ def build_string(tokens,token_type=None,depth=0,name=None,order=None):
             template_name="compare_method"
         t.add(template_name,"order",order)
         t.add(template_name,"function_name",token)
-        o=t.build(template_name)
+        o+=t.build(template_name)
         return o
     else:
         t=tpl("templates/compare.c")
         t.add("compare","order",order)
         t.add("compare","compare_value_length",str(len(token)))
         t.add("compare","compare_value",token)
-        o=t.build("compare")
+        o+=t.build("compare")
         return o
     
     return "unknown STRING"
 
+def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
+    o="//list item switch\n"
+    if recurse==None:
+        if order==0:
+            t=tpl("templates/or.c")
+            t.add("or_list_item1","order",order)
+            t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name,order=order))
+            o+=t.build("or_list_item1")
+        else:
+            t=tpl("templates/or.c")
+            t.add("or_list_item+1","order",order)
+            t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name,order=order))
+            o+=t.build("or_list_item+1")
+    else:
+        if  order==0:
+            t=tpl("templates/or.c")
+            t.add("recursive_self","order",order)
+            t.add("recursive_self","body",build_function_templates(token,token_type,depth,name=name,order=order))
+            o+=t.build("recursive_self")
+        else:
+            t=tpl("templates/or.c")
+            t.add("recursive_self+1","order",order)
+            t.add("recursive_self+1","body",build_function_templates(token,token_type,depth,name=name,order=order))
+            o+=t.build("recursive_self+1")    
+    return o            
 
 def build_list(tokens,token_type=None,depth=0,name=None,order=None):
     name2=name
-    o=""
+    o="// list\n"
     if name!=None:
         if name[0]=='{':
             name2=name[1:-1]
@@ -90,49 +115,32 @@ def build_list(tokens,token_type=None,depth=0,name=None,order=None):
         tokens2=[]
         
         for token in tokens:
-            if index==0:
-                t=tpl("templates/or.c")
-                t.add("or_list_item1","order",index)
-                t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name,order=index))
-                o+=t.build("or_list_item1")
-            else:
-                t=tpl("templates/or.c")
-                t.add("or_list_item+1","order",index)
-                t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name,order=index))
-                o+=t.build("or_list_item+1")
+            o+=list_item(token,token_type=None,depth=0,name=name,order=index,recurse=None)
             index+=1
-
         return o
     else:
+
         index=0
         if tokens==None:
             return ""
         for token in tokens:
             if isinstance(token,str):
                 compare_name=get_var(token)
-                #print "// ",compare_name,name,index
-                if compare_name!=None and compare_name==name and  recursive(tokens,name2)==1:
-                    #print token,name,index
-                    if  index==0:
-                        t=tpl("templates/or.c")
-                        t.add("recursive_self","order",index)
-                        t.add("recursive_self","body",build_function_templates(token,token_type,depth,name=name,order=index))
-                        o+=t.build("recursive_self")
-                    else:
-                        t=tpl("templates/or.c")
-                        t.add("recursive_self+1","order",index)
-                        t.add("recursive_self+1","body",build_function_templates(token,token_type,depth,name=name,order=index))
-                        o+=t.build("recursive_self+1")
+                o+="//"+str(compare_name)+" "+ " " +str(name)+ " " + str(name2) +"\n"
+                o+="//"+str(recursive(tokens,name2))+"\n"
+                if compare_name==name and  recursive(tokens,name2)>0:
+                    o+=list_item(token,token_type=None,depth=0,name=name,order=index,recurse=True)
                 else:
-                    o+="//---?\n"+build_function_templates(token,token_type,depth,name=name,order=index)
+                    o+=build_function_templates(token,token_type,depth,name=name,order=index)
             else:
-                o+="//---?\n"+build_function_templates(token,token_type,depth,name=name,order=index)
+                o+=build_function_templates(token,token_type,depth,name=name,order=index)
             index+=1
         return o
+
     return "Unknowen LIST"
 
 def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
-    o=""
+    o="// dict\n"
     token=tokens
     if token['type']=='one_or_more':
         t=tpl("templates/one_or_more.c")
