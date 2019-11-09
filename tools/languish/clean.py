@@ -7,6 +7,8 @@ def clean_pattern(pattern):
     dont_break_quoted_blocks=None
     in_character_block=None
     escaped=None
+    pattern= ''.join([i if ord(i) < 128 else ' ' for i in pattern])
+
     for i in pattern:
     
         if dont_break_quoted_blocks==True:

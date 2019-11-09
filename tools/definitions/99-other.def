@@ -1,0 +1,3 @@
+
+# CATCH ALL
+catch_all:       ^[\t\s\n\r]

@@ -1,0 +1,59 @@
+# INTERVAL EXPRESSION
+
+interval_expr:
+    MICROSECOND
+  | SECOND
+  | MINUTE
+  | HOUR
+  | DAY
+  | WEEK
+  | MONTH
+  | QUARTER
+  | YEAR
+  | SECOND_MICROSECOND
+  | MINUTE_MICROSECOND
+  | MINUTE_SECOND
+  | HOUR_MICROSECOND
+  | HOUR_SECOND
+  | HOUR_MINUTE
+  | DAY_MICROSECOND
+  | DAY_SECOND
+  | DAY_MINUTE
+  | DAY_HOUR
+  | YEAR_MONTH
+
+
+# everything after the -- is not searched except as a fragment
+
+    
+
+YEARS:               {unsigned_int}
+QUARTERS:            {unsigned_int}
+MONTHS:              {unsigned_int}
+WEEKS:               {unsigned_int}
+DAYS:                {unsigned_int}
+HOURS:               {unsigned_int}
+MINUTES:             {unsigned_int}
+SECONDS:             {unsigned_int}
+MICROSECONDS:        {unsigned_int}
+
+MICROSECOND:         ( {MICROSECONDS}   {whitespace} MICROSECOND )
+SECOND:              ( {SECONDS}        {whitespace} SECOND )
+MINUTE:              ( {MINUTES}        {whitespace} MINUTE )
+HOUR:                ( {HOURS}          {whitespace} HOUR )
+DAY:                 ( {DAYS}           {whitespace} DAY )
+WEEK:                ( {WEEKS}          {whitespace} WEEK )
+MONTH:               ( {MONTHS}         {whitespace} MONTH )
+QUARTER:             ( {QUARTERS}       {whitespace} QUARTER )
+YEAR:                ( {YEARS}          {whitespace} YEAR )
+SECOND_MICROSECOND:  ( ['] {SECONDS}[.]{MICROSECONDS} [']                              {whitespace} SECOND_MICROSECOND )
+MINUTE_MICROSECOND:  ( ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  {whitespace} MINUTE_MICROSECOND )
+MINUTE_SECOND:       ( ['] {MINUTES}[:]{SECONDS} [']                                   {whitespace} MINUTE_SECOND )
+HOUR_MICROSECOND:    ( ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        {whitespace} HOUR_MICROSECOND )
+HOUR_SECOND:         ( ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         {whitespace} HOUR_SECOND )
+HOUR_MINUTE:         ( ['] {HOURS}[:]{MINUTES} [']                                     {whitespace} HOUR_MINUTE )
+DAY_MICROSECOND:     ( ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] {whitespace} DAY_MICROSECOND )
+DAY_SECOND:          ( ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  {whitespace} DAY_SECOND )
+DAY_MINUTE:          ( ['] {DAYS} {HOURS} [:] {MINUTES} [']                            {whitespace} DAY_MINUTE )
+DAY_HOUR:            ( ['] {DAYS} {HOURS} [']                                          {whitespace} DAY_HOUR )
+YEAR_MONTH:          ( ['] {YEARS}-{MONTHS} [']                                        {whitespace} YEAR_MONTH )

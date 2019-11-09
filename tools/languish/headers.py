@@ -1,8 +1,8 @@
 from .tpl import tpl
 from .definitions import load_definitions
 
-def build_headers(file):
-    functions=load_definitions(file)
+def build_headers(template_dir):
+    functions=load_definitions(template_dir)
     
     o=""
     

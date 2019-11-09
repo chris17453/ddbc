@@ -1,0 +1,22 @@
+# COMMENTS
+comment:              
+    {block_comment} 
+  | {single_comment}
+
+block_comment:        
+  {left_comment} (^{right_comment})+ {right_comment} 
+
+single_comment:       
+  {inline_comment} (^{end_of_line})+ {end_of_line} 
+
+left_comment:         
+  [/][*]
+
+right_comment:        
+  [*][/]
+
+inline_comment:       
+  [-][-]
+
+end_of_line:          
+  [\n][\r]?

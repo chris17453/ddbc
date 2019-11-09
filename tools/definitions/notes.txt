@@ -1,0 +1,33 @@
+# OPERATORS
+# bit_shift_left:       [<][<]
+# bit_shift_right:      [>][>]
+# 
+# short_circuit_or:     [\|][\|]
+# short_circuit_and:    [&][&]
+# null_equal:           [<][=][>]
+# lessthan_equal:       [<][=]
+# greater_than_equal:   [>][=]
+# plus_equal:           [+][=]
+# minus_equal:          [-][=]
+# divide_equal:         [/][=]
+# multiply_equal:       [*][=]
+# modulus_equal:        [%][=]
+# less_than:            [<]
+# greater_than:         [>]
+# plus:                 [+]
+# minus:                [-]
+# divide:               [/]
+# multiply:             [*]
+# not:                  [!]
+# modulus:              [%]
+# assignment:           [=]
+
+
+
+
+#direction: ASC | DESC
+#position: [0-9]+
+#col_name: {identifier}
+#aggregate_group: (({col_name} | {expr} | {position})    {direction} )
+#where_condition: {expr}
+#table_references: {identifier}

@@ -1,7 +1,20 @@
-def load_definitions(file):
+import os
+
+def load_definitions(template_dir):
+    definitions=[]
+    files=[]
+    for file in os.listdir(template_dir):
+        if file.endswith(".def"):
+            files.append(file)
+    files.sort()
+    for file in files:
+        definitions+=load_definition_file(os.path.join(template_dir, file))
+
+    return definitions
+
+def load_definition_file(file):
     functions=[]
     data_pattern=None
-
     with open(file,"r") as content:
         for line in content:
 
@@ -34,12 +47,20 @@ def load_definitions(file):
                 data_line=data_line.strip()
                 if data_line[0]=='|':
                     if data_line.isspace()==False:
-                        data_line="| ( "+data_line[1:] + " ) "
+                        d1=data_line[1:]
+                        if len(d1.strip().split(' '))>1:
+                            data_line="| ( "+data_line[1:] + " ) "
+                        else:
+                            data_line="| "+data_line[1:] + " "
                     else:
                         data_line=""
                 else:
                     if data_line.isspace()==False:
-                        data_line="( "+data_line + " ) "
+                        d1=data_line
+                        if len(d1.strip().split(' '))>1:
+                            data_line="( "+d1 + " ) "
+                        else:
+                            data_line=" "+d1 + " "
                     else:
                         data_line=""
 
@@ -47,7 +68,7 @@ def load_definitions(file):
 
     if data_pattern:
         functions.append({key:data_pattern})
-    
     #print functions
+    #exit()
     return functions
 

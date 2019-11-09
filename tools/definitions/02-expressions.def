@@ -1,0 +1,77 @@
+
+subquery:
+ [\(] {whitespace} {select} {whitespace}  [\)]
+
+expr: 
+      {expr} {whitespace}   or     {whitespace}  {expr}
+  |   {expr} {whitespace}   [\|\|] {whitespace}  {expr}
+  |   {expr} {whitespace}   xor    {whitespace}  {expr}
+  |   {expr} {whitespace}   and    {whitespace}  {expr}
+  |   {expr} {whitespace}   &&     {whitespace}  {expr}
+  |   not {whitespace} {expr}
+  |   !   {whitespace} {expr}
+  |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
+  |  {boolean_primary} 
+
+boolean_primary:
+    {boolean_primary} {whitespace} {comparison_operator}  {whitespace} {predicate} 
+  | {boolean_primary} {whitespace} is ( {whitespace} not) ?  {whitespace} {null} 
+  | {boolean_primary} {whitespace} <=>  {whitespace} {predicate} 
+  | {boolean_primary} {whitespace} {comparison_operator}  {whitespace} (all | any)  {whitespace} {subquery}
+  | {predicate} 
+
+
+where_expression:
+  {expr}
+  
+predicate:
+     {bit_expr} {whitespace} not? {whitespace} in      {whitespace} {subquery}
+  |  {bit_expr} {whitespace} not? {whitespace} in      {whitespace} [\(] {expr}   ( ( {whitespace} [,]    {whitespace} {expr})* )? [\)] 
+  |  {bit_expr} {whitespace} not? {whitespace} between {whitespace} {bit_expr}        {whitespace} and    {whitespace} {predicate} 
+  |  {bit_expr} {whitespace} not? {whitespace} like    {whitespace} {simple_expr}   ( {whitespace} escape {whitespace} {simple_expr} )? 
+  |  {bit_expr} {whitespace} not? {whitespace} regexp  {whitespace} {bit_expr} 
+  |  {bit_expr}
+
+
+bit_expr:
+    {bit_expr} {whitespace}  {operations}  {whitespace} {bit_expr}
+  | {bit_expr} {whitespace}  [+-]          {whitespace} {interval_expr}
+  | {simple_expr}
+
+operations: 
+    [\|]   
+  | [&]   
+  | ([<][<])
+  | ([>][>])
+  | [+]   
+  | [-]   
+  | [*]   
+  | [/]   
+  | div   
+  | mod   
+  | [%]   
+  | [^]   
+
+
+simple_expr:
+    {literal} 
+  | {identifier}
+  | {subquery}
+# | {functions}
+  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
+  | [+] {whitespace} {simple_expr}
+  | [-] {whitespace} {simple_expr}
+  | [~] {whitespace} {simple_expr}
+  | [!] {whitespace} {simple_expr}
+# |     {identifier expr}
+  |     {interval_expr}
+
+literal: 
+    {hex} 
+  | {bit}
+  | {real} 
+  | {null} 
+  | {boolean} 
+  | {string} 
+
+

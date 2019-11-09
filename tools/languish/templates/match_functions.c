@@ -1,62 +1,3 @@
-headers:
-/********************************************
-* Generated: {date_time}                    *
-********************************************/
-
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-
-#include "headers/stack.h"
-#include "headers/func.h"
-
-stricmp:
-
-
-// node values are only compared if string length is the same, no need to validate
-// comparitors is against a precompiled value thats already case optimised
-// returns 0 for equal
-int stricmp(node_t *n, const char * b){
-    int d=0;
-    int b_len=strlen(b);
-    //printf("Compare %s\n",b);
-    for (int i=0;i<b_len;i++) {
-        if (n->pos+i>n->len) return -1;
-        char c=n->value[i+n->pos];
-
-        if (c>='A' && c<='Z'){
-            d = (unsigned char)tolower(c)- (unsigned char)b[i];
-        } else {
-            d = (unsigned char) c- (unsigned char)b[i];
-        }
-        if (d != 0 ) return d;
-    }
-    return 0;
-}
-
-void print_sub_str(node_t *n,int start,int end){
-    for (int i=start;i<end;i++) {
-        printf("%c",n->value[i]);
-    }
-}
-
-
-
-
-void print_n(node_t *n){
-    printf("POS:%d\n",n->pos);
-    printf("OK:%d\n",n->OK);
-    printf("--\n");
-
-}
-int n_OK(node_t *n){
-    //print_n(n);
-    if ( n->pos!=-1 && n->OK==1 ) return 1;
-    return 0;
-}
-
 
 match_functions:
 /*
@@ -84,6 +25,11 @@ node_t * match_function(char *data) {
 //printf("--\n");
 while (n->pos>-1){
 {body}
+
+    if ( n->OK == 0) {
+        printf("Match not found");
+        break;
+    }
     
 }
     pop(n->stack);

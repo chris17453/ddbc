@@ -11,16 +11,20 @@ def build(name,pattern,depth=0):
     list_of_match_functions=gather_matches(tokens)
     #pprint(tokens,indent=2)
     o="\n"
-    if depth==0:
-        t=tpl("templates/match_function.c")
-        t.add("match_function","function_name",name)
-        if recursive(tokens,name)==0:
-            t.add("match_function","recurse",0)
-        else:
-            t.add("match_function","recurse",1)
-        t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
-        t.add("match_function","body", build_function_templates(tokens,name=name) )
-        o=t.build("match_function")
+    t=tpl("templates/match_function.c")
+    t.add("match_function","function_name",name)
+    t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
+    t.add("match_function","body", build_function_templates(tokens,name=name) )
+
+    if recursive(tokens,name)!=0:
+        t.add("func_recursion","function_name",name)
+        o2=t.build("func_recursion")
+        t.add("match_function","func_recursion", o2 )
+    else:
+        t.add("match_function","func_recursion", "" )
+
+    
+    o=t.build("match_function")
     
     return o
 
@@ -142,6 +146,14 @@ def build_list(tokens,token_type=None,depth=0,name=None,order=None):
 def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
     o="// dict\n"
     token=tokens
+
+
+    if token['type']=='zero_or_more':
+        t=tpl("templates/zero_or_more.c")
+        t.add("zero_or_more","body",build_function_templates(token['data'],token['type'],depth,name=name))
+        o+=t.build("zero_or_more")
+        return o
+
     if token['type']=='one_or_more':
         t=tpl("templates/one_or_more.c")
         t.add("one_or_more","body",build_function_templates(token['data'],token['type'],depth,name=name))
@@ -188,7 +200,7 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
         t.add("not","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
         o+=t.build("not")
         return o
-    return "Unknown DICT"
+    return "Unknown DICT:" +str(tokens)
 
 def build_function_templates(tokens,token_type=None,depth=0,name=None,order=None):
     if isinstance(tokens,str):

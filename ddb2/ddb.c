@@ -5,7 +5,14 @@
 
 int main(){
    
-    char  *query_str="select COUNT AS number,bob as first_name\n\
+    char  *query_str="select last_name,bob \
+    FROM test.mock as f1 \n\
+    WHERE first_name='bob' \n\
+    FROM test.mock as f1 \n\
+    WHERE first_name='bob' \n\
+    and id=0x04F \n\
+    \
+    select COUNT AS number,bob as first_name\n\
     FROM test.mock as f1 \n\
     WHERE first_name='bob' \n\
     and id=0x04F \n\
@@ -31,7 +38,7 @@ int main(){
     and id=111.111111111111111+45 \n\
     and last_name not 'sam' \n\
     and gender=F \n\
-    and last_name in (SELECT last_name FROM test.mock LIMIT 10 WHERE last_name like '%sam%') as first_name\n\
+    and last_name in (select last_name FROM test.mock WHERE last_name like '%sam%') as first_name\n\
     \n\
     \n\
     /* this is a block comment */\

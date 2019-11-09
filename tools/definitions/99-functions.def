@@ -1,0 +1,330 @@
+ABS_FUNC:            ABS  [\(] {X} [\)] 
+ACOS_FUNC:           ACOS  [\(] {X} [\)] 
+ADDDATE_FUNC:        ADDDATE  [\(] {date} ,  INTERVAL  {interval_expr}  [\)] 
+ADDTIME_FUNC:        ADDTIME  [\(] {expr} , {expr} [\)] 
+ASCII_FUNC:          ASCII  [\(] {string} [\)] 
+ASIN_FUNC:           ASIN  [\(] {X} [\)] 
+ATAN_FUNC:           ATAN  [\(] {X} [\)] 
+ATAN2_FUNC:          ATAN2  [\(]  Y  , {X} [\)] 
+BIN_FUNC:            BIN  [\(] {N} [\)] 
+BIT_LENGTH_FUNC:     BIT_LENGTH  [\(] {string} [\)] 
+CEILING_FUNC:        CEILING  [\(] {X} [\)] 
+CEIL_FUNC:           CEIL  [\(] {X} [\)] 
+CHARACTER_LENGTH_FUNC: CHARACTER_LENGTH  [\(] {string} [\)] 
+CHAR_LENGTH_FUNC:    CHAR_LENGTH  [\(] {string} [\)] 
+CHAR_FUNC:           CHAR  [\(] {N} ( , {N} )*  (  USING  {charset_name}  ) ?  [\)] 
+CONCAT_FUNC:         CONCAT  [\(] {string} ( , {string} )*  [\)] 
+CONCAT_WS_FUNC:      CONCAT_WS  [\(]  {separator}  ( , {string} )*  [\)] 
+CONVERT_TZ_FUNC:     CONVERT_TZ  [\(]  {dt}  ,  {from_tz}  ,  {to_tz}  [\)] 
+CONV_FUNC:           CONV  [\(] {N} ,  {from_base}  ,  {to_base}  [\)] 
+COS_FUNC:            COS  [\(] {X} [\)] 
+COT_FUNC:            COT  [\(] {X} [\)] 
+CRC32_FUNC:          CRC32  [\(] {expr} [\)] 
+CURDATE_FUNC:        CURDATE  [\(]  [\)] 
+CURRENT_DATE_FUNC:   CURRENT_DATE  [\(]  [\)] 
+CURRENT_TIME_FUNC:   CURRENT_TIME  [\(]  (  {fsp}  ) ?  [\)] 
+CURRENT_TIMESTAMP_FUNC: CURRENT_TIMESTAMP  [\(]  (  {fsp}  ) ?  [\)] 
+CURTIME_FUNC:        CURTIME  [\(]  (  {fsp}  ) ?  [\)] 
+DATE_ADD_FUNC:       DATE_ADD  [\(] {date} ,  INTERVAL  {interval_expr}  [\)] 
+DATEDIFF_FUNC:       DATEDIFF  [\(] {expr} , {expr} [\)] 
+DATE_FUNC:           DATE  [\(] {expr} [\)] 
+DATE_FORMAT_FUNC:    DATE_FORMAT  [\(] {date} ,  {format}  [\)] 
+DATE_SUB_FUNC:       DATE_SUB  [\(] {date} ,  INTERVAL  {interval_expr}  [\)] 
+DAY_FUNC:            DAY  [\(] {date} [\)] 
+DAYNAME_FUNC:        DAYNAME  [\(] {date} [\)] 
+DAYOFMONTH_FUNC:     DAYOFMONTH  [\(] {date} [\)] 
+DAYOFWEEK_FUNC:      DAYOFWEEK  [\(] {date} [\)] 
+DAYOFYEAR_FUNC:      DAYOFYEAR  [\(] {date} [\)] 
+DEGREES_FUNC:        DEGREES  [\(] {X} [\)] 
+ELT_FUNC:            ELT  [\(] {N} ( , {string} )*  [\)] 
+EXPORT_SET_FUNC:     EXPORT_SET  [\(]  {bits}  ,  {on}  ,  {off}  (  ,  {separator}  (  ,  {number_of_bits}  ) ?  ) ?  [\)] 
+EXP_FUNC:            EXP  [\(] {X} [\)] 
+EXTRACT_FUNC:        EXTRACT  [\(]  {unit}  FROM {date} [\)] 
+FIELD_FUNC:          FIELD  [\(] {string} ( , {string} )*  [\)] 
+FIND_IN_SET_FUNC:    FIND_IN_SET  [\(] {string} ,  {strlist}  [\)] 
+FLOOR_FUNC:          FLOOR  [\(] {X} [\)] 
+FORMAT_FUNC:         FORMAT  [\(] {X} , {D} (  ,  {locale}  ) ?  [\)] 
+FROM_BASE64_FUNC:    FROM_BASE64  [\(] {string} [\)] 
+FROM_DAYS_FUNC:      FROM_DAYS  [\(] {N} [\)] 
+FROM_UNIXTIME_FUNC:  FROM_UNIXTIME  [\(]  {unix_timestamp}  (  ,  {format}  ) ?  [\)] 
+GET_FORMAT_FUNC:     GET_FORMAT  [\(]  (  DATE  |  TIME  |  DATETIME  ) ?  ,  (  EUR  |  USA  |  JIS  |  ISO  |  INTERNAL  ) ?  [\)] 
+HEX_FUNC:            HEX  [\(] {string} | {N} [\)] 
+HOUR_FUNC:           HOUR  [\(]  {time}  [\)] 
+INSERT_FUNC:         INSERT  [\(] {string} ,  {pos}  ,  {len}  ,  {newstr}  [\)] 
+INSTR_FUNC:          INSTR  [\(] {string} ,  {substr}  [\)] 
+LAST_DAY_FUNC:       LAST_DAY  [\(] {date} [\)] 
+LCASE_FUNC:          LCASE  [\(] {string} [\)] 
+LEFT_FUNC:           LEFT  [\(] {string} ,  {len}  [\)] 
+LENGTH_FUNC:         LENGTH  [\(] {string} [\)] 
+LN_FUNC:             LN  [\(] {X} [\)] 
+LOAD_FILE_FUNC:      LOAD_FILE  [\(]  {file_name}  [\)] 
+LOCALTIME_FUNC:      LOCALTIME  [\(]  (  {fsp}  ) ?  [\)] 
+LOCALTIMESTAMP_FUNC: LOCALTIMESTAMP  [\(]  (  {fsp}  ) ?  [\)] 
+LOCATE_FUNC:         LOCATE  [\(]  {substr}  , {string} (  ,  {pos}  ) ?  [\)] 
+LOG10_FUNC:          LOG10  [\(] {X} [\)] 
+LOG2_FUNC:           LOG2  [\(] {X} [\)] 
+LOG_FUNC:            LOG  [\(]  ( {B} ) ?  , {X} [\)] 
+LOWER_FUNC:          LOWER  [\(] {string} [\)] 
+LPAD_FUNC:           LPAD  [\(] {string} ,  {len}  ,  {padstr}  [\)] 
+LTRIM_FUNC:          LTRIM  [\(] {string} [\)] 
+MAKEDATE_FUNC:       MAKEDATE  [\(]  {year}  ,  {dayofyear}  [\)] 
+MAKE_SET_FUNC:       MAKE_SET  [\(]  {bits}  ( , {string} )*  [\)] 
+MAKETIME_FUNC:       MAKETIME  [\(]  {hour}  ,  {minute}  ,  {second}  [\)] 
+MICROSECOND_FUNC:    MICROSECOND  [\(] {expr} [\)] 
+MID_FUNC:            MID  [\(] {string} ,  {pos}  ,  {len}  [\)] 
+MINUTE_FUNC:         MINUTE  [\(]  {time}  [\)] 
+MOD_FUNC:            MOD  [\(] {N} ,  M  [\)] 
+MONTH_FUNC:          MONTH  [\(] {date} [\)] 
+MONTHNAME_FUNC:      MONTHNAME  [\(] {date} [\)] 
+NOW_FUNC:            NOW  [\(]  (  {fsp}  ) ?  [\)] 
+OCTET_LENGTH_FUNC:   OCTET_LENGTH  [\(] {string} [\)] 
+OCT_FUNC:            OCT  [\(] {N} [\)] 
+ORD_FUNC:            ORD  [\(] {string} [\)] 
+PERIOD_ADD_FUNC:     PERIOD_ADD  [\(]  P  , {N} [\)] 
+PERIOD_DIFF_FUNC:    PERIOD_DIFF  [\(]  P1  ,  P2  [\)] 
+PI_FUNC:             PI  [\(]  [\)] 
+POSITION_FUNC:       POSITION  [\(]  {substr}  IN {string} [\)] 
+POWER_FUNC:          POWER  [\(] {X} ,  Y  [\)] 
+POW_FUNC:            POW  [\(] {X} ,  Y  [\)] 
+QUARTER_FUNC:        QUARTER  [\(] {date} [\)] 
+QUOTE_FUNC:          QUOTE  [\(] {string} [\)] 
+RADIANS_FUNC:        RADIANS  [\(] {X} [\)] 
+RAND_FUNC:           RAND  [\(]  ( {N} ) ?  [\)] 
+REPEAT_FUNC:         REPEAT  [\(] {string} ,  {count}  [\)] 
+REPLACE_FUNC:        REPLACE  [\(] {string} ,  {from_str}  ,  {to_str}  [\)] 
+REVERSE_FUNC:        REVERSE  [\(] {string} [\)] 
+RIGHT_FUNC:          RIGHT  [\(] {string} ,  {len}  [\)] 
+ROUND_FUNC:          ROUND  [\(] {X} (  , {D} ) ?  [\)] 
+RPAD_FUNC:           RPAD  [\(] {string} ,  {len}  ,  {padstr}  [\)] 
+RTRIM_FUNC:          RTRIM  [\(] {string} [\)] 
+SECOND_FUNC:         SECOND  [\(]  {time}  [\)] 
+SEC_TO_TIME_FUNC:    SEC_TO_TIME  [\(]  {seconds}  [\)] 
+SIGN_FUNC:           SIGN  [\(] {X} [\)] 
+SIN_FUNC:            SIN  [\(] {X} [\)] 
+SOUNDEX_FUNC:        SOUNDEX  [\(] {string} [\)] 
+SPACE_FUNC:          SPACE  [\(] {N} [\)] 
+SQRT_FUNC:           SQRT  [\(] {X} [\)] 
+STR_TO_DATE_FUNC:    STR_TO_DATE  [\(] {string} ,  {format}  [\)] 
+SUBDATE_FUNC:        SUBDATE  [\(]  ( {date} ,  INTERVAL  {interval_expr}  )  |  ( {expr} ,  {days}  )  [\)] 
+SUBSTRING_INDEX_FUNC: SUBSTRING_INDEX  [\(] {string} ,  {delim}  ,  {count}  [\)] 
+SUBSTRING_FUNC:      SUBSTRING  [\(]  ( {string} ,  {pos}  )  |  ( {string} FROM  {pos}  )  |  ( {string} ,  {pos}  ,  {len}  )  [\)] 
+SUBSTR_FUNC:         SUBSTR  [\(]  ( {string} ,  {pos}  )  |  ( {string} FROM  {pos}  )  |  ( {string} ,  {pos}  ,  {len}  )  [\)] 
+SUBTIME_FUNC:        SUBTIME  [\(] {expr} , {expr} [\)] 
+SYSDATE_FUNC:        SYSDATE  [\(]  (  {fsp}  ) ?  [\)] 
+TAN_FUNC:            TAN  [\(] {X} [\)] 
+TIMEDIFF_FUNC:       TIMEDIFF  [\(] {expr} , {expr} [\)] 
+TIME_FUNC:           TIME  [\(] {expr} [\)] 
+TIME_FORMAT_FUNC:    TIME_FORMAT  [\(]  {time}  ,  {format}  [\)] 
+TIMESTAMPADD_FUNC:   TIMESTAMPADD  [\(]  {unit}  ,  {interval}  ,  {datetime_expr}  [\)] 
+TIMESTAMPDIFF_FUNC:  TIMESTAMPDIFF  [\(]  {unit}  ,  {datetime_expr}  ,  {datetime_expr}  [\)] 
+TIMESTAMP_FUNC:      TIMESTAMP  [\(] {expr} (  , {expr} ) ?  [\)] 
+TIME_TO_SEC_FUNC:    TIME_TO_SEC  [\(]  {time}  [\)] 
+TO_BASE64_FUNC:      TO_BASE64  [\(] {string} [\)] 
+TO_DAYS_FUNC:        TO_DAYS  [\(] {date} [\)] 
+TO_SECONDS_FUNC:     TO_SECONDS  [\(] {expr} [\)] 
+TRIM_FUNC:           TRIM  [\(]  (  (  BOTH  |  LEADING  |  TRAILING  ) ?  {remstr?}  FROM  ) ? {string} [\)] 
+TRUNCATE_FUNC:       TRUNCATE  [\(] {X} (  , {D} ) ?  [\)] 
+UCASE_FUNC:          UCASE  [\(] {string} [\)] 
+UNHEX_FUNC:          UNHEX  [\(] {string} [\)] 
+UNIX_TIMESTAMP_FUNC: UNIX_TIMESTAMP  [\(]  {date?}  [\)] 
+UTC_DATE_FUNC:       UTC_DATE  [\(]  [\)] 
+UTC_TIMESTAMP_FUNC:  UTC_TIMESTAMP  [\(]  (  {fsp}  ) ?  [\)] 
+UTC_TIME_FUNC:       UTC_TIME  [\(]  (  {fsp}  ) ?  [\)] 
+WEEK_FUNC:           WEEK  [\(] {date} (  ,  {mode}  ) ?  [\)] 
+WEEKDAY_FUNC:        WEEKDAY  [\(] {date} [\)] 
+WEEKOFYEAR_FUNC:     WEEKOFYEAR  [\(] {date} [\)] 
+YEAR_FUNC:           YEAR  [\(] {date} [\)] 
+YEARWEEK_FUNC:       YEARWEEK  [\(] {date} (  ,  {mode}  ) ?  [\)] 
+
+
+
+functions:
+  {ABS_FUNC} 
+| {ACOS_FUNC} 
+| {ADDDATE_FUNC} 
+| {ADDTIME_FUNC} 
+| {ASCII_FUNC} 
+| {ASIN_FUNC} 
+| {ATAN_FUNC} 
+| {ATAN2_FUNC} 
+| {BIN_FUNC} 
+| {BIT_LENGTH_FUNC} 
+| {CEILING_FUNC} 
+| {CEIL_FUNC} 
+| {CHARACTER_LENGTH_FUNC} 
+| {CHAR_LENGTH_FUNC} 
+| {CHAR_FUNC} 
+| {CONCAT_FUNC} 
+| {CONCAT_WS_FUNC} 
+| {CONVERT_TZ_FUNC} 
+| {CONV_FUNC} 
+| {COS_FUNC} 
+| {COT_FUNC} 
+| {CRC32_FUNC} 
+| {CURDATE_FUNC} 
+| {CURRENT_DATE_FUNC} 
+| {CURRENT_TIME_FUNC} 
+| {CURRENT_TIMESTAMP_FUNC} 
+| {CURTIME_FUNC} 
+| {DATE_ADD_FUNC} 
+| {DATEDIFF_FUNC} 
+| {DATE_FUNC} 
+| {DATE_FORMAT_FUNC} 
+| {DATE_SUB_FUNC} 
+| {DAY_FUNC} 
+| {DAYNAME_FUNC} 
+| {DAYOFMONTH_FUNC} 
+| {DAYOFWEEK_FUNC} 
+| {DAYOFYEAR_FUNC} 
+| {DEGREES_FUNC} 
+| {ELT_FUNC} 
+| {EXPORT_SET_FUNC} 
+| {EXP_FUNC} 
+| {EXTRACT_FUNC} 
+| {FIELD_FUNC} 
+| {FIND_IN_SET_FUNC} 
+| {FLOOR_FUNC} 
+| {FORMAT_FUNC} 
+| {FORMAT_FUNC} 
+| {FROM_BASE64_FUNC} 
+| {FROM_DAYS_FUNC} 
+| {FROM_UNIXTIME_FUNC} 
+| {GET_FORMAT_FUNC} 
+| {HEX_FUNC} 
+| {HOUR_FUNC} 
+| {INSERT_FUNC} 
+| {INSTR_FUNC} 
+| {LAST_DAY_FUNC} 
+| {LCASE_FUNC} 
+| {LEFT_FUNC} 
+| {LENGTH_FUNC} 
+| {LN_FUNC} 
+| {LOAD_FILE_FUNC} 
+| {LOCALTIME_FUNC} 
+| {LOCALTIMESTAMP_FUNC} 
+| {LOCATE_FUNC} 
+| {LOG10_FUNC} 
+| {LOG2_FUNC} 
+| {LOG_FUNC} 
+| {LOWER_FUNC} 
+| {LPAD_FUNC} 
+| {LTRIM_FUNC} 
+| {MAKEDATE_FUNC} 
+| {MAKE_SET_FUNC} 
+| {MAKETIME_FUNC} 
+| {MICROSECOND_FUNC} 
+| {MID_FUNC} 
+| {MINUTE_FUNC} 
+| {MOD_FUNC} 
+| {MONTH_FUNC} 
+| {MONTHNAME_FUNC} 
+| {NOW_FUNC} 
+| {OCTET_LENGTH_FUNC} 
+| {OCT_FUNC} 
+| {ORD_FUNC} 
+| {PERIOD_ADD_FUNC} 
+| {PERIOD_DIFF_FUNC} 
+| {PI_FUNC} 
+| {POSITION_FUNC} 
+| {POWER_FUNC} 
+| {POW_FUNC} 
+| {QUARTER_FUNC} 
+| {QUOTE_FUNC} 
+| {RADIANS_FUNC} 
+| {RAND_FUNC} 
+| {REPEAT_FUNC} 
+| {REPLACE_FUNC} 
+| {REVERSE_FUNC} 
+| {RIGHT_FUNC} 
+| {ROUND_FUNC} 
+| {RPAD_FUNC} 
+| {RTRIM_FUNC} 
+| {SECOND_FUNC} 
+| {SEC_TO_TIME_FUNC} 
+| {SIGN_FUNC} 
+| {SIN_FUNC} 
+| {SOUNDEX_FUNC} 
+| {SPACE_FUNC} 
+| {SQRT_FUNC} 
+| {STR_TO_DATE_FUNC} 
+| {SUBDATE_FUNC} 
+| {SUBSTRING_INDEX_FUNC} 
+| {SUBSTRING_FUNC} 
+| {SUBSTR_FUNC} 
+| {SUBTIME_FUNC} 
+| {SYSDATE_FUNC} 
+| {TAN_FUNC} 
+| {TIMEDIFF_FUNC} 
+| {TIME_FUNC} 
+| {TIME_FORMAT_FUNC} 
+| {TIMESTAMPADD_FUNC} 
+| {TIMESTAMPDIFF_FUNC} 
+| {TIMESTAMP_FUNC} 
+| {TIME_TO_SEC_FUNC} 
+| {TO_BASE64_FUNC} 
+| {TO_DAYS_FUNC} 
+| {TO_SECONDS_FUNC} 
+| {TRIM_FUNC} 
+| {TRUNCATE_FUNC} 
+| {UCASE_FUNC} 
+| {UNHEX_FUNC} 
+| {UNIX_TIMESTAMP_FUNC} 
+| {UTC_DATE_FUNC} 
+| {UTC_TIMESTAMP_FUNC} 
+| {UTC_TIME_FUNC} 
+| {WEEK_FUNC} 
+| {WEEKDAY_FUNC} 
+| {WEEKOFYEAR_FUNC} 
+| {YEAR_FUNC} 
+| {YEARWEEK_FUNC} 
+
+
+
+B:                  {bit}
+bits:               {expr}
+charset_name:       {expr}
+count:              {expr}
+D:                  {real}
+date:               {expr}
+datetime_expr:      {expr}
+dayofyear:          {expr}
+days:               {expr}
+delim:              {expr}
+dt:                 {expr}
+file_name:          {expr}
+format:             {expr}
+from_base:          {expr}
+from_str:           {expr}
+from_tz:            {expr}
+fsp:                {expr}
+hour:               {expr}
+interval:           {expr}
+len:                {expr}
+locale:             {expr}
+M:                  {expr}
+minute:             {expr}
+mode:               {expr}
+N:                  {expr}
+newstr:             {expr}
+N_or_S:             {expr}
+number_of_bits:     {expr}
+off:                {expr}
+on:                 {expr}
+P:                  {expr}
+padstr:             {expr}
+pos:                {expr}
+remstr:             {expr}
+second:             {expr}
+seconds:            {expr}
+separator:          {expr}
+strlist:            {expr}
+substr:             {expr}
+time:               {expr}
+to_base:            {expr}
+to_str:             {expr}
+to_tz:              {expr}
+unit:               {expr}
+unix_timestamp:     {integer}
+X:                  {integer}
+Y:                  {integer}
+year:               {integer}

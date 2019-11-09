@@ -3,11 +3,12 @@ from .tpl import tpl
 from .definitions import load_definitions
 from .function import build
 
-def build_functions(file):
+def build_functions(template_dir):
     o=""
-    t=tpl("templates/match_functions.c")
+    t=tpl("templates/headers.c")
     t.add("headers","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
     o+=t.build("headers")
+    
     o+=t.build("stricmp")
 
     t=tpl("templates/debug.c")
@@ -15,16 +16,21 @@ def build_functions(file):
         
     t=tpl("templates/match_functions.c")
 
-    functions=load_definitions(file)
+    functions=load_definitions(template_dir)
     
-
+    #print functions
+    #exit(0)
     for function in functions:
         for key in function:
             o+=build(key,function[key])
 
     index=0
+    
     for function in functions:
+
         for key in function:
+            if key!='queries' and key!='catch_all':
+                continue
             
             if index==0:
                 fragment="\n"+t.build("match_functions_first_var",{'function_name':key})

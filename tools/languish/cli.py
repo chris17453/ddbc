@@ -17,8 +17,8 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser("languish", usage='%(prog)s [options]', description="""c code generator for language parsing""", epilog="")
     parser.add_argument('-i', help='return headers', action='store_true')
     args = parser.parse_args()
-    template="base.def"
+    template_dir="definitions/"
     if args.i:
-        build_headers(template)
+        build_headers(template_dir)
     else:
-        build_functions(template)
+        build_functions(template_dir)

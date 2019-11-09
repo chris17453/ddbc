@@ -1,0 +1,15 @@
+select:
+    select  
+    {whitespace} 
+    {select_expr_list}  
+    {whitespace}
+    (from  {whitespace} {identifier} ( [.] {identifier} ) ?  ( {whitespace} as {whitespace} {identifier} ) ? )?
+    {whitespace}
+    (where ( {whitespace} {expr} )+ )?
+
+select_expr:
+{expr} {whitespace} ( as {whitespace} {identifier} ) ?
+
+select_expr_list:  
+    {select_expr}  
+    ( {whitespace}  [,]  {whitespace}  {select_expr} )*  

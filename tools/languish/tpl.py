@@ -25,6 +25,8 @@ class tpl:
         with open(file) as content:
             for line in content:
                 clean_line=line.strip()
+                clean_line=''.join([i if ord(i) < 128 else ' ' for i in clean_line])
+
                 # skip empty lines
                 if len(clean_line)<1:
                     continue

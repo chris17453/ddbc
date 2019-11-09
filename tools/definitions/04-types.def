@@ -1,0 +1,77 @@
+# TYPES
+
+unknown:              
+  unknown
+
+hex:                  
+  [0][xX][0-9A-Fa-f]+ 
+
+bit:                  
+  [0][b][01]+
+
+null:                 
+    null 
+  | NULL
+
+true:                 
+    true 
+  | TRUE 
+
+false:                
+    false 
+  | FALSE
+
+boolean:              
+    {true} 
+  | {false}
+
+real:                 
+    {integer} [.] {unsigned_int} 
+  | [.] {unsigned_int} 
+  | {integer}
+  {exponent}? 
+
+integer:              
+    {signed_int} 
+  | {unsigned_int} 
+
+signed_int:           
+  {sign} {unsigned_int}
+
+unsigned_int:         
+  [0-9]+
+
+sign:                 
+  [-+]
+
+exponent:             
+  [Ee] {integer}
+
+identifier:
+  ^{keywords} [A-Za-z0-9$_]+
+keywords:
+    from 
+  | select
+  | where
+  | on
+  | and
+  | or
+  | xor
+  | not
+  | in
+  | between
+  | like
+
+whitespace:           
+  [\t\s\n\r]*
+
+string:
+    {single_quote_string} 
+  | {double_quote_string}
+
+single_quote_string:  
+
+  ['] (^['])+ [']
+
+double_quote_string:  
+  ["] (^["])+ ["]
