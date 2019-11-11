@@ -40,3 +40,5 @@ n->OK=1;
 or_compare:
  n->value[n->pos]=='{compare_value}'
 
+not_compare:
+ n->value[n->pos]!='{compare_value}'

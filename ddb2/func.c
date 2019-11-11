@@ -1,9 +1,9 @@
 /********************************************
-* Generated: 2019-11-10                    *
+* Generated: 2019-11-11                    *
 ********************************************/
-#define DEBUG_START   1
+//#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
-#define DEBUG_FAIL    1
+//#define DEBUG_FAIL    1
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -31,9 +31,15 @@ int stricmp(node_t * n, const char *b) {
   return 0;
 }
 void print_sub_str(node_t * n, int start, int end) {
+  printf("***");
   for (int i = start; i < end; i++) {
-    printf("%c", n->value[i]);
+    if (n->value[i] == '\n') {
+      printf("\n***", n->value[i]);
+    } else {
+      printf("%c", n->value[i]);
+    }
   }
+  printf("***");
 }
 void print_n(node_t * n) {
   printf("POS:%d\n", n->pos);
@@ -87,7 +93,6 @@ void not_reset(node_t * n) {
     n->pos = pop(n->stack);
   } else {
     n->OK = 1;
-    increment_n(n, 1);
     pop(n->stack);
   }
 }
@@ -188,7 +193,7 @@ void match_select(node_t * n, const char last_method[], int depth) {
           push(n->stack, n->pos);
           // GROUP
           if (n_OK(n) == 1) {
-            if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+            if (n_OK(n) == 1 && (1))
               increment_n(n, 1);
             else
               n->OK = 0;
@@ -531,71 +536,95 @@ void match_expr(node_t * n, const char last_method[], int depth) {
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
-      //expr  expr expr
-      //2
-      //item 0  //skip if not called by self
-      if (strcmp(name, last_method) != 0) {
-        n->OK = 0;
-      }
-      //whitespace  expr expr
-      //2
-      //external -> 1
-      match_whitespace(n, name, depth + 1);
       // GROUP
       if (n_OK(n) == 1) {
-        //OR
+        //expr  expr expr
+        //2
+        //item 0  //skip if not called by self
+        if (strcmp(name, last_method) != 0) {
+          n->OK = 0;
+        }
+        //whitespace  expr expr
+        //2
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        // GROUP
         if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          //item 0
-          // order 0
-          compare_string(n, (const char *) "or", 2);
-          if (n->OK == 0) {
-            n->pos = peek(n->stack);
-          }
-          //item+1 1
-          if (n->OK == 0) {
-            n->OK = 1;
-            // order 1
-            compare_string(n, (const char *) "xor", 3);
-
+          //OR
+          if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            //item 0
+            // order 0
+            compare_string(n, (const char *) "or", 2);
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
-          }
-          //item+1 2
-          if (n->OK == 0) {
-            n->OK = 1;
-            // order 2
-            compare_string(n, (const char *) "and", 3);
-
+            //item+1 1
             if (n->OK == 0) {
-              n->pos = peek(n->stack);
-            }
-          }
-          //item+1 3
-          if (n->OK == 0) {
-            n->OK = 1;
-            // order 3
-            compare_string(n, (const char *) "&&", 2);
+              n->OK = 1;
+              // GROUP
+              if (n_OK(n) == 1) {
+                if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
+                  increment_n(n, 1);
+                else
+                  n->OK = 0;
+                if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
+                  increment_n(n, 1);
+                else
+                  n->OK = 0;
 
+              }
+
+              if (n->OK == 0) {
+                n->pos = peek(n->stack);
+              }
+            }
+            //item+1 2
             if (n->OK == 0) {
-              n->pos = peek(n->stack);
+              n->OK = 1;
+              // order 2
+              compare_string(n, (const char *) "xor", 3);
+
+              if (n->OK == 0) {
+                n->pos = peek(n->stack);
+              }
             }
+            //item+1 3
+            if (n->OK == 0) {
+              n->OK = 1;
+              // order 3
+              compare_string(n, (const char *) "and", 3);
+
+              if (n->OK == 0) {
+                n->pos = peek(n->stack);
+              }
+            }
+            //item+1 4
+            if (n->OK == 0) {
+              n->OK = 1;
+              // order 4
+              compare_string(n, (const char *) "&&", 2);
+
+              if (n->OK == 0) {
+                n->pos = peek(n->stack);
+              }
+            }
+
+            pop(n->stack);
           }
 
-          pop(n->stack);
+        }
+        //whitespace  expr expr
+        //2
+        //external -> 3
+        match_whitespace(n, name, depth + 1);
+        //expr  expr expr
+        //2
+        //item 4  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_expr(n, name, depth + 1);
         }
 
-      }
-      //whitespace  expr expr
-      //2
-      //external -> 3
-      match_whitespace(n, name, depth + 1);
-      //expr  expr expr
-      //2
-      //item 4  //non index 0 recursion
-      if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-        match_expr(n, name, depth + 1);
       }
 
     }
@@ -798,18 +827,160 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
       //1
       //external -> 1
       match_whitespace(n, name, depth + 1);
-      //comparison_operator  boolean_primary boolean_primary
-      //1
-      //external -> 2
-      match_comparison_operator(n, name, depth + 1);
-      //whitespace  boolean_primary boolean_primary
-      //1
-      //external -> 3
-      match_whitespace(n, name, depth + 1);
-      //predicate  boolean_primary boolean_primary
-      //1
-      //external -> 4
-      match_predicate(n, name, depth + 1);
+      // GROUP
+      if (n_OK(n) == 1) {
+        //OR
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          //item 0
+          // GROUP
+          if (n_OK(n) == 1) {
+            // GROUP
+            if (n_OK(n) == 1) {
+              //comparison_operator  boolean_primary boolean_primary
+              //0
+              //external -> 0
+              match_comparison_operator(n, name, depth + 1);
+              //whitespace  boolean_primary boolean_primary
+              //0
+              //external -> 1
+              match_whitespace(n, name, depth + 1);
+              //predicate  boolean_primary boolean_primary
+              //0
+              //external -> 2
+              match_predicate(n, name, depth + 1);
+
+            }
+
+          }
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
+          //item+1 1
+          if (n->OK == 0) {
+            n->OK = 1;
+            // GROUP
+            if (n_OK(n) == 1) {
+              //None  boolean_primary boolean_primary
+              //0
+              // order 0
+              compare_string(n, (const char *) "is", 2);
+              //optional
+              if (n_OK(n) == 1) {
+                push(n->stack, n->pos);
+                // GROUP
+                if (n_OK(n) == 1) {
+                  //whitespace  boolean_primary boolean_primary
+                  //0
+                  //external -> 0
+                  match_whitespace(n, name, depth + 1);
+                  //None  boolean_primary boolean_primary
+                  //0
+                  // order 1
+                  compare_string(n, (const char *) "not", 3);
+
+                }
+
+                optional_reset(n);
+              }
+              //whitespace  boolean_primary boolean_primary
+              //0
+              //external -> 2
+              match_whitespace(n, name, depth + 1);
+              //null  boolean_primary boolean_primary
+              //0
+              //external -> 3
+              match_null(n, name, depth + 1);
+
+            }
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+          //item+1 2
+          if (n->OK == 0) {
+            n->OK = 1;
+            // GROUP
+            if (n_OK(n) == 1) {
+              //None  boolean_primary boolean_primary
+              //0
+              // order 0
+              compare_string(n, (const char *) "<=>", 3);
+              //whitespace  boolean_primary boolean_primary
+              //0
+              //external -> 1
+              match_whitespace(n, name, depth + 1);
+              //predicate  boolean_primary boolean_primary
+              //0
+              //external -> 2
+              match_predicate(n, name, depth + 1);
+
+            }
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+          //item+1 3
+          if (n->OK == 0) {
+            n->OK = 1;
+            // GROUP
+            if (n_OK(n) == 1) {
+              //comparison_operator  boolean_primary boolean_primary
+              //0
+              //external -> 0
+              match_comparison_operator(n, name, depth + 1);
+              //whitespace  boolean_primary boolean_primary
+              //0
+              //external -> 1
+              match_whitespace(n, name, depth + 1);
+              // GROUP
+              if (n_OK(n) == 1) {
+                //OR
+                if (n_OK(n) == 1) {
+                  push(n->stack, n->pos);
+                  //item 0
+                  // order 0
+                  compare_string(n, (const char *) "all", 3);
+                  if (n->OK == 0) {
+                    n->pos = peek(n->stack);
+                  }
+                  //item+1 1
+                  if (n->OK == 0) {
+                    n->OK = 1;
+                    // order 1
+                    compare_string(n, (const char *) "any", 3);
+
+                    if (n->OK == 0) {
+                      n->pos = peek(n->stack);
+                    }
+                  }
+
+                  pop(n->stack);
+                }
+
+              }
+              //whitespace  boolean_primary boolean_primary
+              //0
+              //external -> 3
+              match_whitespace(n, name, depth + 1);
+              //subquery  boolean_primary boolean_primary
+              //0
+              //external -> 4
+              match_subquery(n, name, depth + 1);
+
+            }
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+
+          pop(n->stack);
+        }
+
+      }
 
     }
     if (n->OK == 0) {
@@ -818,157 +989,7 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //boolean_primary  boolean_primary boolean_primary
-        //1
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //None  boolean_primary boolean_primary
-        //1
-        // order 2
-        compare_string(n, (const char *) "is", 2);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          // GROUP
-          if (n_OK(n) == 1) {
-            //whitespace  boolean_primary boolean_primary
-            //0
-            //external -> 0
-            match_whitespace(n, name, depth + 1);
-            //None  boolean_primary boolean_primary
-            //0
-            // order 1
-            compare_string(n, (const char *) "not", 3);
-
-          }
-
-          optional_reset(n);
-        }
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 4
-        match_whitespace(n, name, depth + 1);
-        //null  boolean_primary boolean_primary
-        //1
-        //external -> 5
-        match_null(n, name, depth + 1);
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 2
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //boolean_primary  boolean_primary boolean_primary
-        //1
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //None  boolean_primary boolean_primary
-        //1
-        // order 2
-        compare_string(n, (const char *) "<=>", 3);
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        //predicate  boolean_primary boolean_primary
-        //1
-        //external -> 4
-        match_predicate(n, name, depth + 1);
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 3
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //boolean_primary  boolean_primary boolean_primary
-        //1
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //comparison_operator  boolean_primary boolean_primary
-        //1
-        //external -> 2
-        match_comparison_operator(n, name, depth + 1);
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        // GROUP
-        if (n_OK(n) == 1) {
-          //OR
-          if (n_OK(n) == 1) {
-            push(n->stack, n->pos);
-            //item 0
-            // order 0
-            compare_string(n, (const char *) "all", 3);
-            if (n->OK == 0) {
-              n->pos = peek(n->stack);
-            }
-            //item+1 1
-            if (n->OK == 0) {
-              n->OK = 1;
-              // order 1
-              compare_string(n, (const char *) "any", 3);
-
-              if (n->OK == 0) {
-                n->pos = peek(n->stack);
-              }
-            }
-
-            pop(n->stack);
-          }
-
-        }
-        //whitespace  boolean_primary boolean_primary
-        //1
-        //external -> 5
-        match_whitespace(n, name, depth + 1);
-        //subquery  boolean_primary boolean_primary
-        //1
-        //external -> 6
-        match_subquery(n, name, depth + 1);
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 4
-    if (n->OK == 0) {
-      n->OK = 1;
-      //external -> 4
+      //external -> 1
       match_predicate(n, name, depth + 1);
 
       if (n->OK == 0) {
@@ -1010,45 +1031,6 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
   n->depth -= 1;
   n->last_function = name;
 }
-void match_where_expression(node_t * n, const char last_method[], int depth) {
-  if (n_OK(n) == 0) {
-    return;
-  }
-  const char name[] = "where_expression";
-  int start_pos = n->pos;
-  n->depth += 1;
-  n->function = name;
-#ifdef  DEBUG_START
-  debug_start(n, name, start_pos);
-#endif
-  //expr  where_expression where_expression
-  //0
-  //external -> 0
-  match_expr(n, name, depth + 1);
-
-#ifdef  DEBUG_SUCCESS
-  if (n->OK == 1) {
-    for (int i = 0; i < depth; i++)
-      printf(" ");
-    printf("[where_expression] SUCCESS");
-    if (n->pos == -1) {
-      print_sub_str(n, start_pos, n->len);
-    } else {
-      print_sub_str(n, start_pos, n->pos);
-    }
-    printf("\n");
-    debug_success(n, name, start_pos);
-  }
-#endif
-
-#ifdef  DEBUG_FAILED
-  if (n->OK == 0) {
-    debug_failed(n, name, start_pos);
-  }
-#endif
-  n->depth -= 1;
-  n->last_function = name;
-}
 void match_predicate(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
     return;
@@ -1060,99 +1042,241 @@ void match_predicate(node_t * n, const char last_method[], int depth) {
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  //OR
+  //bit_expr  predicate predicate
+  //1
+  //external -> 0
+  match_bit_expr(n, name, depth + 1);
+  //optional
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    //item 0
     // GROUP
     if (n_OK(n) == 1) {
-      //bit_expr  predicate predicate
-      //0
-      //external -> 0
-      match_bit_expr(n, name, depth + 1);
-      //whitespace  predicate predicate
-      //0
-      //external -> 1
-      match_whitespace(n, name, depth + 1);
-      //optional
+      //OR
       if (n_OK(n) == 1) {
         push(n->stack, n->pos);
-        // order None
-        compare_string(n, (const char *) "not", 3);
-
-        optional_reset(n);
-      }
-      //whitespace  predicate predicate
-      //0
-      //external -> 3
-      match_whitespace(n, name, depth + 1);
-      //None  predicate predicate
-      //0
-      // order 4
-      compare_string(n, (const char *) "in", 2);
-      //whitespace  predicate predicate
-      //0
-      //external -> 5
-      match_whitespace(n, name, depth + 1);
-      //subquery  predicate predicate
-      //0
-      //external -> 6
-      match_subquery(n, name, depth + 1);
-
-    }
-    if (n->OK == 0) {
-      n->pos = peek(n->stack);
-    }
-    //item+1 1
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //bit_expr  predicate predicate
-        //0
-        //external -> 0
-        match_bit_expr(n, name, depth + 1);
-        //whitespace  predicate predicate
-        //0
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //optional
+        //item 0
+        // GROUP
         if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          // order None
-          compare_string(n, (const char *) "not", 3);
-
-          optional_reset(n);
-        }
-        //whitespace  predicate predicate
-        //0
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        //None  predicate predicate
-        //0
-        // order 4
-        compare_string(n, (const char *) "in", 2);
-        //whitespace  predicate predicate
-        //0
-        //external -> 5
-        match_whitespace(n, name, depth + 1);
-        if (n_OK(n) == 1 && (n->value[n->pos] == '('))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-
-        //expr  predicate predicate
-        //0
-        //external -> 7
-        match_expr(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
           // GROUP
           if (n_OK(n) == 1) {
-            //zero or more
-            push(n->stack, n->OK);
-            while (n_OK(n) == 1) {
+            //whitespace  predicate predicate
+            //0
+            //external -> 0
+            match_whitespace(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // order None
+              compare_string(n, (const char *) "not", 3);
+
+              optional_reset(n);
+            }
+            //whitespace  predicate predicate
+            //0
+            //external -> 2
+            match_whitespace(n, name, depth + 1);
+            //None  predicate predicate
+            //0
+            // order 3
+            compare_string(n, (const char *) "in", 2);
+            //whitespace  predicate predicate
+            //0
+            //external -> 4
+            match_whitespace(n, name, depth + 1);
+            //subquery  predicate predicate
+            //0
+            //external -> 5
+            match_subquery(n, name, depth + 1);
+
+          }
+
+        }
+        if (n->OK == 0) {
+          n->pos = peek(n->stack);
+        }
+        //item+1 1
+        if (n->OK == 0) {
+          n->OK = 1;
+          // GROUP
+          if (n_OK(n) == 1) {
+            //whitespace  predicate predicate
+            //0
+            //external -> 0
+            match_whitespace(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // order None
+              compare_string(n, (const char *) "not", 3);
+
+              optional_reset(n);
+            }
+            //whitespace  predicate predicate
+            //0
+            //external -> 2
+            match_whitespace(n, name, depth + 1);
+            //None  predicate predicate
+            //0
+            // order 3
+            compare_string(n, (const char *) "in", 2);
+            //whitespace  predicate predicate
+            //0
+            //external -> 4
+            match_whitespace(n, name, depth + 1);
+            if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+              increment_n(n, 1);
+            else
+              n->OK = 0;
+
+            //expr  predicate predicate
+            //0
+            //external -> 6
+            match_expr(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // GROUP
+              if (n_OK(n) == 1) {
+                //zero or more
+                push(n->stack, n->OK);
+                while (n_OK(n) == 1) {
+                  push(n->stack, n->pos);
+                  // GROUP
+                  if (n_OK(n) == 1) {
+                    //whitespace  predicate predicate
+                    //0
+                    //external -> 0
+                    match_whitespace(n, name, depth + 1);
+                    if (n_OK(n) == 1 && (n->value[n->pos] == ','))
+                      increment_n(n, 1);
+                    else
+                      n->OK = 0;
+                    //whitespace  predicate predicate
+                    //0
+                    //external -> 2
+                    match_whitespace(n, name, depth + 1);
+                    //expr  predicate predicate
+                    //0
+                    //external -> 3
+                    match_expr(n, name, depth + 1);
+
+                  }
+
+                  if (n->OK == 0) {
+                    n->pos = pop(n->stack);
+                  } else
+                    pop(n->stack);
+                }
+                n->OK = pop(n->stack);
+
+              }
+
+              optional_reset(n);
+            }
+            if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+              increment_n(n, 1);
+            else
+              n->OK = 0;
+
+          }
+
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
+        }
+        //item+1 2
+        if (n->OK == 0) {
+          n->OK = 1;
+          // GROUP
+          if (n_OK(n) == 1) {
+            //whitespace  predicate predicate
+            //1
+            //external -> 0
+            match_whitespace(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // order None
+              compare_string(n, (const char *) "not", 3);
+
+              optional_reset(n);
+            }
+            //whitespace  predicate predicate
+            //1
+            //external -> 2
+            match_whitespace(n, name, depth + 1);
+            //None  predicate predicate
+            //1
+            // order 3
+            compare_string(n, (const char *) "between", 7);
+            //whitespace  predicate predicate
+            //1
+            //external -> 4
+            match_whitespace(n, name, depth + 1);
+            //bit_expr  predicate predicate
+            //1
+            //external -> 5
+            match_bit_expr(n, name, depth + 1);
+            //whitespace  predicate predicate
+            //1
+            //external -> 6
+            match_whitespace(n, name, depth + 1);
+            //None  predicate predicate
+            //1
+            // order 7
+            compare_string(n, (const char *) "and", 3);
+            //whitespace  predicate predicate
+            //1
+            //external -> 8
+            match_whitespace(n, name, depth + 1);
+            //predicate  predicate predicate
+            //1
+            //item 9  //non index 0 recursion
+            if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+              match_predicate(n, name, depth + 1);
+            }
+
+          }
+
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
+        }
+        //item+1 3
+        if (n->OK == 0) {
+          n->OK = 1;
+          // GROUP
+          if (n_OK(n) == 1) {
+            //whitespace  predicate predicate
+            //0
+            //external -> 0
+            match_whitespace(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // order None
+              compare_string(n, (const char *) "not", 3);
+
+              optional_reset(n);
+            }
+            //whitespace  predicate predicate
+            //0
+            //external -> 2
+            match_whitespace(n, name, depth + 1);
+            //None  predicate predicate
+            //0
+            // order 3
+            compare_string(n, (const char *) "like", 4);
+            //whitespace  predicate predicate
+            //0
+            //external -> 4
+            match_whitespace(n, name, depth + 1);
+            //simple_expr  predicate predicate
+            //0
+            //external -> 5
+            match_simple_expr(n, name, depth + 1);
+            //optional
+            if (n_OK(n) == 1) {
               push(n->stack, n->pos);
               // GROUP
               if (n_OK(n) == 1) {
@@ -1160,231 +1284,77 @@ void match_predicate(node_t * n, const char last_method[], int depth) {
                 //0
                 //external -> 0
                 match_whitespace(n, name, depth + 1);
-                if (n_OK(n) == 1 && (n->value[n->pos] == ','))
-                  increment_n(n, 1);
-                else
-                  n->OK = 0;
+                //None  predicate predicate
+                //0
+                // order 1
+                compare_string(n, (const char *) "escape", 6);
                 //whitespace  predicate predicate
                 //0
                 //external -> 2
                 match_whitespace(n, name, depth + 1);
-                //expr  predicate predicate
+                //simple_expr  predicate predicate
                 //0
                 //external -> 3
-                match_expr(n, name, depth + 1);
+                match_simple_expr(n, name, depth + 1);
 
               }
 
-              if (n->OK == 0) {
-                n->pos = pop(n->stack);
-              } else
-                pop(n->stack);
+              optional_reset(n);
             }
-            n->OK = pop(n->stack);
 
           }
 
-          optional_reset(n);
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
         }
-        if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 2
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //bit_expr  predicate predicate
-        //1
-        //external -> 0
-        match_bit_expr(n, name, depth + 1);
-        //whitespace  predicate predicate
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          // order None
-          compare_string(n, (const char *) "not", 3);
-
-          optional_reset(n);
-        }
-        //whitespace  predicate predicate
-        //1
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        //None  predicate predicate
-        //1
-        // order 4
-        compare_string(n, (const char *) "between", 7);
-        //whitespace  predicate predicate
-        //1
-        //external -> 5
-        match_whitespace(n, name, depth + 1);
-        //bit_expr  predicate predicate
-        //1
-        //external -> 6
-        match_bit_expr(n, name, depth + 1);
-        //whitespace  predicate predicate
-        //1
-        //external -> 7
-        match_whitespace(n, name, depth + 1);
-        //None  predicate predicate
-        //1
-        // order 8
-        compare_string(n, (const char *) "and", 3);
-        //whitespace  predicate predicate
-        //1
-        //external -> 9
-        match_whitespace(n, name, depth + 1);
-        //predicate  predicate predicate
-        //1
-        //item 10  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_predicate(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 3
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //bit_expr  predicate predicate
-        //0
-        //external -> 0
-        match_bit_expr(n, name, depth + 1);
-        //whitespace  predicate predicate
-        //0
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          // order None
-          compare_string(n, (const char *) "not", 3);
-
-          optional_reset(n);
-        }
-        //whitespace  predicate predicate
-        //0
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        //None  predicate predicate
-        //0
-        // order 4
-        compare_string(n, (const char *) "like", 4);
-        //whitespace  predicate predicate
-        //0
-        //external -> 5
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  predicate predicate
-        //0
-        //external -> 6
-        match_simple_expr(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
+        //item+1 4
+        if (n->OK == 0) {
+          n->OK = 1;
           // GROUP
           if (n_OK(n) == 1) {
             //whitespace  predicate predicate
             //0
             //external -> 0
             match_whitespace(n, name, depth + 1);
-            //None  predicate predicate
-            //0
-            // order 1
-            compare_string(n, (const char *) "escape", 6);
+            //optional
+            if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              // order None
+              compare_string(n, (const char *) "not", 3);
+
+              optional_reset(n);
+            }
             //whitespace  predicate predicate
             //0
             //external -> 2
             match_whitespace(n, name, depth + 1);
-            //simple_expr  predicate predicate
+            //None  predicate predicate
             //0
-            //external -> 3
-            match_simple_expr(n, name, depth + 1);
+            // order 3
+            compare_string(n, (const char *) "regexp", 6);
+            //whitespace  predicate predicate
+            //0
+            //external -> 4
+            match_whitespace(n, name, depth + 1);
+            //bit_expr  predicate predicate
+            //0
+            //external -> 5
+            match_bit_expr(n, name, depth + 1);
 
           }
 
-          optional_reset(n);
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
         }
 
+        pop(n->stack);
       }
 
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 4
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //bit_expr  predicate predicate
-        //0
-        //external -> 0
-        match_bit_expr(n, name, depth + 1);
-        //whitespace  predicate predicate
-        //0
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          // order None
-          compare_string(n, (const char *) "not", 3);
-
-          optional_reset(n);
-        }
-        //whitespace  predicate predicate
-        //0
-        //external -> 3
-        match_whitespace(n, name, depth + 1);
-        //None  predicate predicate
-        //0
-        // order 4
-        compare_string(n, (const char *) "regexp", 6);
-        //whitespace  predicate predicate
-        //0
-        //external -> 5
-        match_whitespace(n, name, depth + 1);
-        //bit_expr  predicate predicate
-        //0
-        //external -> 6
-        match_bit_expr(n, name, depth + 1);
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 5
-    if (n->OK == 0) {
-      n->OK = 1;
-      //external -> 5
-      match_bit_expr(n, name, depth + 1);
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
     }
 
-    pop(n->stack);
+    optional_reset(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -1735,6 +1705,56 @@ void match_operations(node_t * n, const char last_method[], int depth) {
   n->depth -= 1;
   n->last_function = name;
 }
+void match_identifier_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
+  const char name[] = "identifier_expr";
+  int start_pos = n->pos;
+  n->depth += 1;
+  n->function = name;
+#ifdef  DEBUG_START
+  debug_start(n, name, start_pos);
+#endif
+  // GROUP
+  if (n_OK(n) == 1) {
+    //identifier  identifier_expr identifier_expr
+    //0
+    //external -> 0
+    match_identifier(n, name, depth + 1);
+    //None  identifier_expr identifier_expr
+    //0
+    // order 1
+    compare_string(n, (const char *) "as", 2);
+    //identifier  identifier_expr identifier_expr
+    //0
+    //external -> 2
+    match_identifier(n, name, depth + 1);
+
+  }
+#ifdef  DEBUG_SUCCESS
+  if (n->OK == 1) {
+    for (int i = 0; i < depth; i++)
+      printf(" ");
+    printf("[identifier_expr] SUCCESS");
+    if (n->pos == -1) {
+      print_sub_str(n, start_pos, n->len);
+    } else {
+      print_sub_str(n, start_pos, n->pos);
+    }
+    printf("\n");
+    debug_success(n, name, start_pos);
+  }
+#endif
+
+#ifdef  DEBUG_FAILED
+  if (n->OK == 0) {
+    debug_failed(n, name, start_pos);
+  }
+#endif
+  n->depth -= 1;
+  n->last_function = name;
+}
 void match_simple_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
     return;
@@ -1778,38 +1798,8 @@ void match_simple_expr(node_t * n, const char last_method[], int depth) {
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //simple_expr  simple_expr simple_expr
-        //2
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  simple_expr simple_expr
-        //2
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        //whitespace  simple_expr simple_expr
-        //2
-        //external -> 4
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  simple_expr simple_expr
-        //2
-        //item 5  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_simple_expr(n, name, depth + 1);
-        }
-
-      }
+      //external -> 3
+      match_identifier_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -1818,111 +1808,7 @@ void match_simple_expr(node_t * n, const char last_method[], int depth) {
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (n->value[n->pos] == '+'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        //whitespace  simple_expr simple_expr
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  simple_expr simple_expr
-        //1
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_simple_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 5
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (n->value[n->pos] == '-'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        //whitespace  simple_expr simple_expr
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  simple_expr simple_expr
-        //1
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_simple_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 6
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (n->value[n->pos] == '~'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        //whitespace  simple_expr simple_expr
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  simple_expr simple_expr
-        //1
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_simple_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 7
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (n->value[n->pos] == '!'))
-          increment_n(n, 1);
-        else
-          n->OK = 0;
-        //whitespace  simple_expr simple_expr
-        //1
-        //external -> 1
-        match_whitespace(n, name, depth + 1);
-        //simple_expr  simple_expr simple_expr
-        //1
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          match_simple_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //item+1 8
-    if (n->OK == 0) {
-      n->OK = 1;
-      //external -> 8
+      //external -> 4
       match_interval_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
@@ -1946,16 +1832,7 @@ void match_simple_expr(node_t * n, const char last_method[], int depth) {
     debug_success(n, name, start_pos);
   }
 #endif
-  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
-    push(n->stack, n->pos);
-    match_simple_expr(n, name, depth + 1);
-    if (n->OK == 0) {
-      n->pos = pop(n->stack);
-      n->OK = 1;
-    } else {
-      pop(n->stack);
-    }
-  }
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3118,7 +2995,7 @@ void match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 1
     match_SECONDS(n, name, depth + 1);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+    if (n_OK(n) == 1 && (1))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -3192,7 +3069,7 @@ void match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 3
     match_SECONDS(n, name, depth + 1);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+    if (n_OK(n) == 1 && (1))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -3340,7 +3217,7 @@ void match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 5
     match_SECONDS(n, name, depth + 1);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+    if (n_OK(n) == 1 && (1))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -3566,7 +3443,7 @@ void match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 6
     match_SECONDS(n, name, depth + 1);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+    if (n_OK(n) == 1 && (1))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -3949,8 +3826,9 @@ void match_hex(node_t * n, const char last_method[], int depth) {
   push(n->stack, n->pos);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    if (n_OK(n) == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9') ||
-                         (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'F') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'f')))
+    if (n_OK(n) == 1
+        && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'F')
+            || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'f')))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -4296,7 +4174,7 @@ void match_real(node_t * n, const char last_method[], int depth) {
       //0
       //external -> 0
       match_integer(n, name, depth + 1);
-      if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+      if (n_OK(n) == 1 && (1))
         increment_n(n, 1);
       else
         n->OK = 0;
@@ -4314,7 +4192,7 @@ void match_real(node_t * n, const char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+        if (n_OK(n) == 1 && (1))
           increment_n(n, 1);
         else
           n->OK = 0;
@@ -4332,8 +4210,22 @@ void match_real(node_t * n, const char last_method[], int depth) {
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //external -> 2
-      match_integer(n, name, depth + 1);
+      // GROUP
+      if (n_OK(n) == 1) {
+        //integer  real real
+        //0
+        //external -> 0
+        match_integer(n, name, depth + 1);
+        //optional
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          //external -> None
+          match_exponent(n, name, depth + 1);
+
+          optional_reset(n);
+        }
+
+      }
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -4341,14 +4233,6 @@ void match_real(node_t * n, const char last_method[], int depth) {
     }
 
     pop(n->stack);
-  }
-  //optional
-  if (n_OK(n) == 1) {
-    push(n->stack, n->pos);
-    //external -> None
-    match_exponent(n, name, depth + 1);
-
-    optional_reset(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -4625,13 +4509,21 @@ void match_identifier(node_t * n, const char last_method[], int depth) {
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
+  //NOT
+  if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    //external -> None
+    match_keywords(n, name, depth + 1);
+
+    not_reset(n);
+  }                             //end NOT
   //one or more
   push(n->stack, n->pos);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    if (n_OK(n) == 1 && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') ||
-                         (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z') ||
-                         (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || n->value[n->pos] == '$' || n->value[n->pos] == '_'))
+    if (n_OK(n) == 1
+        && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z')
+            || (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || n->value[n->pos] == '$' || n->value[n->pos] == '_'))
       increment_n(n, 1);
     else
       n->OK = 0;
@@ -4877,22 +4769,49 @@ void match_whitespace(node_t * n, const char last_method[], int depth) {
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  //zero or more
-  push(n->stack, n->OK);
-  while (n_OK(n) == 1) {
-    push(n->stack, n->pos);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r'))
-      increment_n(n, 1);
-    else
-      n->OK = 0;
+  // GROUP
+  if (n_OK(n) == 1) {
+    //zero or more
+    push(n->stack, n->OK);
+    while (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      // GROUP
+      if (n_OK(n) == 1) {
+        //OR
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          //item 0
+          if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r'))
+            increment_n(n, 1);
+          else
+            n->OK = 0;
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
+          //item+1 1
+          if (n->OK == 0) {
+            n->OK = 1;
+            //external -> 1
+            match_comment(n, name, depth + 1);
 
-    if (n->OK == 0) {
-      n->pos = pop(n->stack);
-    } else
-      pop(n->stack);
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+
+          pop(n->stack);
+        }
+
+      }
+
+      if (n->OK == 0) {
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
+    }
+    n->OK = pop(n->stack);
+
   }
-  n->OK = pop(n->stack);
-
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
     for (int i = 0; i < depth; i++)
@@ -4995,16 +4914,10 @@ void match_single_quote_string(node_t * n, const char last_method[], int depth) 
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
-        //NOT
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
-            increment_n(n, 1);
-          else
-            n->OK = 0;
-
-          not_reset(n);
-        }                       //end NOT
+        if (n_OK(n) == 1 && (n->value[n->pos] != '\''))
+          increment_n(n, 1);
+        else
+          n->OK = 0;
 
       }
 
@@ -5070,16 +4983,10 @@ void match_double_quote_string(node_t * n, const char last_method[], int depth) 
       push(n->stack, n->pos);
       // GROUP
       if (n_OK(n) == 1) {
-        //NOT
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          if (n_OK(n) == 1 && (n->value[n->pos] == '"'))
-            increment_n(n, 1);
-          else
-            n->OK = 0;
-
-          not_reset(n);
-        }                       //end NOT
+        if (n_OK(n) == 1 && (n->value[n->pos] != '"'))
+          increment_n(n, 1);
+        else
+          n->OK = 0;
 
       }
 
@@ -5402,8 +5309,8 @@ void match_block_comment(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 0
     match_left_comment(n, name, depth + 1);
-    //one or more
-    push(n->stack, n->pos);
+    //zero or more
+    push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
@@ -5416,19 +5323,19 @@ void match_block_comment(node_t * n, const char last_method[], int depth) {
 
           not_reset(n);
         }                       //end NOT
+        if (n_OK(n) == 1 && (1))
+          increment_n(n, 1);
+        else
+          n->OK = 0;
 
       }
 
-      if (n->OK == 0)
+      if (n->OK == 0) {
         n->pos = pop(n->stack);
-      else
+      } else
         pop(n->stack);
     }
-    if (n->pos == pop(n->stack)) {
-      n->OK = 0;
-    } else {
-      n->OK = 1;
-    }
+    n->OK = pop(n->stack);
     //right_comment  block_comment block_comment
     //0
     //external -> 2
@@ -5475,8 +5382,8 @@ void match_single_comment(node_t * n, const char last_method[], int depth) {
     //0
     //external -> 0
     match_inline_comment(n, name, depth + 1);
-    //one or more
-    push(n->stack, n->pos);
+    //zero or more
+    push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       // GROUP
@@ -5489,19 +5396,19 @@ void match_single_comment(node_t * n, const char last_method[], int depth) {
 
           not_reset(n);
         }                       //end NOT
+        if (n_OK(n) == 1 && (1))
+          increment_n(n, 1);
+        else
+          n->OK = 0;
 
       }
 
-      if (n->OK == 0)
+      if (n->OK == 0) {
         n->pos = pop(n->stack);
-      else
+      } else
         pop(n->stack);
     }
-    if (n->pos == pop(n->stack)) {
-      n->OK = 0;
-    } else {
-      n->OK = 1;
-    }
+    n->OK = pop(n->stack);
     //end_of_line  single_comment single_comment
     //0
     //external -> 2
@@ -17844,7 +17751,7 @@ void match_catch_all(node_t * n, const char last_method[], int depth) {
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-10
+*   Generated: 2019-11-11
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match

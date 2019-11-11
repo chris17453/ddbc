@@ -35,16 +35,25 @@ def build_string(tokens,token_type=None,depth=0,name=None,order=None):
     if token_type=='char':
         token= tokens.replace("'","\\\'")
         t=tpl("templates/or.c")
-        if token=="\s":
-            token=" "
-        if token=="\|":
-            token="|"
-        if token=="\(":
-            token="("
-        if token=="\)":
-            token=")"
-        t.add("or_compare","compare_value",token)
-        o+=t.build("or_compare")
+
+        if token==".":
+            o+='1' 
+        else:
+
+            if token=="\s":
+                token=" "
+            if token=="\|":
+                token="|"
+            if token=="\(":
+                token="("
+            if token=="\)":
+                token=")"
+            if token=="\.":
+                token="."
+            if token=="\^":
+                token="^"
+            t.add("or_compare","compare_value",token)
+            o+=t.build("or_compare")
         return o
     token= tokens.replace("'","\\\'")
     token= tokens.replace("\"","\\\"")
@@ -110,10 +119,52 @@ def build_list(tokens,token_type=None,depth=0,name=None,order=None):
             name2=name[1:-1]
 
     if token_type=='char':
-        o=[]
+        o2=[]
+        build_next=None
         for token in tokens:
+            if build_next:
+                build_next=None
+                token= token.replace("'","\\\'")
+                if token=="\s":
+                    token=" "
+                if token=="\|":
+                    token="|"
+                if token=="\(":
+                    token="("
+                if token=="\)":
+                    token=")"
+                if token=="\.":
+                    token="."
+                if token=="\^":
+                    token="^"
+                t=tpl("templates/or.c")
+                t.add("not_compare","compare_value",token)
+                o2.append(t.build("not_compare"))
+        
+            if token=="^":
+                build_next=True
+                continue
+
+        o2=" && ".join(o2)
+
+
+        o=[]
+        skip_next=None
+        for token in tokens:
+            if skip_next:
+                skip_next=None
+                continue
+            if token=="^":
+                skip_next=True
+                continue
             o.append(build_function_templates(token,token_type,depth,name=name).strip())
-        return " || \n".join(o)
+       
+        if len(o2)>0 and len(o)>0:
+            return "({0} && ({1})) ". format(o2," || ".join(o))
+        if len(o2)>0:
+            return o2
+        if len(o)>0:
+            return " || ".join(o)
     elif token_type=='or':
         index=0
         tokens2=[]

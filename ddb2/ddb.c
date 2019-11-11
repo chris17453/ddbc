@@ -5,18 +5,15 @@
 
 int main(){
    
-    char  *query_str="SELECT col1 as name, (select 'last_name' as name) as col2 , (select 'bob' as name )  as name \
-    FROM test.mock as f1 \n\
-    WHERE first_name='bob' \n\
-    FROM test.mock as f1 \n\
-    WHERE first_name='bob' \n\
-    and id=0x04F \n\
-    ";
-    char * other="\
+    char  *query_str=" /*\
     \
-    select COUNT AS number,bob as first_name\n\
+    \
+   rds \
+    */\
+   SELECT col1 as name, (select 'last_name' as name) as col2 , (select 'bob' as name )  as name \
     FROM test.mock as f1 \n\
     WHERE first_name='bob' \n\
+    or id=0x04F \n\
     and id=0x04F \n\
     and id=0xFFaf04F \n\
     and id=0x00 \n\

@@ -4,10 +4,10 @@ comment:
   | {single_comment}
 
 block_comment:        
-  {left_comment} (^{right_comment})+ {right_comment} 
+  {left_comment} (^{right_comment} [.] )* {right_comment} 
 
 single_comment:       
-  {inline_comment} (^{end_of_line})+ {end_of_line} 
+  {inline_comment} (^{end_of_line} [.] )* {end_of_line} 
 
 left_comment:         
   [/][*]

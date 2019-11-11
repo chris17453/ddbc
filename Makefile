@@ -20,3 +20,7 @@ func-test:
 
 profile: build-profile run
 	@gprof builds/ddbc gmon.out > profiles/profile.txt
+
+watch-time:
+	@watch -n .3 'time make run  >/dev/null'
+

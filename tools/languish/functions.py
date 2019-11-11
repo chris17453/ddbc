@@ -28,8 +28,8 @@ def build_functions(template_dir):
 
     functions=load_definitions(template_dir)
     
-   # print functions
-   # exit(0)
+    #print functions
+    #exit(0)
     for function in functions:
         for key in function:
             o+=build(key,function[key])

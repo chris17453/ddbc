@@ -15,7 +15,6 @@ void not_reset(node_t *n){
         n->pos=pop(n->stack);
     } else { 
         n->OK=1;
-        increment_n(n,1);
         pop(n->stack);
     }
 }

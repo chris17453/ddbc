@@ -28,8 +28,7 @@ boolean:
 real:                 
     {integer} [.] {unsigned_int} 
   | [.] {unsigned_int} 
-  | {integer}
-  {exponent}? 
+  | {integer} {exponent}? 
 
 integer:              
     {signed_int} 
@@ -48,6 +47,7 @@ exponent:
   [Ee] {integer}
 
 identifier:
+  ^{keywords}
   [A-Za-z0-9$_]+
   
 keywords:
@@ -69,7 +69,7 @@ keywords:
   | like
 
 whitespace:           
-  [\t\s\n\r]*
+  ([\t\s\n\r] | {comment} )*
 
 string:
     {single_quote_string} 
@@ -77,10 +77,10 @@ string:
 
 single_quote_string:  
 
-  ['] (^['])+ [']
+  ['] ([^'])+ [']
 
 double_quote_string:  
-  ["] (^["])+ ["]
+  ["] ([^"])+ ["]
 
 query_delimiter:
  [;]

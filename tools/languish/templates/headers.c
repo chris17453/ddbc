@@ -2,9 +2,9 @@ headers:
 /********************************************
 * Generated: {date_time}                    *
 ********************************************/
-#define DEBUG_START   1
+//#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
-#define DEBUG_FAIL    1
+//#define DEBUG_FAIL    1
 
 #include <stdio.h>
 #include <ctype.h>
@@ -63,9 +63,15 @@ int stricmp(node_t *n, const char * b){
 }
 
 void print_sub_str(node_t *n,int start,int end){
+    printf("***");
     for (int i=start;i<end;i++) {
-        printf("%c",n->value[i]);
+        if (n->value[i]=='\n'){
+            printf("\n***",n->value[i]);
+        } else {
+            printf("%c",n->value[i]);
+        }
     }
+    printf("***");
 }
 
 
