@@ -12,6 +12,7 @@ match_functions:
  */
 node_t * match_function(char *data) {
     printf("In functions\n");
+    int last_pos=-1;
     node_t * n=malloc(sizeof(node_t));
     n->value=data;
     n->len=strlen(data);
@@ -19,30 +20,38 @@ node_t * match_function(char *data) {
     n->depth=0;
     n->OK=1;
     n->stack=createStack(1000);
+const char* name="functions";
 
-//printf("POS:%d\n",n->pos);
-//printf("OK:%d\n",n->OK);
-//printf("--\n");
+push(n->stack,n->pos);
 while (n->pos>-1){
+    if (last_pos==n->pos) {
+        break;
+    }
+    last_pos=n->pos;
 {body}
 
     if ( n->OK == 0) {
-        printf("Match not found");
         break;
-    }
+    }    
     
 }
     pop(n->stack);
+    if ( n->OK == 0) {
+        printf("\nMatch not found\n");
+    }    
+    if (n->pos!=-1) {
+        printf("String parsed until [%d] out of [%d]\n",n->pos,n->len);
+    }
     return n;
 } // end match functions
 
 
 match_functions_first_var:
     n->OK=1;
-    n=match_{function_name}(n,(const char* )"functions",0);
-    if (n_OK(n)==1 || n->pos==-1 ) continue; 
+    match_{function_name}(n,name,0);
+    if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }
 
 match_functions_second_var:
     n->OK=1;
-    n=match_{function_name}(n,(const char *)"functions",0);
-    if (n_OK(n)==1  || n->pos==-1 ) continue; 
+    match_{function_name}(n,name,0);
+    if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }

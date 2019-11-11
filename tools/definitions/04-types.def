@@ -48,15 +48,21 @@ exponent:
   [Ee] {integer}
 
 identifier:
-  ^{keywords} [A-Za-z0-9$_]+
+  [A-Za-z0-9$_]+
+  
 keywords:
-    from 
-  | select
-  | where
+    select
+  | from 
   | on
+  | where
   | and
   | or
   | xor
+  | limit
+  | having
+  | group
+  | by
+  | order
   | not
   | in
   | between
@@ -75,3 +81,6 @@ single_quote_string:
 
 double_quote_string:  
   ["] (^["])+ ["]
+
+query_delimiter:
+ [;]

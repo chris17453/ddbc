@@ -14,12 +14,22 @@ def build_functions(template_dir):
     t=tpl("templates/debug.c")
     o+=t.build("debug")
         
+    t=tpl("templates/compare.c")
+    o+=t.build("compare_func")
+
+    t=tpl("templates/optional.c")
+    o+=t.build("optional_reset")
+
+    t=tpl("templates/not.c")
+    o+=t.build("not_reset")
+
+
     t=tpl("templates/match_functions.c")
 
     functions=load_definitions(template_dir)
     
-    #print functions
-    #exit(0)
+   # print functions
+   # exit(0)
     for function in functions:
         for key in function:
             o+=build(key,function[key])
@@ -29,7 +39,8 @@ def build_functions(template_dir):
     for function in functions:
 
         for key in function:
-            if key!='queries' and key!='catch_all':
+            if key!='queries' and key!='whitespace' and key!='query_delimiter' and key!='expr':
+            #if key!='queries' and key!='catch_all':
                 continue
             
             if index==0:

@@ -16,7 +16,7 @@ if (strcmp(name,last_method)!=0 ) {
 recursive_self+1:
 //item {order}  //non index 0 recursion
 if (n_OK(n)==1 && strcmp(name,last_method)==0 && n->pos>start_pos) {
-    n = match_{function_name}(n,name,depth+1); 
+    match_{function_name}(n,name,depth+1); 
 }
 
 

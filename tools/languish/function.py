@@ -31,7 +31,7 @@ def build(name,pattern,depth=0):
 
 
 def build_string(tokens,token_type=None,depth=0,name=None,order=None):
-    o="//string\n"
+    o=""
     if token_type=='char':
         token= tokens.replace("'","\\\'")
         t=tpl("templates/or.c")
@@ -77,7 +77,7 @@ def build_string(tokens,token_type=None,depth=0,name=None,order=None):
     return "unknown STRING"
 
 def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
-    o="//list item switch\n"
+    o=""
     if recurse==None:
         if order==0:
             t=tpl("templates/or.c")
@@ -104,7 +104,7 @@ def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
 
 def build_list(tokens,token_type=None,depth=0,name=None,order=None):
     name2=name
-    o="// list\n"
+    o=""
     if name!=None:
         if name[0]=='{':
             name2=name[1:-1]
@@ -141,10 +141,10 @@ def build_list(tokens,token_type=None,depth=0,name=None,order=None):
             index+=1
         return o
 
-    return "Unknowen LIST"
+    return "Unknown LIST"
 
 def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
-    o="// dict\n"
+    o=""
     token=tokens
 
 

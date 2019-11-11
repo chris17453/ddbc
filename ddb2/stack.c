@@ -27,7 +27,7 @@ int isEmpty(stack_t* stack) {
   
 // Function to add an item to stack.  It increases top by 1 
 void push(stack_t* stack, int item) { 
-    if (isFull(stack))  {
+    if (stack->top == stack->capacity - 1)  {
         printf("stack full\n"); 
         return; 
     }
@@ -37,7 +37,7 @@ void push(stack_t* stack, int item) {
   
 // Function to remove an item from stack.  It decreases top by 1 
 int pop(stack_t* stack) { 
-    if (isEmpty(stack)) {
+    if (stack->top == -1) {
         printf("stack empty\n"); 
         return INT_MIN; 
     }
@@ -48,7 +48,7 @@ int pop(stack_t* stack) {
   
 // Function to return the top from stack without removing it 
 int peek(stack_t* stack){ 
-    if (isEmpty(stack)) {
+    if (stack->top == -1) {
         printf("stack empty\n"); 
         return INT_MIN; 
     }

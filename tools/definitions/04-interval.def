@@ -37,23 +37,23 @@ MINUTES:             {unsigned_int}
 SECONDS:             {unsigned_int}
 MICROSECONDS:        {unsigned_int}
 
-MICROSECOND:         ( {MICROSECONDS}   {whitespace} MICROSECOND )
-SECOND:              ( {SECONDS}        {whitespace} SECOND )
-MINUTE:              ( {MINUTES}        {whitespace} MINUTE )
-HOUR:                ( {HOURS}          {whitespace} HOUR )
-DAY:                 ( {DAYS}           {whitespace} DAY )
-WEEK:                ( {WEEKS}          {whitespace} WEEK )
-MONTH:               ( {MONTHS}         {whitespace} MONTH )
-QUARTER:             ( {QUARTERS}       {whitespace} QUARTER )
-YEAR:                ( {YEARS}          {whitespace} YEAR )
-SECOND_MICROSECOND:  ( ['] {SECONDS}[.]{MICROSECONDS} [']                              {whitespace} SECOND_MICROSECOND )
-MINUTE_MICROSECOND:  ( ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  {whitespace} MINUTE_MICROSECOND )
-MINUTE_SECOND:       ( ['] {MINUTES}[:]{SECONDS} [']                                   {whitespace} MINUTE_SECOND )
-HOUR_MICROSECOND:    ( ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        {whitespace} HOUR_MICROSECOND )
-HOUR_SECOND:         ( ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         {whitespace} HOUR_SECOND )
-HOUR_MINUTE:         ( ['] {HOURS}[:]{MINUTES} [']                                     {whitespace} HOUR_MINUTE )
-DAY_MICROSECOND:     ( ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] {whitespace} DAY_MICROSECOND )
-DAY_SECOND:          ( ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  {whitespace} DAY_SECOND )
-DAY_MINUTE:          ( ['] {DAYS} {HOURS} [:] {MINUTES} [']                            {whitespace} DAY_MINUTE )
-DAY_HOUR:            ( ['] {DAYS} {HOURS} [']                                          {whitespace} DAY_HOUR )
-YEAR_MONTH:          ( ['] {YEARS}-{MONTHS} [']                                        {whitespace} YEAR_MONTH )
+MICROSECOND:         {MICROSECONDS}   {whitespace} MICROSECOND
+SECOND:              {SECONDS}        {whitespace} SECOND
+MINUTE:              {MINUTES}        {whitespace} MINUTE
+HOUR:                {HOURS}          {whitespace} HOUR
+DAY:                 {DAYS}           {whitespace} DAY
+WEEK:                {WEEKS}          {whitespace} WEEK
+MONTH:               {MONTHS}         {whitespace} MONTH
+QUARTER:             {QUARTERS}       {whitespace} QUARTER
+YEAR:                {YEARS}          {whitespace} YEAR
+SECOND_MICROSECOND:  ['] {SECONDS}[.]{MICROSECONDS} [']                              {whitespace} SECOND_MICROSECOND
+MINUTE_MICROSECOND:  ['] {MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']                  {whitespace} MINUTE_MICROSECOND
+MINUTE_SECOND:       ['] {MINUTES}[:]{SECONDS} [']                                   {whitespace} MINUTE_SECOND
+HOUR_MICROSECOND:    ['] {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} [']        {whitespace} HOUR_MICROSECOND
+HOUR_SECOND:         ['] {HOURS}[:]{MINUTES}[:]{SECONDS} [']                         {whitespace} HOUR_SECOND
+HOUR_MINUTE:         ['] {HOURS}[:]{MINUTES} [']                                     {whitespace} HOUR_MINUTE
+DAY_MICROSECOND:     ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS}[.]{MICROSECONDS} ['] {whitespace} DAY_MICROSECOND
+DAY_SECOND:          ['] {DAYS} {HOURS}[:]{MINUTES}[:]{SECONDS} [']                  {whitespace} DAY_SECOND
+DAY_MINUTE:          ['] {DAYS} {HOURS} [:] {MINUTES} [']                            {whitespace} DAY_MINUTE
+DAY_HOUR:            ['] {DAYS} {HOURS} [']                                          {whitespace} DAY_HOUR
+YEAR_MONTH:          ['] {YEARS}-{MONTHS} [']                                        {whitespace} YEAR_MONTH

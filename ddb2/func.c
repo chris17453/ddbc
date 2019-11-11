@@ -1,9 +1,9 @@
 /********************************************
-* Generated: 2019-11-09                    *
+* Generated: 2019-11-10                    *
 ********************************************/
-//#define DEBUG_START   1
+#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
-//#define DEBUG_FAIL    1
+#define DEBUG_FAIL    1
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -12,8 +12,7 @@
 // node values are only compared if string length is the same, no need to validate
 // comparitors is against a precompiled value thats already case optimised
 // returns 0 for equal
-int stricmp(node_t * n, const char *b)
-{
+int stricmp(node_t * n, const char *b) {
   int d = 0;
   int b_len = strlen(b);
   //printf("Compare %s\n",b);
@@ -31,54 +30,71 @@ int stricmp(node_t * n, const char *b)
   }
   return 0;
 }
-
-void print_sub_str(node_t * n, int start, int end)
-{
+void print_sub_str(node_t * n, int start, int end) {
   for (int i = start; i < end; i++) {
     printf("%c", n->value[i]);
   }
 }
-
-void print_n(node_t * n)
-{
+void print_n(node_t * n) {
   printf("POS:%d\n", n->pos);
   printf("OK:%d\n", n->OK);
   printf("--\n");
 }
-
-int n_OK(node_t * n)
-{
-  //print_n(n);
+int n_OK(node_t * n) {
   if (n->pos != -1 && n->OK == 1)
     return 1;
   return 0;
 }
-
-void debug_start(node_t * n, const char *name, int start_pos)
-{
+void increment_n(node_t * n, int len) {
+  n->pos += len;
+  if (n->pos >= n->len)
+    n->pos = -1;
+}
+void debug_start(node_t * n, const char *name, int start_pos) {
   for (int i = 0; i < n->depth; i++)
     printf(" ");
   printf(" [%s]-> %d - %d OK:%d, depth: %d \n", name, start_pos, n->pos, n->OK, n->depth);
   //    printf("%s.",name);
 }
-
-void debug_success(node_t * n, const char *name, int start_pos)
-{
+void debug_success(node_t * n, const char *name, int start_pos) {
   //  printf("\n");
   for (int i = 0; i < n->depth; i++)
     printf(" ");
   printf(" [%s] SUCCESS -> %d - %d OK:%d, depth: %d \n", name, start_pos, n->pos, n->OK, n->depth);
 }
-
-void debug_failed(node_t * n, const char *name, int start_pos)
-{
+void debug_failed(node_t * n, const char *name, int start_pos) {
   for (int i = 0; i < n->depth; i++)
     printf(" ");
   printf(" [%s] NO. -> %d - %d OK:%d, depth: %d \n", name, start_pos, n->pos, n->OK, n->depth);
 }
-
-node_t *match_queries(node_t * n, const char last_method[], int depth)
-{
+void compare_string(node_t * n, const char *data, int length) {
+  if (n_OK(n) == 1 && stricmp(n, data) == 0)
+    increment_n(n, length);
+  else
+    n->OK = 0;
+}
+void optional_reset(node_t * n) {
+  if (n->OK == 0) {
+    n->OK = 1;
+    n->pos = pop(n->stack);
+  } else {
+    pop(n->stack);
+  }
+}
+void not_reset(node_t * n) {
+  if (n->OK == 1) {
+    n->OK = 0;
+    n->pos = pop(n->stack);
+  } else {
+    n->OK = 1;
+    increment_n(n, 1);
+    pop(n->stack);
+  }
+}
+void match_queries(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "queries";
   int start_pos = n->pos;
   n->depth += 1;
@@ -86,32 +102,33 @@ node_t *match_queries(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  //select  queries queries
-  //0
-  //string
-  //external -> 0
+  // GROUP
   if (n_OK(n) == 1) {
-    n = match_select(n, name, depth + 1);
-  }
+    //whitespace  queries queries
+    //0
+    //external -> 0
+    match_whitespace(n, name, depth + 1);
+    //select  queries queries
+    //0
+    //external -> 1
+    match_select(n, name, depth + 1);
 
+  }
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[queries] ");
+    printf("[queries] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -119,11 +136,11 @@ node_t *match_queries(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_select(node_t * n, const char last_method[], int depth)
-{
+void match_select(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "select";
   int start_pos = n->pos;
   n->depth += 1;
@@ -131,271 +148,156 @@ node_t *match_select(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
   //None  select select
   //0
-  //string
   // order 0
-  if (n_OK(n) == 1 && stricmp(n, (const char *) "select") == 0) {
-    n->OK = 1;
-    n->pos += 6;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
-    n->OK = 0;
-  }
+  compare_string(n, (const char *) "select", 6);
   //whitespace  select select
   //0
-  //string
   //external -> 1
-  if (n_OK(n) == 1) {
-    n = match_whitespace(n, name, depth + 1);
-  }
+  match_whitespace(n, name, depth + 1);
   //select_expr_list  select select
   //0
-  //string
   //external -> 2
-  if (n_OK(n) == 1) {
-    n = match_select_expr_list(n, name, depth + 1);
-  }
+  match_select_expr_list(n, name, depth + 1);
   //whitespace  select select
   //0
-  //string
   //external -> 3
-  if (n_OK(n) == 1) {
-    n = match_whitespace(n, name, depth + 1);
-  }
-  // dict
+  match_whitespace(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  select select
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "from") == 0) {
-          n->OK = 1;
-          n->pos += 4;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "from", 4);
         //whitespace  select select
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //identifier  select select
         //0
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_identifier(n, name, depth + 1);
-        }
-        // dict
+        match_identifier(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
-            // dict
-            if (n_OK(n) == 1 && (
-                                  //string
-                                  n->value[n->pos] == '.')) {
-              n->OK = 1;
-              n->pos++;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
+            if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+              increment_n(n, 1);
+            else
               n->OK = 0;
-            }                   // end char
             //identifier  select select
             //0
-            //string
             //external -> 1
-            if (n_OK(n) == 1) {
-              n = match_identifier(n, name, depth + 1);
-            }
+            match_identifier(n, name, depth + 1);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
-        // dict
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //whitespace  select select
             //0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //None  select select
             //0
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "as") == 0) {
-              n->OK = 1;
-              n->pos += 2;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "as", 2);
             //whitespace  select select
             //0
-            //string
             //external -> 2
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //identifier  select select
             //0
-            //string
             //external -> 3
-            if (n_OK(n) == 1) {
-              n = match_identifier(n, name, depth + 1);
-            }
+            match_identifier(n, name, depth + 1);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
 
   }
   //whitespace  select select
   //0
-  //string
   //external -> 5
-  if (n_OK(n) == 1) {
-    n = match_whitespace(n, name, depth + 1);
-  }
-  // dict
+  match_whitespace(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  select select
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "where") == 0) {
-          n->OK = 1;
-          n->pos += 5;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        // dict
+        compare_string(n, (const char *) "where", 5);
         //one or more
         push(n->stack, n->pos);
         while (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //whitespace  select select
             //0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //expr  select select
             //0
-            //string
             //external -> 1
-            if (n_OK(n) == 1) {
-              n = match_expr(n, name, depth + 1);
-            }
+            match_expr(n, name, depth + 1);
 
           }
 
-          if (n->OK == 0) {
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          if (n->OK == 0)
+            n->pos = pop(n->stack);
+          else
+            pop(n->stack);
         }
-        if (n->pos == peek(n->stack)) {
+        if (n->pos == pop(n->stack)) {
           n->OK = 0;
         } else {
           n->OK = 1;
         }
-        pop(n->stack);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[select] ");
+    printf("[select] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -403,11 +305,11 @@ node_t *match_select(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_select_expr(node_t * n, const char last_method[], int depth)
-{
+void match_select_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "select_expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -415,88 +317,55 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //expr  select_expr select_expr
     //0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+    match_expr(n, name, depth + 1);
     //whitespace  select_expr select_expr
     //0
-    //string
     //external -> 1
-    if (n_OK(n) == 1) {
-      n = match_whitespace(n, name, depth + 1);
-    }
-    // dict
+    match_whitespace(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  select_expr select_expr
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "as") == 0) {
-          n->OK = 1;
-          n->pos += 2;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "as", 2);
         //whitespace  select_expr select_expr
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //identifier  select_expr select_expr
         //0
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_identifier(n, name, depth + 1);
-        }
+        match_identifier(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[select_expr] ");
+    printf("[select_expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -504,11 +373,11 @@ node_t *match_select_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_select_expr_list(node_t * n, const char last_method[], int depth)
-{
+void match_select_expr_list(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "select_expr_list";
   int start_pos = n->pos;
   n->depth += 1;
@@ -516,89 +385,60 @@ node_t *match_select_expr_list(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
   //select_expr  select_expr_list select_expr_list
   //0
-  //string
   //external -> 0
-  if (n_OK(n) == 1) {
-    n = match_select_expr(n, name, depth + 1);
-  }
-  // dict
+  match_select_expr(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //whitespace  select_expr_list select_expr_list
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == ',')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        match_whitespace(n, name, depth + 1);
+        if (n_OK(n) == 1 && (n->value[n->pos] == ','))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  select_expr_list select_expr_list
         //0
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //select_expr  select_expr_list select_expr_list
         //0
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_select_expr(n, name, depth + 1);
-        }
+        match_select_expr(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
+    n->OK = pop(n->stack);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[select_expr_list] ");
+    printf("[select_expr_list] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -606,11 +446,11 @@ node_t *match_select_expr_list(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_subquery(node_t * n, const char last_method[], int depth)
-{
+void match_subquery(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "subquery";
   int start_pos = n->pos;
   n->depth += 1;
@@ -618,75 +458,54 @@ node_t *match_subquery(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
-    //whitespace  subquery subquery
-    //0
-    //string
-    //external -> 1
+    //optional
     if (n_OK(n) == 1) {
-      n = match_whitespace(n, name, depth + 1);
+      push(n->stack, n->pos);
+      //external -> None
+      match_whitespace(n, name, depth + 1);
+
+      optional_reset(n);
     }
     //select  subquery subquery
     //0
-    //string
     //external -> 2
+    match_select(n, name, depth + 1);
+    //optional
     if (n_OK(n) == 1) {
-      n = match_select(n, name, depth + 1);
+      push(n->stack, n->pos);
+      //external -> None
+      match_whitespace(n, name, depth + 1);
+
+      optional_reset(n);
     }
-    //whitespace  subquery subquery
-    //0
-    //string
-    //external -> 3
-    if (n_OK(n) == 1) {
-      n = match_whitespace(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[subquery] ");
+    printf("[subquery] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -694,11 +513,11 @@ node_t *match_subquery(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_expr(node_t * n, const char last_method[], int depth)
-{
+void match_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -706,111 +525,101 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
     // GROUP
     if (n_OK(n) == 1) {
-      // list
       //expr  expr expr
       //2
-      //list item switch
       //item 0  //skip if not called by self
       if (strcmp(name, last_method) != 0) {
         n->OK = 0;
       }
       //whitespace  expr expr
       //2
-      //string
       //external -> 1
+      match_whitespace(n, name, depth + 1);
+      // GROUP
       if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  expr expr
-      //2
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "or") == 0) {
-        n->OK = 1;
-        n->pos += 2;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
+        //OR
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          //item 0
+          // order 0
+          compare_string(n, (const char *) "or", 2);
+          if (n->OK == 0) {
+            n->pos = peek(n->stack);
+          }
+          //item+1 1
+          if (n->OK == 0) {
+            n->OK = 1;
+            // order 1
+            compare_string(n, (const char *) "xor", 3);
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+          //item+1 2
+          if (n->OK == 0) {
+            n->OK = 1;
+            // order 2
+            compare_string(n, (const char *) "and", 3);
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+          //item+1 3
+          if (n->OK == 0) {
+            n->OK = 1;
+            // order 3
+            compare_string(n, (const char *) "&&", 2);
+
+            if (n->OK == 0) {
+              n->pos = peek(n->stack);
+            }
+          }
+
+          pop(n->stack);
+        }
+
       }
       //whitespace  expr expr
       //2
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //expr  expr expr
       //2
-      //list item switch
       //item 4  //non index 0 recursion
       if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-        n = match_expr(n, name, depth + 1);
+        match_expr(n, name, depth + 1);
       }
 
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
+        //None  expr expr
+        //1
+        // order 0
+        compare_string(n, (const char *) "not", 3);
         //whitespace  expr expr
-        //2
-        //string
+        //1
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '|' ||
-                              //string
-                              n->value[n->pos] == '|')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }                       // end char
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //expr  expr expr
-        //2
-        //list item switch
-        //item 4  //non index 0 recursion
+        //1
+        //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
+          match_expr(n, name, depth + 1);
         }
 
       }
@@ -819,53 +628,24 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
         //None  expr expr
-        //2
-        //string
-        // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "xor") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        //1
+        // order 0
+        compare_string(n, (const char *) "!", 1);
         //whitespace  expr expr
-        //2
-        //string
-        //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        //1
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
         //expr  expr expr
-        //2
-        //list item switch
-        //item 4  //non index 0 recursion
+        //1
+        //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
+          match_expr(n, name, depth + 1);
         }
 
       }
@@ -874,303 +654,61 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //None  expr expr
-        //2
-        //string
-        // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "and") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 4  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //list item switch
-    //item+1 4
-    if (n->OK == 0) {
-      n->OK = 1;
-      // dict
-      // GROUP
-      if (n_OK(n) == 1) {
-        // list
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 0  //skip if not called by self
-        if (strcmp(name, last_method) != 0) {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //None  expr expr
-        //2
-        //string
-        // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "&&") == 0) {
-          n->OK = 1;
-          n->pos += 2;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //2
-        //string
-        //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //expr  expr expr
-        //2
-        //list item switch
-        //item 4  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //list item switch
-    //item+1 5
-    if (n->OK == 0) {
-      n->OK = 1;
-      // dict
-      // GROUP
-      if (n_OK(n) == 1) {
-        // list
-        //None  expr expr
-        //1
-        //string
-        // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //1
-        //string
-        //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //expr  expr expr
-        //1
-        //list item switch
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //list item switch
-    //item+1 6
-    if (n->OK == 0) {
-      n->OK = 1;
-      // dict
-      // GROUP
-      if (n_OK(n) == 1) {
-        // list
-        //None  expr expr
-        //1
-        //string
-        // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "!") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        //whitespace  expr expr
-        //1
-        //string
-        //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        //expr  expr expr
-        //1
-        //list item switch
-        //item 2  //non index 0 recursion
-        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_expr(n, name, depth + 1);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-    }
-    //list item switch
-    //item+1 7
-    if (n->OK == 0) {
-      n->OK = 1;
-      // dict
-      // GROUP
-      if (n_OK(n) == 1) {
-        // list
         //boolean_primary  expr expr
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_boolean_primary(n, name, depth + 1);
-        }
+        match_boolean_primary(n, name, depth + 1);
         //whitespace  expr expr
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  expr expr
         //0
-        //string
         // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "IS") == 0) {
-          n->OK = 1;
-          n->pos += 2;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        // dict
+        compare_string(n, (const char *) "IS", 2);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //whitespace  expr expr
             //0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //None  expr expr
             //0
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "not", 3);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  expr expr
         //0
-        //string
         //external -> 4
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
           //OR
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
-            // list
-            //list item switch
             //item 0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_boolean(n, name, depth + 1);
-            }
+            match_boolean(n, name, depth + 1);
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
-            //list item switch
             //item+1 1
             if (n->OK == 0) {
               n->OK = 1;
-              //string
               //external -> 1
-              if (n_OK(n) == 1) {
-                n = match_unknown(n, name, depth + 1);
-              }
+              match_unknown(n, name, depth + 1);
 
               if (n->OK == 0) {
                 n->pos = peek(n->stack);
@@ -1188,15 +726,11 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
-    //item+1 8
+    //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
-      //external -> 8
-      if (n_OK(n) == 1) {
-        n = match_boolean_primary(n, name, depth + 1);
-      }
+      //external -> 4
+      match_boolean_primary(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -1205,31 +739,29 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[expr] ");
+    printf("[expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-    if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {  //recur
-      push(n->stack, n->pos);
-      n = match_expr(n, name, depth + 1);
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        n->OK = 1;
-      }
+    debug_success(n, name, start_pos);
+  }
+#endif
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    match_expr(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      n->OK = 1;
+    } else {
       pop(n->stack);
     }
-#ifdef  DEBUG_SUCCESS
-    debug_success(n, name, start_pos);
-#endif
   }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
@@ -1238,11 +770,11 @@ node_t *match_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
-{
+void match_boolean_primary(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "boolean_primary";
   int start_pos = n->pos;
   n->depth += 1;
@@ -1250,142 +782,84 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
     // GROUP
     if (n_OK(n) == 1) {
-      // list
       //boolean_primary  boolean_primary boolean_primary
       //1
-      //list item switch
       //item 0  //skip if not called by self
       if (strcmp(name, last_method) != 0) {
         n->OK = 0;
       }
       //whitespace  boolean_primary boolean_primary
       //1
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //comparison_operator  boolean_primary boolean_primary
       //1
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_comparison_operator(n, name, depth + 1);
-      }
+      match_comparison_operator(n, name, depth + 1);
       //whitespace  boolean_primary boolean_primary
       //1
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //predicate  boolean_primary boolean_primary
       //1
-      //string
       //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_predicate(n, name, depth + 1);
-      }
+      match_predicate(n, name, depth + 1);
 
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //boolean_primary  boolean_primary boolean_primary
         //1
-        //list item switch
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  boolean_primary boolean_primary
         //1
-        //string
         // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "is") == 0) {
-          n->OK = 1;
-          n->pos += 2;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
-        // dict
+        compare_string(n, (const char *) "is", 2);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //whitespace  boolean_primary boolean_primary
             //0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //None  boolean_primary boolean_primary
             //0
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "not", 3);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 4
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //null  boolean_primary boolean_primary
         //1
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_null(n, name, depth + 1);
-        }
+        match_null(n, name, depth + 1);
 
       }
 
@@ -1393,54 +867,33 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //boolean_primary  boolean_primary boolean_primary
         //1
-        //list item switch
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  boolean_primary boolean_primary
         //1
-        //string
         // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "<=>") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "<=>", 3);
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //predicate  boolean_primary boolean_primary
         //1
-        //string
         //external -> 4
-        if (n_OK(n) == 1) {
-          n = match_predicate(n, name, depth + 1);
-        }
+        match_predicate(n, name, depth + 1);
 
       }
 
@@ -1448,80 +901,45 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //boolean_primary  boolean_primary boolean_primary
         //1
-        //list item switch
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //comparison_operator  boolean_primary boolean_primary
         //1
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_comparison_operator(n, name, depth + 1);
-        }
+        match_comparison_operator(n, name, depth + 1);
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
           //OR
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
-            // list
-            //list item switch
             //item 0
-            //string
             // order 0
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "all") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "all", 3);
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
-            //list item switch
             //item+1 1
             if (n->OK == 0) {
               n->OK = 1;
-              //string
               // order 1
-              if (n_OK(n) == 1 && stricmp(n, (const char *) "any") == 0) {
-                n->OK = 1;
-                n->pos += 3;
-                if (n->pos >= n->len)
-                  n->pos = -1;
-              } else {
-                n->OK = 0;
-              }
+              compare_string(n, (const char *) "any", 3);
 
               if (n->OK == 0) {
                 n->pos = peek(n->stack);
@@ -1534,18 +952,12 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         }
         //whitespace  boolean_primary boolean_primary
         //1
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //subquery  boolean_primary boolean_primary
         //1
-        //string
         //external -> 6
-        if (n_OK(n) == 1) {
-          n = match_subquery(n, name, depth + 1);
-        }
+        match_subquery(n, name, depth + 1);
 
       }
 
@@ -1553,15 +965,11 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_predicate(n, name, depth + 1);
-      }
+      match_predicate(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -1570,31 +978,29 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[boolean_primary] ");
+    printf("[boolean_primary] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-    if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {  //recur
-      push(n->stack, n->pos);
-      n = match_boolean_primary(n, name, depth + 1);
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        n->OK = 1;
-      }
+    debug_success(n, name, start_pos);
+  }
+#endif
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    match_boolean_primary(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      n->OK = 1;
+    } else {
       pop(n->stack);
     }
-#ifdef  DEBUG_SUCCESS
-    debug_success(n, name, start_pos);
-#endif
   }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
@@ -1603,11 +1009,11 @@ node_t *match_boolean_primary(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_where_expression(node_t * n, const char last_method[], int depth)
-{
+void match_where_expression(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "where_expression";
   int start_pos = n->pos;
   n->depth += 1;
@@ -1615,32 +1021,26 @@ node_t *match_where_expression(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
   //expr  where_expression where_expression
   //0
-  //string
   //external -> 0
-  if (n_OK(n) == 1) {
-    n = match_expr(n, name, depth + 1);
-  }
+  match_expr(n, name, depth + 1);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[where_expression] ");
+    printf("[where_expression] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -1648,11 +1048,11 @@ node_t *match_where_expression(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_predicate(node_t * n, const char last_method[], int depth)
-{
+void match_predicate(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "predicate";
   int start_pos = n->pos;
   n->depth += 1;
@@ -1660,258 +1060,136 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
     // GROUP
     if (n_OK(n) == 1) {
-      // list
       //bit_expr  predicate predicate
       //0
-      //string
       //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_bit_expr(n, name, depth + 1);
-      }
+      match_bit_expr(n, name, depth + 1);
       //whitespace  predicate predicate
       //0
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      // dict
+      match_whitespace(n, name, depth + 1);
       //optional
       if (n_OK(n) == 1) {
         push(n->stack, n->pos);
-        //string
         // order None
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "not", 3);
 
-        if (n->OK == 0) {
-          n->OK = 1;
-          n->pos = peek(n->stack);
-        }
-        pop(n->stack);
+        optional_reset(n);
       }
       //whitespace  predicate predicate
       //0
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //None  predicate predicate
       //0
-      //string
       // order 4
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "in") == 0) {
-        n->OK = 1;
-        n->pos += 2;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "in", 2);
       //whitespace  predicate predicate
       //0
-      //string
       //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //subquery  predicate predicate
       //0
-      //string
       //external -> 6
-      if (n_OK(n) == 1) {
-        n = match_subquery(n, name, depth + 1);
-      }
+      match_subquery(n, name, depth + 1);
 
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //bit_expr  predicate predicate
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           // order None
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-            n->OK = 1;
-            n->pos += 3;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "not", 3);
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  predicate predicate
         //0
-        //string
         // order 4
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "in") == 0) {
-          n->OK = 1;
-          n->pos += 2;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "in", 2);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '(')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        match_whitespace(n, name, depth + 1);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
 
         //expr  predicate predicate
         //0
-        //string
         //external -> 7
-        if (n_OK(n) == 1) {
-          n = match_expr(n, name, depth + 1);
-        }
-        // dict
+        match_expr(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
-            // dict
             //zero or more
             push(n->stack, n->OK);
             while (n_OK(n) == 1) {
               push(n->stack, n->pos);
-              // dict
               // GROUP
               if (n_OK(n) == 1) {
-                // list
                 //whitespace  predicate predicate
                 //0
-                //string
                 //external -> 0
-                if (n_OK(n) == 1) {
-                  n = match_whitespace(n, name, depth + 1);
-                }
-                // dict
-                if (n_OK(n) == 1 && (
-                                      //string
-                                      n->value[n->pos] == ',')) {
-                  n->OK = 1;
-                  n->pos++;
-                  if (n->pos >= n->len)
-                    n->pos = -1;
-                } else {
+                match_whitespace(n, name, depth + 1);
+                if (n_OK(n) == 1 && (n->value[n->pos] == ','))
+                  increment_n(n, 1);
+                else
                   n->OK = 0;
-                }               // end char
                 //whitespace  predicate predicate
                 //0
-                //string
                 //external -> 2
-                if (n_OK(n) == 1) {
-                  n = match_whitespace(n, name, depth + 1);
-                }
+                match_whitespace(n, name, depth + 1);
                 //expr  predicate predicate
                 //0
-                //string
                 //external -> 3
-                if (n_OK(n) == 1) {
-                  n = match_expr(n, name, depth + 1);
-                }
+                match_expr(n, name, depth + 1);
 
               }
 
               if (n->OK == 0) {
-                n->pos = peek(n->stack);
-              }
-              pop(n->stack);
+                n->pos = pop(n->stack);
+              } else
+                pop(n->stack);
             }
-            n->OK = peek(n->stack);
-            pop(n->stack);
+            n->OK = pop(n->stack);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == ')')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
 
       }
 
@@ -1919,114 +1197,60 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //bit_expr  predicate predicate
         //1
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
         //whitespace  predicate predicate
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           // order None
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-            n->OK = 1;
-            n->pos += 3;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "not", 3);
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  predicate predicate
         //1
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  predicate predicate
         //1
-        //string
         // order 4
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "between") == 0) {
-          n->OK = 1;
-          n->pos += 7;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "between", 7);
         //whitespace  predicate predicate
         //1
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //bit_expr  predicate predicate
         //1
-        //string
         //external -> 6
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
         //whitespace  predicate predicate
         //1
-        //string
         //external -> 7
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  predicate predicate
         //1
-        //string
         // order 8
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "and") == 0) {
-          n->OK = 1;
-          n->pos += 3;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "and", 3);
         //whitespace  predicate predicate
         //1
-        //string
         //external -> 9
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //predicate  predicate predicate
         //1
-        //list item switch
         //item 10  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_predicate(n, name, depth + 1);
+          match_predicate(n, name, depth + 1);
         }
 
       }
@@ -2035,131 +1259,68 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //bit_expr  predicate predicate
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           // order None
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-            n->OK = 1;
-            n->pos += 3;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "not", 3);
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  predicate predicate
         //0
-        //string
         // order 4
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "like") == 0) {
-          n->OK = 1;
-          n->pos += 4;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "like", 4);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  predicate predicate
         //0
-        //string
         //external -> 6
-        if (n_OK(n) == 1) {
-          n = match_simple_expr(n, name, depth + 1);
-        }
-        // dict
+        match_simple_expr(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //whitespace  predicate predicate
             //0
-            //string
             //external -> 0
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //None  predicate predicate
             //0
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "escape") == 0) {
-              n->OK = 1;
-              n->pos += 6;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "escape", 6);
             //whitespace  predicate predicate
             //0
-            //string
             //external -> 2
-            if (n_OK(n) == 1) {
-              n = match_whitespace(n, name, depth + 1);
-            }
+            match_whitespace(n, name, depth + 1);
             //simple_expr  predicate predicate
             //0
-            //string
             //external -> 3
-            if (n_OK(n) == 1) {
-              n = match_simple_expr(n, name, depth + 1);
-            }
+            match_simple_expr(n, name, depth + 1);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
 
       }
@@ -2168,82 +1329,43 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //bit_expr  predicate predicate
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
+        match_whitespace(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           // order None
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-            n->OK = 1;
-            n->pos += 3;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "not", 3);
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //None  predicate predicate
         //0
-        //string
         // order 4
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "regexp") == 0) {
-          n->OK = 1;
-          n->pos += 6;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "regexp", 6);
         //whitespace  predicate predicate
         //0
-        //string
         //external -> 5
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //bit_expr  predicate predicate
         //0
-        //string
         //external -> 6
-        if (n_OK(n) == 1) {
-          n = match_bit_expr(n, name, depth + 1);
-        }
+        match_bit_expr(n, name, depth + 1);
 
       }
 
@@ -2251,15 +1373,11 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_bit_expr(n, name, depth + 1);
-      }
+      match_bit_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -2268,31 +1386,29 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[predicate] ");
+    printf("[predicate] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-    if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {  //recur
-      push(n->stack, n->pos);
-      n = match_predicate(n, name, depth + 1);
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        n->OK = 1;
-      }
+    debug_success(n, name, start_pos);
+  }
+#endif
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    match_predicate(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      n->OK = 1;
+    } else {
       pop(n->stack);
     }
-#ifdef  DEBUG_SUCCESS
-    debug_success(n, name, start_pos);
-#endif
   }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
@@ -2301,11 +1417,11 @@ node_t *match_predicate(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
-{
+void match_bit_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "bit_expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -2313,107 +1429,68 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
     // GROUP
     if (n_OK(n) == 1) {
-      // list
       //bit_expr  bit_expr bit_expr
       //2
-      //list item switch
       //item 0  //skip if not called by self
       if (strcmp(name, last_method) != 0) {
         n->OK = 0;
       }
       //whitespace  bit_expr bit_expr
       //2
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //operations  bit_expr bit_expr
       //2
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_operations(n, name, depth + 1);
-      }
+      match_operations(n, name, depth + 1);
       //whitespace  bit_expr bit_expr
       //2
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
+      match_whitespace(n, name, depth + 1);
       //bit_expr  bit_expr bit_expr
       //2
-      //list item switch
       //item 4  //non index 0 recursion
       if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-        n = match_bit_expr(n, name, depth + 1);
+        match_bit_expr(n, name, depth + 1);
       }
 
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //bit_expr  bit_expr bit_expr
         //1
-        //list item switch
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
         //whitespace  bit_expr bit_expr
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '+' ||
-                              //string
-                              n->value[n->pos] == '-')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        match_whitespace(n, name, depth + 1);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '+' || n->value[n->pos] == '-'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  bit_expr bit_expr
         //1
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //interval_expr  bit_expr bit_expr
         //1
-        //string
         //external -> 4
-        if (n_OK(n) == 1) {
-          n = match_interval_expr(n, name, depth + 1);
-        }
+        match_interval_expr(n, name, depth + 1);
 
       }
 
@@ -2421,15 +1498,11 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_simple_expr(n, name, depth + 1);
-      }
+      match_simple_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -2438,31 +1511,29 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[bit_expr] ");
+    printf("[bit_expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-    if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {  //recur
-      push(n->stack, n->pos);
-      n = match_bit_expr(n, name, depth + 1);
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        n->OK = 1;
-      }
+    debug_success(n, name, start_pos);
+  }
+#endif
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    match_bit_expr(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      n->OK = 1;
+    } else {
       pop(n->stack);
     }
-#ifdef  DEBUG_SUCCESS
-    debug_success(n, name, start_pos);
-#endif
   }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
@@ -2471,11 +1542,11 @@ node_t *match_bit_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_operations(node_t * n, const char last_method[], int depth)
-{
+void match_operations(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "operations";
   int start_pos = n->pos;
   n->depth += 1;
@@ -2483,78 +1554,42 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '|')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '&')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '&'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '<')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '<'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '<')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '<'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
 
       }
 
@@ -2562,36 +1597,19 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '>')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '>'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '>')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '>'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
 
       }
 
@@ -2599,159 +1617,93 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '+')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '+'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '-')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '-'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '*')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '*'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '/')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '/'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 8
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "div") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "div", 3);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 9
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 9
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "mod") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "mod", 3);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 10
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '%')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '%'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 11
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '^')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '^'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -2760,24 +1712,21 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[operations] ");
+    printf("[operations] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -2785,11 +1734,11 @@ node_t *match_operations(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
-{
+void match_simple_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "simple_expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -2797,107 +1746,67 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_literal(n, name, depth + 1);
-    }
+    match_literal(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_identifier(n, name, depth + 1);
-      }
+      match_identifier(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_subquery(n, name, depth + 1);
-      }
+      match_subquery(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //simple_expr  simple_expr simple_expr
         //2
-        //list item switch
         //item 0  //skip if not called by self
         if (strcmp(name, last_method) != 0) {
           n->OK = 0;
         }
         //whitespace  simple_expr simple_expr
         //2
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '|')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        match_whitespace(n, name, depth + 1);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '|')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '|'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  simple_expr simple_expr
         //2
-        //string
         //external -> 4
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  simple_expr simple_expr
         //2
-        //list item switch
         //item 5  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_simple_expr(n, name, depth + 1);
+          match_simple_expr(n, name, depth + 1);
         }
 
       }
@@ -2906,38 +1815,24 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '+')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '+'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  simple_expr simple_expr
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  simple_expr simple_expr
         //1
-        //list item switch
         //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_simple_expr(n, name, depth + 1);
+          match_simple_expr(n, name, depth + 1);
         }
 
       }
@@ -2946,38 +1841,24 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '-')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '-'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  simple_expr simple_expr
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  simple_expr simple_expr
         //1
-        //list item switch
         //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_simple_expr(n, name, depth + 1);
+          match_simple_expr(n, name, depth + 1);
         }
 
       }
@@ -2986,38 +1867,24 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '~')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '~'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  simple_expr simple_expr
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  simple_expr simple_expr
         //1
-        //list item switch
         //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_simple_expr(n, name, depth + 1);
+          match_simple_expr(n, name, depth + 1);
         }
 
       }
@@ -3026,38 +1893,24 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '!')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '!'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //whitespace  simple_expr simple_expr
         //1
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_whitespace(n, name, depth + 1);
-        }
+        match_whitespace(n, name, depth + 1);
         //simple_expr  simple_expr simple_expr
         //1
-        //list item switch
         //item 2  //non index 0 recursion
         if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
-          n = match_simple_expr(n, name, depth + 1);
+          match_simple_expr(n, name, depth + 1);
         }
 
       }
@@ -3066,15 +1919,11 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 8
-      if (n_OK(n) == 1) {
-        n = match_interval_expr(n, name, depth + 1);
-      }
+      match_interval_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -3083,31 +1932,29 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[simple_expr] ");
+    printf("[simple_expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-    if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {  //recur
-      push(n->stack, n->pos);
-      n = match_simple_expr(n, name, depth + 1);
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        n->OK = 1;
-      }
+    debug_success(n, name, start_pos);
+  }
+#endif
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    match_simple_expr(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      n->OK = 1;
+    } else {
       pop(n->stack);
     }
-#ifdef  DEBUG_SUCCESS
-    debug_success(n, name, start_pos);
-#endif
   }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
@@ -3116,11 +1963,11 @@ node_t *match_simple_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_literal(node_t * n, const char last_method[], int depth)
-{
+void match_literal(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "literal";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3128,87 +1975,60 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_hex(n, name, depth + 1);
-    }
+    match_hex(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_bit(n, name, depth + 1);
-      }
+      match_bit(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_real(n, name, depth + 1);
-      }
+      match_boolean(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_null(n, name, depth + 1);
-      }
+      match_null(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_boolean(n, name, depth + 1);
-      }
+      match_string(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_string(n, name, depth + 1);
-      }
+      match_real(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -3217,24 +2037,21 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[literal] ");
+    printf("[literal] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3242,11 +2059,11 @@ node_t *match_literal(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
-{
+void match_interval_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "interval_expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3254,383 +2071,200 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MICROSECOND") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "MICROSECOND", 11);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 1
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 6;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "SECOND", 6);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 6;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "MINUTE", 6);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 3
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "HOUR", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 4
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "DAY", 3);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 5
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEK") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "WEEK", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTH") == 0) {
-        n->OK = 1;
-        n->pos += 5;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "MONTH", 5);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 7
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "QUARTER") == 0) {
-        n->OK = 1;
-        n->pos += 7;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "QUARTER", 7);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 8
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "YEAR", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 9
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 9
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 18;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "SECOND_MICROSECOND", 18);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 10
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 10
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 18;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "MINUTE_MICROSECOND", 18);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 11
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 11
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 13;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "MINUTE_SECOND", 13);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 12
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 12
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 16;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "HOUR_MICROSECOND", 16);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 13
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 13
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 11;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "HOUR_SECOND", 11);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 14
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 14
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 11;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "HOUR_MINUTE", 11);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 15
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 15
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 15;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "DAY_MICROSECOND", 15);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 16
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 16
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "DAY_SECOND", 10);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 17
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 17
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "DAY_MINUTE", 10);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 18
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 18
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_HOUR") == 0) {
-        n->OK = 1;
-        n->pos += 8;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "DAY_HOUR", 8);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 19
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 19
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR_MONTH") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "YEAR_MONTH", 10);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -3639,24 +2273,21 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[interval_expr] ");
+    printf("[interval_expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3664,11 +2295,11 @@ node_t *match_interval_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_YEARS(node_t * n, const char last_method[], int depth)
-{
+void match_YEARS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "YEARS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3676,38 +2307,26 @@ node_t *match_YEARS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  YEARS YEARS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  YEARS YEARS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[YEARS] ");
+    printf("[YEARS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3715,11 +2334,11 @@ node_t *match_YEARS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_QUARTERS(node_t * n, const char last_method[], int depth)
-{
+void match_QUARTERS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "QUARTERS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3727,38 +2346,26 @@ node_t *match_QUARTERS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  QUARTERS QUARTERS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  QUARTERS QUARTERS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[QUARTERS] ");
+    printf("[QUARTERS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3766,11 +2373,11 @@ node_t *match_QUARTERS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MONTHS(node_t * n, const char last_method[], int depth)
-{
+void match_MONTHS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MONTHS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3778,38 +2385,26 @@ node_t *match_MONTHS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  MONTHS MONTHS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  MONTHS MONTHS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MONTHS] ");
+    printf("[MONTHS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3817,11 +2412,11 @@ node_t *match_MONTHS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_WEEKS(node_t * n, const char last_method[], int depth)
-{
+void match_WEEKS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "WEEKS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3829,38 +2424,26 @@ node_t *match_WEEKS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  WEEKS WEEKS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  WEEKS WEEKS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[WEEKS] ");
+    printf("[WEEKS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3868,11 +2451,11 @@ node_t *match_WEEKS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAYS(node_t * n, const char last_method[], int depth)
-{
+void match_DAYS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAYS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3880,38 +2463,26 @@ node_t *match_DAYS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  DAYS DAYS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  DAYS DAYS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAYS] ");
+    printf("[DAYS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3919,11 +2490,11 @@ node_t *match_DAYS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOURS(node_t * n, const char last_method[], int depth)
-{
+void match_HOURS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOURS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3931,38 +2502,26 @@ node_t *match_HOURS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  HOURS HOURS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  HOURS HOURS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOURS] ");
+    printf("[HOURS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -3970,11 +2529,11 @@ node_t *match_HOURS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MINUTES(node_t * n, const char last_method[], int depth)
-{
+void match_MINUTES(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MINUTES";
   int start_pos = n->pos;
   n->depth += 1;
@@ -3982,38 +2541,26 @@ node_t *match_MINUTES(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  MINUTES MINUTES
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  MINUTES MINUTES
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MINUTES] ");
+    printf("[MINUTES] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4021,11 +2568,11 @@ node_t *match_MINUTES(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SECONDS(node_t * n, const char last_method[], int depth)
-{
+void match_SECONDS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SECONDS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4033,38 +2580,26 @@ node_t *match_SECONDS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  SECONDS SECONDS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  SECONDS SECONDS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SECONDS] ");
+    printf("[SECONDS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4072,11 +2607,11 @@ node_t *match_SECONDS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MICROSECONDS(node_t * n, const char last_method[], int depth)
-{
+void match_MICROSECONDS(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MICROSECONDS";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4084,38 +2619,26 @@ node_t *match_MICROSECONDS(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //unsigned_int  MICROSECONDS MICROSECONDS
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+  //unsigned_int  MICROSECONDS MICROSECONDS
+  //0
+  //external -> 0
+  match_unsigned_int(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MICROSECONDS] ");
+    printf("[MICROSECONDS] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4123,11 +2646,11 @@ node_t *match_MICROSECONDS(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MICROSECOND(node_t * n, const char last_method[], int depth)
-{
+void match_MICROSECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MICROSECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4135,63 +2658,37 @@ node_t *match_MICROSECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //MICROSECONDS  MICROSECOND MICROSECOND
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_MICROSECONDS(n, name, depth + 1);
-      }
-      //whitespace  MICROSECOND MICROSECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  MICROSECOND MICROSECOND
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 11;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //MICROSECONDS  MICROSECOND MICROSECOND
+    //0
+    //external -> 0
+    match_MICROSECONDS(n, name, depth + 1);
+    //whitespace  MICROSECOND MICROSECOND
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  MICROSECOND MICROSECOND
+    //0
+    // order 2
+    compare_string(n, (const char *) "MICROSECOND", 11);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MICROSECOND] ");
+    printf("[MICROSECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4199,11 +2696,11 @@ node_t *match_MICROSECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SECOND(node_t * n, const char last_method[], int depth)
-{
+void match_SECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4211,63 +2708,37 @@ node_t *match_SECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //SECONDS  SECOND SECOND
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      //whitespace  SECOND SECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  SECOND SECOND
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 6;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //SECONDS  SECOND SECOND
+    //0
+    //external -> 0
+    match_SECONDS(n, name, depth + 1);
+    //whitespace  SECOND SECOND
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  SECOND SECOND
+    //0
+    // order 2
+    compare_string(n, (const char *) "SECOND", 6);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SECOND] ");
+    printf("[SECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4275,11 +2746,11 @@ node_t *match_SECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MINUTE(node_t * n, const char last_method[], int depth)
-{
+void match_MINUTE(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MINUTE";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4287,63 +2758,37 @@ node_t *match_MINUTE(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //MINUTES  MINUTE MINUTE
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      //whitespace  MINUTE MINUTE
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  MINUTE MINUTE
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 6;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //MINUTES  MINUTE MINUTE
+    //0
+    //external -> 0
+    match_MINUTES(n, name, depth + 1);
+    //whitespace  MINUTE MINUTE
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  MINUTE MINUTE
+    //0
+    // order 2
+    compare_string(n, (const char *) "MINUTE", 6);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MINUTE] ");
+    printf("[MINUTE] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4351,11 +2796,11 @@ node_t *match_MINUTE(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOUR(node_t * n, const char last_method[], int depth)
-{
+void match_HOUR(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOUR";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4363,63 +2808,37 @@ node_t *match_HOUR(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //HOURS  HOUR HOUR
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      //whitespace  HOUR HOUR
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  HOUR HOUR
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //HOURS  HOUR HOUR
+    //0
+    //external -> 0
+    match_HOURS(n, name, depth + 1);
+    //whitespace  HOUR HOUR
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  HOUR HOUR
+    //0
+    // order 2
+    compare_string(n, (const char *) "HOUR", 4);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOUR] ");
+    printf("[HOUR] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4427,11 +2846,11 @@ node_t *match_HOUR(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY(node_t * n, const char last_method[], int depth)
-{
+void match_DAY(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4439,63 +2858,37 @@ node_t *match_DAY(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //DAYS  DAY DAY
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_DAYS(n, name, depth + 1);
-      }
-      //whitespace  DAY DAY
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  DAY DAY
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //DAYS  DAY DAY
+    //0
+    //external -> 0
+    match_DAYS(n, name, depth + 1);
+    //whitespace  DAY DAY
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  DAY DAY
+    //0
+    // order 2
+    compare_string(n, (const char *) "DAY", 3);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY] ");
+    printf("[DAY] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4503,11 +2896,11 @@ node_t *match_DAY(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_WEEK(node_t * n, const char last_method[], int depth)
-{
+void match_WEEK(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "WEEK";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4515,63 +2908,37 @@ node_t *match_WEEK(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //WEEKS  WEEK WEEK
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_WEEKS(n, name, depth + 1);
-      }
-      //whitespace  WEEK WEEK
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  WEEK WEEK
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEK") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //WEEKS  WEEK WEEK
+    //0
+    //external -> 0
+    match_WEEKS(n, name, depth + 1);
+    //whitespace  WEEK WEEK
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  WEEK WEEK
+    //0
+    // order 2
+    compare_string(n, (const char *) "WEEK", 4);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[WEEK] ");
+    printf("[WEEK] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4579,11 +2946,11 @@ node_t *match_WEEK(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MONTH(node_t * n, const char last_method[], int depth)
-{
+void match_MONTH(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MONTH";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4591,63 +2958,37 @@ node_t *match_MONTH(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //MONTHS  MONTH MONTH
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_MONTHS(n, name, depth + 1);
-      }
-      //whitespace  MONTH MONTH
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  MONTH MONTH
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTH") == 0) {
-        n->OK = 1;
-        n->pos += 5;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //MONTHS  MONTH MONTH
+    //0
+    //external -> 0
+    match_MONTHS(n, name, depth + 1);
+    //whitespace  MONTH MONTH
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  MONTH MONTH
+    //0
+    // order 2
+    compare_string(n, (const char *) "MONTH", 5);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MONTH] ");
+    printf("[MONTH] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4655,11 +2996,11 @@ node_t *match_MONTH(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_QUARTER(node_t * n, const char last_method[], int depth)
-{
+void match_QUARTER(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "QUARTER";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4667,63 +3008,37 @@ node_t *match_QUARTER(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //QUARTERS  QUARTER QUARTER
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_QUARTERS(n, name, depth + 1);
-      }
-      //whitespace  QUARTER QUARTER
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  QUARTER QUARTER
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "QUARTER") == 0) {
-        n->OK = 1;
-        n->pos += 7;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //QUARTERS  QUARTER QUARTER
+    //0
+    //external -> 0
+    match_QUARTERS(n, name, depth + 1);
+    //whitespace  QUARTER QUARTER
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  QUARTER QUARTER
+    //0
+    // order 2
+    compare_string(n, (const char *) "QUARTER", 7);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[QUARTER] ");
+    printf("[QUARTER] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4731,11 +3046,11 @@ node_t *match_QUARTER(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_YEAR(node_t * n, const char last_method[], int depth)
-{
+void match_YEAR(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "YEAR";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4743,63 +3058,37 @@ node_t *match_YEAR(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      //YEARS  YEAR YEAR
-      //0
-      //string
-      //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_YEARS(n, name, depth + 1);
-      }
-      //whitespace  YEAR YEAR
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  YEAR YEAR
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    //YEARS  YEAR YEAR
+    //0
+    //external -> 0
+    match_YEARS(n, name, depth + 1);
+    //whitespace  YEAR YEAR
+    //0
+    //external -> 1
+    match_whitespace(n, name, depth + 1);
+    //None  YEAR YEAR
+    //0
+    // order 2
+    compare_string(n, (const char *) "YEAR", 4);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[YEAR] ");
+    printf("[YEAR] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4807,11 +3096,11 @@ node_t *match_YEAR(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth)
-{
+void match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SECOND_MICROSECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4819,103 +3108,53 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  SECOND_MICROSECOND SECOND_MICROSECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '.')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MICROSECONDS  SECOND_MICROSECOND SECOND_MICROSECOND
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_MICROSECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  SECOND_MICROSECOND SECOND_MICROSECOND
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  SECOND_MICROSECOND SECOND_MICROSECOND
-      //0
-      //string
-      // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 18;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  SECOND_MICROSECOND SECOND_MICROSECOND
+    //0
+    //external -> 1
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MICROSECONDS  SECOND_MICROSECOND SECOND_MICROSECOND
+    //0
+    //external -> 3
+    match_MICROSECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  SECOND_MICROSECOND SECOND_MICROSECOND
+    //0
+    //external -> 5
+    match_whitespace(n, name, depth + 1);
+    //None  SECOND_MICROSECOND SECOND_MICROSECOND
+    //0
+    // order 6
+    compare_string(n, (const char *) "SECOND_MICROSECOND", 18);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SECOND_MICROSECOND] ");
+    printf("[SECOND_MICROSECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -4923,11 +3162,11 @@ node_t *match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth)
-{
+void match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MINUTE_MICROSECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -4935,121 +3174,61 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  MINUTE_MICROSECOND MINUTE_MICROSECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  MINUTE_MICROSECOND MINUTE_MICROSECOND
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '.')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MICROSECONDS  MINUTE_MICROSECOND MINUTE_MICROSECOND
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_MICROSECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  MINUTE_MICROSECOND MINUTE_MICROSECOND
-      //0
-      //string
-      //external -> 7
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  MINUTE_MICROSECOND MINUTE_MICROSECOND
-      //0
-      //string
-      // order 8
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 18;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  MINUTE_MICROSECOND MINUTE_MICROSECOND
+    //0
+    //external -> 1
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  MINUTE_MICROSECOND MINUTE_MICROSECOND
+    //0
+    //external -> 3
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MICROSECONDS  MINUTE_MICROSECOND MINUTE_MICROSECOND
+    //0
+    //external -> 5
+    match_MICROSECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  MINUTE_MICROSECOND MINUTE_MICROSECOND
+    //0
+    //external -> 7
+    match_whitespace(n, name, depth + 1);
+    //None  MINUTE_MICROSECOND MINUTE_MICROSECOND
+    //0
+    // order 8
+    compare_string(n, (const char *) "MINUTE_MICROSECOND", 18);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MINUTE_MICROSECOND] ");
+    printf("[MINUTE_MICROSECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5057,11 +3236,11 @@ node_t *match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
-{
+void match_MINUTE_SECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MINUTE_SECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5069,103 +3248,53 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  MINUTE_SECOND MINUTE_SECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  MINUTE_SECOND MINUTE_SECOND
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  MINUTE_SECOND MINUTE_SECOND
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  MINUTE_SECOND MINUTE_SECOND
-      //0
-      //string
-      // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 13;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  MINUTE_SECOND MINUTE_SECOND
+    //0
+    //external -> 1
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  MINUTE_SECOND MINUTE_SECOND
+    //0
+    //external -> 3
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  MINUTE_SECOND MINUTE_SECOND
+    //0
+    //external -> 5
+    match_whitespace(n, name, depth + 1);
+    //None  MINUTE_SECOND MINUTE_SECOND
+    //0
+    // order 6
+    compare_string(n, (const char *) "MINUTE_SECOND", 13);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MINUTE_SECOND] ");
+    printf("[MINUTE_SECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5173,11 +3302,11 @@ node_t *match_MINUTE_SECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
-{
+void match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOUR_MICROSECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5185,139 +3314,69 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //HOURS  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '.')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MICROSECONDS  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      //external -> 7
-      if (n_OK(n) == 1) {
-        n = match_MICROSECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      //external -> 9
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  HOUR_MICROSECOND HOUR_MICROSECOND
-      //0
-      //string
-      // order 10
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 16;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //HOURS  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    //external -> 1
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    //external -> 3
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    //external -> 5
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MICROSECONDS  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    //external -> 7
+    match_MICROSECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    //external -> 9
+    match_whitespace(n, name, depth + 1);
+    //None  HOUR_MICROSECOND HOUR_MICROSECOND
+    //0
+    // order 10
+    compare_string(n, (const char *) "HOUR_MICROSECOND", 16);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOUR_MICROSECOND] ");
+    printf("[HOUR_MICROSECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5325,11 +3384,11 @@ node_t *match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
-{
+void match_HOUR_SECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOUR_SECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5337,121 +3396,61 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //HOURS  HOUR_SECOND HOUR_SECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  HOUR_SECOND HOUR_SECOND
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  HOUR_SECOND HOUR_SECOND
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  HOUR_SECOND HOUR_SECOND
-      //0
-      //string
-      //external -> 7
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  HOUR_SECOND HOUR_SECOND
-      //0
-      //string
-      // order 8
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 11;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //HOURS  HOUR_SECOND HOUR_SECOND
+    //0
+    //external -> 1
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  HOUR_SECOND HOUR_SECOND
+    //0
+    //external -> 3
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  HOUR_SECOND HOUR_SECOND
+    //0
+    //external -> 5
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  HOUR_SECOND HOUR_SECOND
+    //0
+    //external -> 7
+    match_whitespace(n, name, depth + 1);
+    //None  HOUR_SECOND HOUR_SECOND
+    //0
+    // order 8
+    compare_string(n, (const char *) "HOUR_SECOND", 11);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOUR_SECOND] ");
+    printf("[HOUR_SECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5459,11 +3458,11 @@ node_t *match_HOUR_SECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
-{
+void match_HOUR_MINUTE(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOUR_MINUTE";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5471,103 +3470,53 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //HOURS  HOUR_MINUTE HOUR_MINUTE
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  HOUR_MINUTE HOUR_MINUTE
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  HOUR_MINUTE HOUR_MINUTE
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  HOUR_MINUTE HOUR_MINUTE
-      //0
-      //string
-      // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR_MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 11;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //HOURS  HOUR_MINUTE HOUR_MINUTE
+    //0
+    //external -> 1
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  HOUR_MINUTE HOUR_MINUTE
+    //0
+    //external -> 3
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  HOUR_MINUTE HOUR_MINUTE
+    //0
+    //external -> 5
+    match_whitespace(n, name, depth + 1);
+    //None  HOUR_MINUTE HOUR_MINUTE
+    //0
+    // order 6
+    compare_string(n, (const char *) "HOUR_MINUTE", 11);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOUR_MINUTE] ");
+    printf("[HOUR_MINUTE] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5575,11 +3524,11 @@ node_t *match_HOUR_MINUTE(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
-{
+void match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY_MICROSECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5587,146 +3536,73 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //DAYS  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_DAYS(n, name, depth + 1);
-      }
-      //HOURS  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 6
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '.')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MICROSECONDS  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 8
-      if (n_OK(n) == 1) {
-        n = match_MICROSECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      //external -> 10
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  DAY_MICROSECOND DAY_MICROSECOND
-      //0
-      //string
-      // order 11
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MICROSECOND") == 0) {
-        n->OK = 1;
-        n->pos += 15;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //DAYS  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 1
+    match_DAYS(n, name, depth + 1);
+    //HOURS  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 2
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 4
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 6
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MICROSECONDS  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 8
+    match_MICROSECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    //external -> 10
+    match_whitespace(n, name, depth + 1);
+    //None  DAY_MICROSECOND DAY_MICROSECOND
+    //0
+    // order 11
+    compare_string(n, (const char *) "DAY_MICROSECOND", 15);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY_MICROSECOND] ");
+    printf("[DAY_MICROSECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5734,11 +3610,11 @@ node_t *match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
-{
+void match_DAY_SECOND(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY_SECOND";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5746,128 +3622,65 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //DAYS  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_DAYS(n, name, depth + 1);
-      }
-      //HOURS  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //SECONDS  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      //external -> 6
-      if (n_OK(n) == 1) {
-        n = match_SECONDS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      //external -> 8
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  DAY_SECOND DAY_SECOND
-      //0
-      //string
-      // order 9
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_SECOND") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //DAYS  DAY_SECOND DAY_SECOND
+    //0
+    //external -> 1
+    match_DAYS(n, name, depth + 1);
+    //HOURS  DAY_SECOND DAY_SECOND
+    //0
+    //external -> 2
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  DAY_SECOND DAY_SECOND
+    //0
+    //external -> 4
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //SECONDS  DAY_SECOND DAY_SECOND
+    //0
+    //external -> 6
+    match_SECONDS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  DAY_SECOND DAY_SECOND
+    //0
+    //external -> 8
+    match_whitespace(n, name, depth + 1);
+    //None  DAY_SECOND DAY_SECOND
+    //0
+    // order 9
+    compare_string(n, (const char *) "DAY_SECOND", 10);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY_SECOND] ");
+    printf("[DAY_SECOND] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5875,11 +3688,11 @@ node_t *match_DAY_SECOND(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
-{
+void match_DAY_MINUTE(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY_MINUTE";
   int start_pos = n->pos;
   n->depth += 1;
@@ -5887,110 +3700,57 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //DAYS  DAY_MINUTE DAY_MINUTE
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_DAYS(n, name, depth + 1);
-      }
-      //HOURS  DAY_MINUTE DAY_MINUTE
-      //0
-      //string
-      //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == ':')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //MINUTES  DAY_MINUTE DAY_MINUTE
-      //0
-      //string
-      //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_MINUTES(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  DAY_MINUTE DAY_MINUTE
-      //0
-      //string
-      //external -> 6
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  DAY_MINUTE DAY_MINUTE
-      //0
-      //string
-      // order 7
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_MINUTE") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //DAYS  DAY_MINUTE DAY_MINUTE
+    //0
+    //external -> 1
+    match_DAYS(n, name, depth + 1);
+    //HOURS  DAY_MINUTE DAY_MINUTE
+    //0
+    //external -> 2
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ':'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //MINUTES  DAY_MINUTE DAY_MINUTE
+    //0
+    //external -> 4
+    match_MINUTES(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  DAY_MINUTE DAY_MINUTE
+    //0
+    //external -> 6
+    match_whitespace(n, name, depth + 1);
+    //None  DAY_MINUTE DAY_MINUTE
+    //0
+    // order 7
+    compare_string(n, (const char *) "DAY_MINUTE", 10);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY_MINUTE] ");
+    printf("[DAY_MINUTE] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -5998,11 +3758,11 @@ node_t *match_DAY_MINUTE(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
-{
+void match_DAY_HOUR(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY_HOUR";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6010,92 +3770,49 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //DAYS  DAY_HOUR DAY_HOUR
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_DAYS(n, name, depth + 1);
-      }
-      //HOURS  DAY_HOUR DAY_HOUR
-      //0
-      //string
-      //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_HOURS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  DAY_HOUR DAY_HOUR
-      //0
-      //string
-      //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  DAY_HOUR DAY_HOUR
-      //0
-      //string
-      // order 5
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY_HOUR") == 0) {
-        n->OK = 1;
-        n->pos += 8;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //DAYS  DAY_HOUR DAY_HOUR
+    //0
+    //external -> 1
+    match_DAYS(n, name, depth + 1);
+    //HOURS  DAY_HOUR DAY_HOUR
+    //0
+    //external -> 2
+    match_HOURS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  DAY_HOUR DAY_HOUR
+    //0
+    //external -> 4
+    match_whitespace(n, name, depth + 1);
+    //None  DAY_HOUR DAY_HOUR
+    //0
+    // order 5
+    compare_string(n, (const char *) "DAY_HOUR", 8);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY_HOUR] ");
+    printf("[DAY_HOUR] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6103,11 +3820,11 @@ node_t *match_DAY_HOUR(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
-{
+void match_YEAR_MONTH(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "YEAR_MONTH";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6115,104 +3832,53 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    // GROUP
-    if (n_OK(n) == 1) {
-      // list
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //YEARS  YEAR_MONTH YEAR_MONTH
-      //0
-      //string
-      //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_YEARS(n, name, depth + 1);
-      }
-      //None  YEAR_MONTH YEAR_MONTH
-      //0
-      //string
-      // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "-") == 0) {
-        n->OK = 1;
-        n->pos += 1;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-      //MONTHS  YEAR_MONTH YEAR_MONTH
-      //0
-      //string
-      //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_MONTHS(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\'')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-      //whitespace  YEAR_MONTH YEAR_MONTH
-      //0
-      //string
-      //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_whitespace(n, name, depth + 1);
-      }
-      //None  YEAR_MONTH YEAR_MONTH
-      //0
-      //string
-      // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR_MONTH") == 0) {
-        n->OK = 1;
-        n->pos += 10;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
-
-    }
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //YEARS  YEAR_MONTH YEAR_MONTH
+    //0
+    //external -> 1
+    match_YEARS(n, name, depth + 1);
+    //None  YEAR_MONTH YEAR_MONTH
+    //0
+    // order 2
+    compare_string(n, (const char *) "-", 1);
+    //MONTHS  YEAR_MONTH YEAR_MONTH
+    //0
+    //external -> 3
+    match_MONTHS(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
+    //whitespace  YEAR_MONTH YEAR_MONTH
+    //0
+    //external -> 5
+    match_whitespace(n, name, depth + 1);
+    //None  YEAR_MONTH YEAR_MONTH
+    //0
+    // order 6
+    compare_string(n, (const char *) "YEAR_MONTH", 10);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[YEAR_MONTH] ");
+    printf("[YEAR_MONTH] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6220,11 +3886,11 @@ node_t *match_YEAR_MONTH(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_unknown(node_t * n, const char last_method[], int depth)
-{
+void match_unknown(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "unknown";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6232,37 +3898,26 @@ node_t *match_unknown(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
   //None  unknown unknown
   //0
-  //string
   // order 0
-  if (n_OK(n) == 1 && stricmp(n, (const char *) "unknown") == 0) {
-    n->OK = 1;
-    n->pos += 7;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
-    n->OK = 0;
-  }
+  compare_string(n, (const char *) "unknown", 7);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[unknown] ");
+    printf("[unknown] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6270,11 +3925,11 @@ node_t *match_unknown(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_hex(node_t * n, const char last_method[], int depth)
-{
+void match_hex(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "hex";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6282,82 +3937,50 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '0')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '0'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == 'x' ||
-                        //string
-                        n->value[n->pos] == 'X')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == 'x' || n->value[n->pos] == 'X'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
   //one or more
   push(n->stack, n->pos);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // dict
-    if (n_OK(n) == 1 && (
-                          // dict
-                          (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') ||
-                          // dict
-                          (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'F') ||
-                          // dict
-                          (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'f')
-        )) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9') ||
+                         (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'F') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'f')))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
-    if (n->OK == 0) {
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+    if (n->OK == 0)
+      n->pos = pop(n->stack);
+    else
+      pop(n->stack);
   }
-  if (n->pos == peek(n->stack)) {
+  if (n->pos == pop(n->stack)) {
     n->OK = 0;
   } else {
     n->OK = 1;
   }
-  pop(n->stack);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[hex] ");
+    printf("[hex] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6365,11 +3988,11 @@ node_t *match_hex(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_bit(node_t * n, const char last_method[], int depth)
-{
+void match_bit(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "bit";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6377,77 +4000,49 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '0')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '0'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == 'b')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == 'b'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
   //one or more
   push(n->stack, n->pos);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '0' ||
-                          //string
-                          n->value[n->pos] == '1')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '0' || n->value[n->pos] == '1'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
-    if (n->OK == 0) {
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+    if (n->OK == 0)
+      n->pos = pop(n->stack);
+    else
+      pop(n->stack);
   }
-  if (n->pos == peek(n->stack)) {
+  if (n->pos == pop(n->stack)) {
     n->OK = 0;
   } else {
     n->OK = 1;
   }
-  pop(n->stack);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[bit] ");
+    printf("[bit] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6455,11 +4050,11 @@ node_t *match_bit(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_null(node_t * n, const char last_method[], int depth)
-{
+void match_null(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "null";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6467,41 +4062,20 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "null") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "null", 4);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 1
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "NULL") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "NULL", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6510,24 +4084,21 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[null] ");
+    printf("[null] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6535,11 +4106,11 @@ node_t *match_null(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_true(node_t * n, const char last_method[], int depth)
-{
+void match_true(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "true";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6547,41 +4118,20 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "true") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "true", 4);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 1
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "TRUE") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "TRUE", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6590,24 +4140,21 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[true] ");
+    printf("[true] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6615,11 +4162,11 @@ node_t *match_true(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_false(node_t * n, const char last_method[], int depth)
-{
+void match_false(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "false";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6627,41 +4174,20 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "false") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "false", 5);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 1
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "FALSE") == 0) {
-        n->OK = 1;
-        n->pos += 5;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "FALSE", 5);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6670,24 +4196,21 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[false] ");
+    printf("[false] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6695,11 +4218,11 @@ node_t *match_false(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_boolean(node_t * n, const char last_method[], int depth)
-{
+void match_boolean(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "boolean";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6707,31 +4230,20 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_true(n, name, depth + 1);
-    }
+    match_true(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_false(n, name, depth + 1);
-      }
+      match_false(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6740,24 +4252,21 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[boolean] ");
+    printf("[boolean] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6765,11 +4274,11 @@ node_t *match_boolean(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_real(node_t * n, const char last_method[], int depth)
-{
+void match_real(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "real";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6777,74 +4286,42 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
     // GROUP
     if (n_OK(n) == 1) {
-      // list
       //integer  real real
       //0
-      //string
       //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_integer(n, name, depth + 1);
-      }
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '.')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      match_integer(n, name, depth + 1);
+      if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
       //unsigned_int  real real
       //0
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_unsigned_int(n, name, depth + 1);
-      }
+      match_unsigned_int(n, name, depth + 1);
 
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
-        if (n_OK(n) == 1 && (
-                              //string
-                              n->value[n->pos] == '.')) {
-          n->OK = 1;
-          n->pos++;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
+        if (n_OK(n) == 1 && (n->value[n->pos] == '.'))
+          increment_n(n, 1);
+        else
           n->OK = 0;
-        }                       // end char
         //unsigned_int  real real
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_unsigned_int(n, name, depth + 1);
-        }
+        match_unsigned_int(n, name, depth + 1);
 
       }
 
@@ -6852,15 +4329,11 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_integer(n, name, depth + 1);
-      }
+      match_integer(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6869,40 +4342,29 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-  // dict
   //optional
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    //string
     //external -> None
-    if (n_OK(n) == 1) {
-      n = match_exponent(n, name, depth + 1);
-    }
+    match_exponent(n, name, depth + 1);
 
-    if (n->OK == 0) {
-      n->OK = 1;
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+    optional_reset(n);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[real] ");
+    printf("[real] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6910,11 +4372,11 @@ node_t *match_real(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_integer(node_t * n, const char last_method[], int depth)
-{
+void match_integer(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "integer";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6922,31 +4384,20 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_signed_int(n, name, depth + 1);
-    }
+    match_signed_int(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_unsigned_int(n, name, depth + 1);
-      }
+      match_unsigned_int(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -6955,24 +4406,21 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[integer] ");
+    printf("[integer] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -6980,11 +4428,11 @@ node_t *match_integer(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_signed_int(node_t * n, const char last_method[], int depth)
-{
+void match_signed_int(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "signed_int";
   int start_pos = n->pos;
   n->depth += 1;
@@ -6992,45 +4440,33 @@ node_t *match_signed_int(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //sign  signed_int signed_int
     //0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_sign(n, name, depth + 1);
-    }
+    match_sign(n, name, depth + 1);
     //unsigned_int  signed_int signed_int
     //0
-    //string
     //external -> 1
-    if (n_OK(n) == 1) {
-      n = match_unsigned_int(n, name, depth + 1);
-    }
+    match_unsigned_int(n, name, depth + 1);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[signed_int] ");
+    printf("[signed_int] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7038,11 +4474,11 @@ node_t *match_signed_int(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_unsigned_int(node_t * n, const char last_method[], int depth)
-{
+void match_unsigned_int(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "unsigned_int";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7050,54 +4486,41 @@ node_t *match_unsigned_int(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //one or more
   push(n->stack, n->pos);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // dict
-    if (n_OK(n) == 1 && (
-                          // dict
-                          (n->value[n->pos] >= '0' && n->value[n->pos] <= '9')
-        )) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9')))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
-    if (n->OK == 0) {
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+    if (n->OK == 0)
+      n->pos = pop(n->stack);
+    else
+      pop(n->stack);
   }
-  if (n->pos == peek(n->stack)) {
+  if (n->pos == pop(n->stack)) {
     n->OK = 0;
   } else {
     n->OK = 1;
   }
-  pop(n->stack);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[unsigned_int] ");
+    printf("[unsigned_int] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7105,11 +4528,11 @@ node_t *match_unsigned_int(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_sign(node_t * n, const char last_method[], int depth)
-{
+void match_sign(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "sign";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7117,38 +4540,26 @@ node_t *match_sign(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '-' ||
-                        //string
-                        n->value[n->pos] == '+')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '-' || n->value[n->pos] == '+'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[sign] ");
+    printf("[sign] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7156,11 +4567,11 @@ node_t *match_sign(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_exponent(node_t * n, const char last_method[], int depth)
-{
+void match_exponent(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "exponent";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7168,51 +4579,33 @@ node_t *match_exponent(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == 'E' ||
-                          //string
-                          n->value[n->pos] == 'e')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
     //integer  exponent exponent
     //0
-    //string
     //external -> 1
-    if (n_OK(n) == 1) {
-      n = match_integer(n, name, depth + 1);
-    }
+    match_integer(n, name, depth + 1);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[exponent] ");
+    printf("[exponent] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7220,11 +4613,11 @@ node_t *match_exponent(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_identifier(node_t * n, const char last_method[], int depth)
-{
+void match_identifier(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "identifier";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7232,88 +4625,43 @@ node_t *match_identifier(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    // dict
-    //NOT
-    if (n_OK(n) == 1) {
-      push(n->stack, n->pos);
-      //string
-      //external -> None
-      if (n_OK(n) == 1) {
-        n = match_keywords(n, name, depth + 1);
-      }
-
-      if (n->OK == 1) {
-        n->OK = 0;
-        n->pos = peek(n->stack);
-      } else {
-        n->OK = 1;
-        n->pos += 1;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      }
-      pop(n->stack);
-    }                           //end NOT
-    // dict
-    //one or more
+  //one or more
+  push(n->stack, n->pos);
+  while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    while (n_OK(n) == 1) {
-      push(n->stack, n->pos);
-      // dict
-      if (n_OK(n) == 1 && (
-                            // dict
-                            (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') ||
-                            // dict
-                            (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z') ||
-                            // dict
-                            (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') ||
-                            //string
-                            n->value[n->pos] == '$' ||
-                            //string
-                            n->value[n->pos] == '_')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
-    }
-    if (n->pos == peek(n->stack)) {
+    if (n_OK(n) == 1 && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') ||
+                         (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z') ||
+                         (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || n->value[n->pos] == '$' || n->value[n->pos] == '_'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    } else {
-      n->OK = 1;
-    }
-    pop(n->stack);
 
+    if (n->OK == 0)
+      n->pos = pop(n->stack);
+    else
+      pop(n->stack);
+  }
+  if (n->pos == pop(n->stack)) {
+    n->OK = 0;
+  } else {
+    n->OK = 1;
   }
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[identifier] ");
+    printf("[identifier] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7321,11 +4669,11 @@ node_t *match_identifier(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_keywords(node_t * n, const char last_method[], int depth)
-{
+void match_keywords(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "keywords";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7333,212 +4681,160 @@ node_t *match_keywords(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "from") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "select", 6);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 1
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "select") == 0) {
-        n->OK = 1;
-        n->pos += 6;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "from", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 2
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "where") == 0) {
-        n->OK = 1;
-        n->pos += 5;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "on", 2);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 3
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "on") == 0) {
-        n->OK = 1;
-        n->pos += 2;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "where", 5);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 4
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "and") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "and", 3);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 5
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "or") == 0) {
-        n->OK = 1;
-        n->pos += 2;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "or", 2);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 6
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "xor") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "xor", 3);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 7
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "not") == 0) {
-        n->OK = 1;
-        n->pos += 3;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "limit", 5);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 8
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "in") == 0) {
-        n->OK = 1;
-        n->pos += 2;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "having", 6);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 9
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 9
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "between") == 0) {
-        n->OK = 1;
-        n->pos += 7;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "group", 5);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 10
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       // order 10
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "like") == 0) {
-        n->OK = 1;
-        n->pos += 4;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
+      compare_string(n, (const char *) "by", 2);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
       }
+    }
+    //item+1 11
+    if (n->OK == 0) {
+      n->OK = 1;
+      // order 11
+      compare_string(n, (const char *) "order", 5);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+      }
+    }
+    //item+1 12
+    if (n->OK == 0) {
+      n->OK = 1;
+      // order 12
+      compare_string(n, (const char *) "not", 3);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+      }
+    }
+    //item+1 13
+    if (n->OK == 0) {
+      n->OK = 1;
+      // order 13
+      compare_string(n, (const char *) "in", 2);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+      }
+    }
+    //item+1 14
+    if (n->OK == 0) {
+      n->OK = 1;
+      // order 14
+      compare_string(n, (const char *) "between", 7);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+      }
+    }
+    //item+1 15
+    if (n->OK == 0) {
+      n->OK = 1;
+      // order 15
+      compare_string(n, (const char *) "like", 4);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -7547,24 +4843,21 @@ node_t *match_keywords(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[keywords] ");
+    printf("[keywords] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7572,11 +4865,11 @@ node_t *match_keywords(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_whitespace(node_t * n, const char last_method[], int depth)
-{
+void match_whitespace(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "whitespace";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7584,55 +4877,37 @@ node_t *match_whitespace(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //zero or more
   push(n->stack, n->OK);
   while (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '\t' ||
-                          //string
-                          n->value[n->pos] == ' ' ||
-                          //string
-                          n->value[n->pos] == '\n' ||
-                          //string
-                          n->value[n->pos] == '\r')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
     if (n->OK == 0) {
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+      n->pos = pop(n->stack);
+    } else
+      pop(n->stack);
   }
-  n->OK = peek(n->stack);
-  pop(n->stack);
+  n->OK = pop(n->stack);
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[whitespace] ");
+    printf("[whitespace] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7640,11 +4915,11 @@ node_t *match_whitespace(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_string(node_t * n, const char last_method[], int depth)
-{
+void match_string(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "string";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7652,31 +4927,20 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_single_quote_string(n, name, depth + 1);
-    }
+    match_single_quote_string(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_double_quote_string(n, name, depth + 1);
-      }
+      match_double_quote_string(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -7685,24 +4949,21 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[string] ");
+    printf("[string] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7710,11 +4971,11 @@ node_t *match_string(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_single_quote_string(node_t * n, const char last_method[], int depth)
-{
+void match_single_quote_string(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "single_quote_string";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7722,103 +4983,62 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '\'')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
-    // dict
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '\'')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
-          if (n->OK == 1) {
-            n->OK = 0;
-            n->pos = peek(n->stack);
-          } else {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          }
-          pop(n->stack);
+          not_reset(n);
         }                       //end NOT
 
       }
 
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      if (n->OK == 0)
+        n->pos = pop(n->stack);
+      else
+        pop(n->stack);
     }
-    if (n->pos == peek(n->stack)) {
+    if (n->pos == pop(n->stack)) {
       n->OK = 0;
     } else {
       n->OK = 1;
     }
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '\'')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\''))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[single_quote_string] ");
+    printf("[single_quote_string] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7826,11 +5046,11 @@ node_t *match_single_quote_string(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_double_quote_string(node_t * n, const char last_method[], int depth)
-{
+void match_double_quote_string(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "double_quote_string";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7838,103 +5058,62 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '"')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '"'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
-    // dict
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '"')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '"'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
-          if (n->OK == 1) {
-            n->OK = 0;
-            n->pos = peek(n->stack);
-          } else {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          }
-          pop(n->stack);
+          not_reset(n);
         }                       //end NOT
 
       }
 
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      if (n->OK == 0)
+        n->pos = pop(n->stack);
+      else
+        pop(n->stack);
     }
-    if (n->pos == peek(n->stack)) {
+    if (n->pos == pop(n->stack)) {
       n->OK = 0;
     } else {
       n->OK = 1;
     }
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '"')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '"'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[double_quote_string] ");
+    printf("[double_quote_string] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -7942,11 +5121,50 @@ node_t *match_double_quote_string(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
+void match_query_delimiter(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
+  const char name[] = "query_delimiter";
+  int start_pos = n->pos;
+  n->depth += 1;
+  n->function = name;
+#ifdef  DEBUG_START
+  debug_start(n, name, start_pos);
+#endif
+  if (n_OK(n) == 1 && (n->value[n->pos] == ';'))
+    increment_n(n, 1);
+  else
+    n->OK = 0;
 
-node_t *match_comparison_operator(node_t * n, const char last_method[], int depth)
-{
+#ifdef  DEBUG_SUCCESS
+  if (n->OK == 1) {
+    for (int i = 0; i < depth; i++)
+      printf(" ");
+    printf("[query_delimiter] SUCCESS");
+    if (n->pos == -1) {
+      print_sub_str(n, start_pos, n->len);
+    } else {
+      print_sub_str(n, start_pos, n->pos);
+    }
+    printf("\n");
+    debug_success(n, name, start_pos);
+  }
+#endif
+
+#ifdef  DEBUG_FAILED
+  if (n->OK == 0) {
+    debug_failed(n, name, start_pos);
+  }
+#endif
+  n->depth -= 1;
+  n->last_function = name;
+}
+void match_comparison_operator(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "comparison_operator";
   int start_pos = n->pos;
   n->depth += 1;
@@ -7954,62 +5172,32 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '=')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '='))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '<')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '<'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '>')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '>'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
         }
 
@@ -8019,40 +5207,21 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '>')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '>'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '=')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '='))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
         }
 
@@ -8062,40 +5231,21 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '<')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '<'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '=')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '='))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
         }
 
@@ -8105,40 +5255,21 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '!')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '!'))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
-          // dict
-          if (n_OK(n) == 1 && (
-                                //string
-                                n->value[n->pos] == '=')) {
-            n->OK = 1;
-            n->pos++;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
+          if (n_OK(n) == 1 && (n->value[n->pos] == '='))
+            increment_n(n, 1);
+          else
             n->OK = 0;
-          }                     // end char
 
         }
 
@@ -8148,41 +5279,25 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '>')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '>'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '<')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
+      if (n_OK(n) == 1 && (n->value[n->pos] == '<'))
+        increment_n(n, 1);
+      else
         n->OK = 0;
-      }                         // end char
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -8191,24 +5306,21 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[comparison_operator] ");
+    printf("[comparison_operator] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8216,11 +5328,11 @@ node_t *match_comparison_operator(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_comment(node_t * n, const char last_method[], int depth)
-{
+void match_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8228,31 +5340,20 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_block_comment(n, name, depth + 1);
-    }
+    match_block_comment(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_single_comment(n, name, depth + 1);
-      }
+      match_single_comment(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -8261,24 +5362,21 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[comment] ");
+    printf("[comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8286,11 +5384,11 @@ node_t *match_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_block_comment(node_t * n, const char last_method[], int depth)
-{
+void match_block_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "block_comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8298,89 +5396,60 @@ node_t *match_block_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //left_comment  block_comment block_comment
     //0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_left_comment(n, name, depth + 1);
-    }
-    // dict
+    match_left_comment(n, name, depth + 1);
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           //external -> None
-          if (n_OK(n) == 1) {
-            n = match_right_comment(n, name, depth + 1);
-          }
+          match_right_comment(n, name, depth + 1);
 
-          if (n->OK == 1) {
-            n->OK = 0;
-            n->pos = peek(n->stack);
-          } else {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          }
-          pop(n->stack);
+          not_reset(n);
         }                       //end NOT
 
       }
 
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      if (n->OK == 0)
+        n->pos = pop(n->stack);
+      else
+        pop(n->stack);
     }
-    if (n->pos == peek(n->stack)) {
+    if (n->pos == pop(n->stack)) {
       n->OK = 0;
     } else {
       n->OK = 1;
     }
-    pop(n->stack);
     //right_comment  block_comment block_comment
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_right_comment(n, name, depth + 1);
-    }
+    match_right_comment(n, name, depth + 1);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[block_comment] ");
+    printf("[block_comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8388,11 +5457,11 @@ node_t *match_block_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_single_comment(node_t * n, const char last_method[], int depth)
-{
+void match_single_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "single_comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8400,89 +5469,60 @@ node_t *match_single_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //inline_comment  single_comment single_comment
     //0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_inline_comment(n, name, depth + 1);
-    }
-    // dict
+    match_inline_comment(n, name, depth + 1);
     //one or more
     push(n->stack, n->pos);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //NOT
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           //external -> None
-          if (n_OK(n) == 1) {
-            n = match_end_of_line(n, name, depth + 1);
-          }
+          match_end_of_line(n, name, depth + 1);
 
-          if (n->OK == 1) {
-            n->OK = 0;
-            n->pos = peek(n->stack);
-          } else {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          }
-          pop(n->stack);
+          not_reset(n);
         }                       //end NOT
 
       }
 
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      if (n->OK == 0)
+        n->pos = pop(n->stack);
+      else
+        pop(n->stack);
     }
-    if (n->pos == peek(n->stack)) {
+    if (n->pos == pop(n->stack)) {
       n->OK = 0;
     } else {
       n->OK = 1;
     }
-    pop(n->stack);
     //end_of_line  single_comment single_comment
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_end_of_line(n, name, depth + 1);
-    }
+    match_end_of_line(n, name, depth + 1);
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[single_comment] ");
+    printf("[single_comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8490,11 +5530,11 @@ node_t *match_single_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_left_comment(node_t * n, const char last_method[], int depth)
-{
+void match_left_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "left_comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8502,47 +5542,30 @@ node_t *match_left_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '/')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '/'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '*')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '*'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[left_comment] ");
+    printf("[left_comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8550,11 +5573,11 @@ node_t *match_left_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_right_comment(node_t * n, const char last_method[], int depth)
-{
+void match_right_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "right_comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8562,47 +5585,30 @@ node_t *match_right_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '*')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '*'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '/')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '/'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[right_comment] ");
+    printf("[right_comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8610,11 +5616,11 @@ node_t *match_right_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
-{
+void match_inline_comment(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "inline_comment";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8622,47 +5628,30 @@ node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '-')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '-'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '-')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '-'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
 
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[inline_comment] ");
+    printf("[inline_comment] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8670,11 +5659,11 @@ node_t *match_inline_comment(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
-{
+void match_end_of_line(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "end_of_line";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8682,58 +5671,35 @@ node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  if (n_OK(n) == 1 && (
-                        //string
-                        n->value[n->pos] == '\n')) {
-    n->OK = 1;
-    n->pos++;
-    if (n->pos >= n->len)
-      n->pos = -1;
-  } else {
+  if (n_OK(n) == 1 && (n->value[n->pos] == '\n'))
+    increment_n(n, 1);
+  else
     n->OK = 0;
-  }                             // end char
-  // dict
   //optional
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '\r')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\r'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
-    if (n->OK == 0) {
-      n->OK = 1;
-      n->pos = peek(n->stack);
-    }
-    pop(n->stack);
+    optional_reset(n);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[end_of_line] ");
+    printf("[end_of_line] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8741,11 +5707,11 @@ node_t *match_end_of_line(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ABS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ABS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ABS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8753,73 +5719,42 @@ node_t *match_ABS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ABS_FUNC ABS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ABS") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ABS", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  ABS_FUNC ABS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ABS_FUNC] ");
+    printf("[ABS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8827,11 +5762,11 @@ node_t *match_ABS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ACOS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ACOS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ACOS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8839,73 +5774,42 @@ node_t *match_ACOS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ACOS_FUNC ACOS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ACOS") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ACOS", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  ACOS_FUNC ACOS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ACOS_FUNC] ");
+    printf("[ACOS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -8913,11 +5817,11 @@ node_t *match_ACOS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ADDDATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -8925,104 +5829,54 @@ node_t *match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ADDDATE_FUNC ADDDATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ADDDATE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ADDDATE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  ADDDATE_FUNC ADDDATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
+    match_date(n, name, depth + 1);
     //None  ADDDATE_FUNC ADDDATE_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  ADDDATE_FUNC ADDDATE_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "INTERVAL") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "INTERVAL", 8);
     //interval_expr  ADDDATE_FUNC ADDDATE_FUNC
     //0
-    //string
     //external -> 5
-    if (n_OK(n) == 1) {
-      n = match_interval_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_interval_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ADDDATE_FUNC] ");
+    printf("[ADDDATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9030,11 +5884,11 @@ node_t *match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ADDTIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9042,92 +5896,50 @@ node_t *match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ADDTIME_FUNC ADDTIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ADDTIME") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ADDTIME", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  ADDTIME_FUNC ADDTIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+    match_expr(n, name, depth + 1);
     //None  ADDTIME_FUNC ADDTIME_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //expr  ADDTIME_FUNC ADDTIME_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ADDTIME_FUNC] ");
+    printf("[ADDTIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9135,11 +5947,11 @@ node_t *match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ASCII_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ASCII_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ASCII_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9147,73 +5959,42 @@ node_t *match_ASCII_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ASCII_FUNC ASCII_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ASCII") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ASCII", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  ASCII_FUNC ASCII_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ASCII_FUNC] ");
+    printf("[ASCII_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9221,11 +6002,11 @@ node_t *match_ASCII_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ASIN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ASIN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ASIN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9233,73 +6014,42 @@ node_t *match_ASIN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ASIN_FUNC ASIN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ASIN") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ASIN", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  ASIN_FUNC ASIN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ASIN_FUNC] ");
+    printf("[ASIN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9307,11 +6057,11 @@ node_t *match_ASIN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ATAN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ATAN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ATAN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9319,73 +6069,42 @@ node_t *match_ATAN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ATAN_FUNC ATAN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ATAN") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ATAN", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  ATAN_FUNC ATAN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ATAN_FUNC] ");
+    printf("[ATAN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9393,11 +6112,11 @@ node_t *match_ATAN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ATAN2_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ATAN2_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ATAN2_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9405,97 +6124,50 @@ node_t *match_ATAN2_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ATAN2_FUNC ATAN2_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ATAN2") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ATAN2", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //None  ATAN2_FUNC ATAN2_FUNC
     //0
-    //string
     // order 2
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "Y") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "Y", 1);
     //None  ATAN2_FUNC ATAN2_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //X  ATAN2_FUNC ATAN2_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ATAN2_FUNC] ");
+    printf("[ATAN2_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9503,11 +6175,11 @@ node_t *match_ATAN2_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_BIN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_BIN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "BIN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9515,73 +6187,42 @@ node_t *match_BIN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  BIN_FUNC BIN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "BIN") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "BIN", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  BIN_FUNC BIN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_N(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[BIN_FUNC] ");
+    printf("[BIN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9589,11 +6230,11 @@ node_t *match_BIN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "BIT_LENGTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9601,73 +6242,42 @@ node_t *match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  BIT_LENGTH_FUNC BIT_LENGTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "BIT_LENGTH") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "BIT_LENGTH", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  BIT_LENGTH_FUNC BIT_LENGTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[BIT_LENGTH_FUNC] ");
+    printf("[BIT_LENGTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9675,11 +6285,11 @@ node_t *match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CEILING_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CEILING_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CEILING_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9687,73 +6297,42 @@ node_t *match_CEILING_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CEILING_FUNC CEILING_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CEILING") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CEILING", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  CEILING_FUNC CEILING_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CEILING_FUNC] ");
+    printf("[CEILING_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9761,11 +6340,11 @@ node_t *match_CEILING_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CEIL_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CEIL_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CEIL_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9773,73 +6352,42 @@ node_t *match_CEIL_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CEIL_FUNC CEIL_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CEIL") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CEIL", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  CEIL_FUNC CEIL_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CEIL_FUNC] ");
+    printf("[CEIL_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9847,11 +6395,11 @@ node_t *match_CEIL_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CHARACTER_LENGTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9859,73 +6407,42 @@ node_t *match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int de
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CHARACTER_LENGTH_FUNC CHARACTER_LENGTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CHARACTER_LENGTH") == 0) {
-      n->OK = 1;
-      n->pos += 16;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CHARACTER_LENGTH", 16);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  CHARACTER_LENGTH_FUNC CHARACTER_LENGTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CHARACTER_LENGTH_FUNC] ");
+    printf("[CHARACTER_LENGTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -9933,11 +6450,11 @@ node_t *match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int de
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CHAR_LENGTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -9945,73 +6462,42 @@ node_t *match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CHAR_LENGTH_FUNC CHAR_LENGTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CHAR_LENGTH") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CHAR_LENGTH", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  CHAR_LENGTH_FUNC CHAR_LENGTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CHAR_LENGTH_FUNC] ");
+    printf("[CHAR_LENGTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10019,11 +6505,11 @@ node_t *match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CHAR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CHAR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CHAR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10031,147 +6517,83 @@ node_t *match_CHAR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CHAR_FUNC CHAR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CHAR") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CHAR", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  CHAR_FUNC CHAR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
+    match_N(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  CHAR_FUNC CHAR_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //N  CHAR_FUNC CHAR_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_N(n, name, depth + 1);
-        }
+        match_N(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
+    n->OK = pop(n->stack);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  CHAR_FUNC CHAR_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "USING") == 0) {
-          n->OK = 1;
-          n->pos += 5;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "USING", 5);
         //charset_name  CHAR_FUNC CHAR_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_charset_name(n, name, depth + 1);
-        }
+        match_charset_name(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CHAR_FUNC] ");
+    printf("[CHAR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10179,11 +6601,11 @@ node_t *match_CHAR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CONCAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CONCAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CONCAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10191,111 +6613,65 @@ node_t *match_CONCAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CONCAT_FUNC CONCAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CONCAT") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CONCAT", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  CONCAT_FUNC CONCAT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
+    match_string(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  CONCAT_FUNC CONCAT_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //string  CONCAT_FUNC CONCAT_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    n->OK = pop(n->stack);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CONCAT_FUNC] ");
+    printf("[CONCAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10303,11 +6679,11 @@ node_t *match_CONCAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CONCAT_WS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10315,111 +6691,65 @@ node_t *match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CONCAT_WS_FUNC CONCAT_WS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CONCAT_WS") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CONCAT_WS", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //separator  CONCAT_WS_FUNC CONCAT_WS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_separator(n, name, depth + 1);
-    }
-    // dict
+    match_separator(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  CONCAT_WS_FUNC CONCAT_WS_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //string  CONCAT_WS_FUNC CONCAT_WS_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    n->OK = pop(n->stack);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CONCAT_WS_FUNC] ");
+    printf("[CONCAT_WS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10427,11 +6757,11 @@ node_t *match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CONVERT_TZ_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10439,111 +6769,58 @@ node_t *match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CONVERT_TZ") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CONVERT_TZ", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //dt  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_dt(n, name, depth + 1);
-    }
+    match_dt(n, name, depth + 1);
     //None  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //from_tz  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_from_tz(n, name, depth + 1);
-    }
+    match_from_tz(n, name, depth + 1);
     //None  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //to_tz  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_to_tz(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_to_tz(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CONVERT_TZ_FUNC] ");
+    printf("[CONVERT_TZ_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10551,11 +6828,11 @@ node_t *match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CONV_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CONV_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CONV_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10563,111 +6840,58 @@ node_t *match_CONV_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CONV_FUNC CONV_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CONV") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CONV", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  CONV_FUNC CONV_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
+    match_N(n, name, depth + 1);
     //None  CONV_FUNC CONV_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //from_base  CONV_FUNC CONV_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_from_base(n, name, depth + 1);
-    }
+    match_from_base(n, name, depth + 1);
     //None  CONV_FUNC CONV_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //to_base  CONV_FUNC CONV_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_to_base(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_to_base(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CONV_FUNC] ");
+    printf("[CONV_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10675,11 +6899,11 @@ node_t *match_CONV_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_COS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_COS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "COS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10687,73 +6911,42 @@ node_t *match_COS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  COS_FUNC COS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "COS") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "COS", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  COS_FUNC COS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[COS_FUNC] ");
+    printf("[COS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10761,11 +6954,11 @@ node_t *match_COS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_COT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_COT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "COT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10773,73 +6966,42 @@ node_t *match_COT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  COT_FUNC COT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "COT") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "COT", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  COT_FUNC COT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[COT_FUNC] ");
+    printf("[COT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10847,11 +7009,11 @@ node_t *match_COT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CRC32_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CRC32_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CRC32_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10859,73 +7021,42 @@ node_t *match_CRC32_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CRC32_FUNC CRC32_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CRC32") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CRC32", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  CRC32_FUNC CRC32_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CRC32_FUNC] ");
+    printf("[CRC32_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -10933,11 +7064,11 @@ node_t *match_CRC32_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CURDATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CURDATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CURDATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -10945,66 +7076,38 @@ node_t *match_CURDATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CURDATE_FUNC CURDATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CURDATE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CURDATE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CURDATE_FUNC] ");
+    printf("[CURDATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11012,11 +7115,11 @@ node_t *match_CURDATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CURRENT_DATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11024,66 +7127,38 @@ node_t *match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CURRENT_DATE_FUNC CURRENT_DATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CURRENT_DATE") == 0) {
-      n->OK = 1;
-      n->pos += 12;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CURRENT_DATE", 12);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CURRENT_DATE_FUNC] ");
+    printf("[CURRENT_DATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11091,11 +7166,11 @@ node_t *match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CURRENT_TIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11103,90 +7178,52 @@ node_t *match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CURRENT_TIME_FUNC CURRENT_TIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CURRENT_TIME") == 0) {
-      n->OK = 1;
-      n->pos += 12;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CURRENT_TIME", 12);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  CURRENT_TIME_FUNC CURRENT_TIME_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CURRENT_TIME_FUNC] ");
+    printf("[CURRENT_TIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11194,11 +7231,11 @@ node_t *match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CURRENT_TIMESTAMP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11206,90 +7243,52 @@ node_t *match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int d
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CURRENT_TIMESTAMP_FUNC CURRENT_TIMESTAMP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CURRENT_TIMESTAMP") == 0) {
-      n->OK = 1;
-      n->pos += 17;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CURRENT_TIMESTAMP", 17);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  CURRENT_TIMESTAMP_FUNC CURRENT_TIMESTAMP_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CURRENT_TIMESTAMP_FUNC] ");
+    printf("[CURRENT_TIMESTAMP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11297,11 +7296,11 @@ node_t *match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int d
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_CURTIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_CURTIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "CURTIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11309,90 +7308,52 @@ node_t *match_CURTIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  CURTIME_FUNC CURTIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "CURTIME") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "CURTIME", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  CURTIME_FUNC CURTIME_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[CURTIME_FUNC] ");
+    printf("[CURTIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11400,11 +7361,11 @@ node_t *match_CURTIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DATE_ADD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11412,104 +7373,54 @@ node_t *match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DATE_ADD") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DATE_ADD", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
+    match_date(n, name, depth + 1);
     //None  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "INTERVAL") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "INTERVAL", 8);
     //interval_expr  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
-    //string
     //external -> 5
-    if (n_OK(n) == 1) {
-      n = match_interval_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_interval_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DATE_ADD_FUNC] ");
+    printf("[DATE_ADD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11517,11 +7428,11 @@ node_t *match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DATEDIFF_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11529,92 +7440,50 @@ node_t *match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DATEDIFF_FUNC DATEDIFF_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DATEDIFF") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DATEDIFF", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  DATEDIFF_FUNC DATEDIFF_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+    match_expr(n, name, depth + 1);
     //None  DATEDIFF_FUNC DATEDIFF_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //expr  DATEDIFF_FUNC DATEDIFF_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DATEDIFF_FUNC] ");
+    printf("[DATEDIFF_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11622,11 +7491,11 @@ node_t *match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11634,73 +7503,42 @@ node_t *match_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DATE_FUNC DATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DATE") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DATE", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  DATE_FUNC DATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DATE_FUNC] ");
+    printf("[DATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11708,11 +7546,11 @@ node_t *match_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DATE_FORMAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11720,92 +7558,50 @@ node_t *match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DATE_FORMAT_FUNC DATE_FORMAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DATE_FORMAT") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DATE_FORMAT", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DATE_FORMAT_FUNC DATE_FORMAT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
+    match_date(n, name, depth + 1);
     //None  DATE_FORMAT_FUNC DATE_FORMAT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //format  DATE_FORMAT_FUNC DATE_FORMAT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_format(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_format(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DATE_FORMAT_FUNC] ");
+    printf("[DATE_FORMAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11813,11 +7609,11 @@ node_t *match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DATE_SUB_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11825,104 +7621,54 @@ node_t *match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DATE_SUB") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DATE_SUB", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
+    match_date(n, name, depth + 1);
     //None  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "INTERVAL") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "INTERVAL", 8);
     //interval_expr  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
-    //string
     //external -> 5
-    if (n_OK(n) == 1) {
-      n = match_interval_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_interval_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DATE_SUB_FUNC] ");
+    printf("[DATE_SUB_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -11930,11 +7676,11 @@ node_t *match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAY_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DAY_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAY_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -11942,73 +7688,42 @@ node_t *match_DAY_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DAY_FUNC DAY_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAY") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DAY", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DAY_FUNC DAY_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAY_FUNC] ");
+    printf("[DAY_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12016,11 +7731,11 @@ node_t *match_DAY_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAYNAME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12028,73 +7743,42 @@ node_t *match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DAYNAME_FUNC DAYNAME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAYNAME") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DAYNAME", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DAYNAME_FUNC DAYNAME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAYNAME_FUNC] ");
+    printf("[DAYNAME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12102,11 +7786,11 @@ node_t *match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAYOFMONTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12114,73 +7798,42 @@ node_t *match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DAYOFMONTH_FUNC DAYOFMONTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAYOFMONTH") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DAYOFMONTH", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DAYOFMONTH_FUNC DAYOFMONTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAYOFMONTH_FUNC] ");
+    printf("[DAYOFMONTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12188,11 +7841,11 @@ node_t *match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAYOFWEEK_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12200,73 +7853,42 @@ node_t *match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DAYOFWEEK_FUNC DAYOFWEEK_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAYOFWEEK") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DAYOFWEEK", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DAYOFWEEK_FUNC DAYOFWEEK_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAYOFWEEK_FUNC] ");
+    printf("[DAYOFWEEK_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12274,11 +7896,11 @@ node_t *match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DAYOFYEAR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12286,73 +7908,42 @@ node_t *match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DAYOFYEAR_FUNC DAYOFYEAR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DAYOFYEAR") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DAYOFYEAR", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  DAYOFYEAR_FUNC DAYOFYEAR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DAYOFYEAR_FUNC] ");
+    printf("[DAYOFYEAR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12360,11 +7951,11 @@ node_t *match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_DEGREES_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_DEGREES_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "DEGREES_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12372,73 +7963,42 @@ node_t *match_DEGREES_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  DEGREES_FUNC DEGREES_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "DEGREES") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "DEGREES", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  DEGREES_FUNC DEGREES_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[DEGREES_FUNC] ");
+    printf("[DEGREES_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12446,11 +8006,11 @@ node_t *match_DEGREES_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ELT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ELT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ELT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12458,111 +8018,65 @@ node_t *match_ELT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ELT_FUNC ELT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ELT") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ELT", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  ELT_FUNC ELT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
+    match_N(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  ELT_FUNC ELT_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //string  ELT_FUNC ELT_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    n->OK = pop(n->stack);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ELT_FUNC] ");
+    printf("[ELT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12570,11 +8084,11 @@ node_t *match_ELT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "EXPORT_SET_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12582,183 +8096,94 @@ node_t *match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "EXPORT_SET") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "EXPORT_SET", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //bits  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_bits(n, name, depth + 1);
-    }
+    match_bits(n, name, depth + 1);
     //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //on  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_on(n, name, depth + 1);
-    }
+    match_on(n, name, depth + 1);
     //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //off  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_off(n, name, depth + 1);
-    }
-    // dict
+    match_off(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //separator  EXPORT_SET_FUNC EXPORT_SET_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_separator(n, name, depth + 1);
-        }
-        // dict
+        match_separator(n, name, depth + 1);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
             //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
             //0
-            //string
             // order 0
-            if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-              n->OK = 1;
-              n->pos += 1;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) ",", 1);
             //number_of_bits  EXPORT_SET_FUNC EXPORT_SET_FUNC
             //0
-            //string
             //external -> 1
-            if (n_OK(n) == 1) {
-              n = match_number_of_bits(n, name, depth + 1);
-            }
+            match_number_of_bits(n, name, depth + 1);
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[EXPORT_SET_FUNC] ");
+    printf("[EXPORT_SET_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12766,11 +8191,11 @@ node_t *match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_EXP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_EXP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "EXP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12778,73 +8203,42 @@ node_t *match_EXP_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  EXP_FUNC EXP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "EXP") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "EXP", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  EXP_FUNC EXP_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[EXP_FUNC] ");
+    printf("[EXP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12852,11 +8246,11 @@ node_t *match_EXP_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "EXTRACT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12864,92 +8258,50 @@ node_t *match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  EXTRACT_FUNC EXTRACT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "EXTRACT") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "EXTRACT", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //unit  EXTRACT_FUNC EXTRACT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_unit(n, name, depth + 1);
-    }
+    match_unit(n, name, depth + 1);
     //None  EXTRACT_FUNC EXTRACT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "FROM", 4);
     //date  EXTRACT_FUNC EXTRACT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[EXTRACT_FUNC] ");
+    printf("[EXTRACT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -12957,11 +8309,11 @@ node_t *match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FIELD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FIELD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FIELD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -12969,111 +8321,65 @@ node_t *match_FIELD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FIELD_FUNC FIELD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FIELD") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FIELD", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  FIELD_FUNC FIELD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
+    match_string(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  FIELD_FUNC FIELD_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //string  FIELD_FUNC FIELD_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    n->OK = pop(n->stack);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FIELD_FUNC] ");
+    printf("[FIELD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13081,11 +8387,11 @@ node_t *match_FIELD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FIND_IN_SET_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13093,92 +8399,50 @@ node_t *match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FIND_IN_SET_FUNC FIND_IN_SET_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FIND_IN_SET") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FIND_IN_SET", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  FIND_IN_SET_FUNC FIND_IN_SET_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  FIND_IN_SET_FUNC FIND_IN_SET_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //strlist  FIND_IN_SET_FUNC FIND_IN_SET_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_strlist(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_strlist(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FIND_IN_SET_FUNC] ");
+    printf("[FIND_IN_SET_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13186,11 +8450,11 @@ node_t *match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FLOOR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FLOOR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FLOOR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13198,73 +8462,42 @@ node_t *match_FLOOR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FLOOR_FUNC FLOOR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FLOOR") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FLOOR", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  FLOOR_FUNC FLOOR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FLOOR_FUNC] ");
+    printf("[FLOOR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13272,11 +8505,11 @@ node_t *match_FLOOR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FORMAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13284,128 +8517,68 @@ node_t *match_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FORMAT_FUNC FORMAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FORMAT") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FORMAT", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  FORMAT_FUNC FORMAT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
+    match_X(n, name, depth + 1);
     //None  FORMAT_FUNC FORMAT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //D  FORMAT_FUNC FORMAT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_D(n, name, depth + 1);
-    }
-    // dict
+    match_D(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  FORMAT_FUNC FORMAT_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //locale  FORMAT_FUNC FORMAT_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_locale(n, name, depth + 1);
-        }
+        match_locale(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FORMAT_FUNC] ");
+    printf("[FORMAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13413,11 +8586,11 @@ node_t *match_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FROM_BASE64_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13425,73 +8598,42 @@ node_t *match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FROM_BASE64_FUNC FROM_BASE64_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM_BASE64") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FROM_BASE64", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  FROM_BASE64_FUNC FROM_BASE64_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FROM_BASE64_FUNC] ");
+    printf("[FROM_BASE64_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13499,11 +8641,11 @@ node_t *match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FROM_DAYS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13511,73 +8653,42 @@ node_t *match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FROM_DAYS_FUNC FROM_DAYS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM_DAYS") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FROM_DAYS", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  FROM_DAYS_FUNC FROM_DAYS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_N(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FROM_DAYS_FUNC] ");
+    printf("[FROM_DAYS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13585,11 +8696,11 @@ node_t *match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "FROM_UNIXTIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13597,109 +8708,60 @@ node_t *match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM_UNIXTIME") == 0) {
-      n->OK = 1;
-      n->pos += 13;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "FROM_UNIXTIME", 13);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //unix_timestamp  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_unix_timestamp(n, name, depth + 1);
-    }
-    // dict
+    match_unix_timestamp(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //format  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_format(n, name, depth + 1);
-        }
+        match_format(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[FROM_UNIXTIME_FUNC] ");
+    printf("[FROM_UNIXTIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13707,11 +8769,11 @@ node_t *match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "GET_FORMAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -13719,96 +8781,46 @@ node_t *match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  GET_FORMAT_FUNC GET_FORMAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "GET_FORMAT") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "GET_FORMAT", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //OR
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // list
-          //list item switch
           //item 0
-          //string
           // order 0
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "DATE") == 0) {
-            n->OK = 1;
-            n->pos += 4;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "DATE", 4);
           if (n->OK == 0) {
             n->pos = peek(n->stack);
           }
-          //list item switch
           //item+1 1
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "TIME") == 0) {
-              n->OK = 1;
-              n->pos += 4;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "TIME", 4);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
           }
-          //list item switch
           //item+1 2
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 2
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "DATETIME") == 0) {
-              n->OK = 1;
-              n->pos += 8;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "DATETIME", 8);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
@@ -13820,123 +8832,61 @@ node_t *match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
     //None  GET_FORMAT_FUNC GET_FORMAT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
-    // dict
+    compare_string(n, (const char *) ",", 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //OR
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // list
-          //list item switch
           //item 0
-          //string
           // order 0
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "EUR") == 0) {
-            n->OK = 1;
-            n->pos += 3;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "EUR", 3);
           if (n->OK == 0) {
             n->pos = peek(n->stack);
           }
-          //list item switch
           //item+1 1
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 1
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "USA") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "USA", 3);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
           }
-          //list item switch
           //item+1 2
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 2
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "JIS") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "JIS", 3);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
           }
-          //list item switch
           //item+1 3
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 3
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "ISO") == 0) {
-              n->OK = 1;
-              n->pos += 3;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "ISO", 3);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
             }
           }
-          //list item switch
           //item+1 4
           if (n->OK == 0) {
             n->OK = 1;
-            //string
             // order 4
-            if (n_OK(n) == 1 && stricmp(n, (const char *) "INTERNAL") == 0) {
-              n->OK = 1;
-              n->pos += 8;
-              if (n->pos >= n->len)
-                n->pos = -1;
-            } else {
-              n->OK = 0;
-            }
+            compare_string(n, (const char *) "INTERNAL", 8);
 
             if (n->OK == 0) {
               n->pos = peek(n->stack);
@@ -13948,43 +8898,29 @@ node_t *match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[GET_FORMAT_FUNC] ");
+    printf("[GET_FORMAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -13992,11 +8928,11 @@ node_t *match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HEX_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_HEX_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HEX_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14004,59 +8940,31 @@ node_t *match_HEX_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  HEX_FUNC HEX_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "HEX") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "HEX", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //OR
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // list
-      //list item switch
       //item 0
-      //string
       //external -> 0
-      if (n_OK(n) == 1) {
-        n = match_string(n, name, depth + 1);
-      }
+      match_string(n, name, depth + 1);
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
-      //list item switch
       //item+1 1
       if (n->OK == 0) {
         n->OK = 1;
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_N(n, name, depth + 1);
-        }
+        match_N(n, name, depth + 1);
 
         if (n->OK == 0) {
           n->pos = peek(n->stack);
@@ -14065,37 +8973,27 @@ node_t *match_HEX_FUNC(node_t * n, const char last_method[], int depth)
 
       pop(n->stack);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HEX_FUNC] ");
+    printf("[HEX_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14103,11 +9001,11 @@ node_t *match_HEX_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_HOUR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_HOUR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "HOUR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14115,73 +9013,42 @@ node_t *match_HOUR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  HOUR_FUNC HOUR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "HOUR") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "HOUR", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //time  HOUR_FUNC HOUR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_time(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_time(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[HOUR_FUNC] ");
+    printf("[HOUR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14189,11 +9056,11 @@ node_t *match_HOUR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_INSERT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_INSERT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "INSERT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14201,130 +9068,66 @@ node_t *match_INSERT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "INSERT") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "INSERT", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //pos  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_pos(n, name, depth + 1);
-    }
+    match_pos(n, name, depth + 1);
     //None  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
+    match_len(n, name, depth + 1);
     //None  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     // order 7
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //newstr  INSERT_FUNC INSERT_FUNC
     //0
-    //string
     //external -> 8
-    if (n_OK(n) == 1) {
-      n = match_newstr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_newstr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[INSERT_FUNC] ");
+    printf("[INSERT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14332,11 +9135,11 @@ node_t *match_INSERT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_INSTR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_INSTR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "INSTR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14344,92 +9147,50 @@ node_t *match_INSTR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  INSTR_FUNC INSTR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "INSTR") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "INSTR", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  INSTR_FUNC INSTR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  INSTR_FUNC INSTR_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //substr  INSTR_FUNC INSTR_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_substr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_substr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[INSTR_FUNC] ");
+    printf("[INSTR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14437,11 +9198,11 @@ node_t *match_INSTR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LAST_DAY_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14449,73 +9210,42 @@ node_t *match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LAST_DAY_FUNC LAST_DAY_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LAST_DAY") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LAST_DAY", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  LAST_DAY_FUNC LAST_DAY_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LAST_DAY_FUNC] ");
+    printf("[LAST_DAY_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14523,11 +9253,11 @@ node_t *match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LCASE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LCASE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LCASE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14535,73 +9265,42 @@ node_t *match_LCASE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LCASE_FUNC LCASE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LCASE") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LCASE", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LCASE_FUNC LCASE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LCASE_FUNC] ");
+    printf("[LCASE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14609,11 +9308,11 @@ node_t *match_LCASE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LEFT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LEFT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LEFT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14621,92 +9320,50 @@ node_t *match_LEFT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LEFT_FUNC LEFT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LEFT") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LEFT", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LEFT_FUNC LEFT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  LEFT_FUNC LEFT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  LEFT_FUNC LEFT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_len(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LEFT_FUNC] ");
+    printf("[LEFT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14714,11 +9371,11 @@ node_t *match_LEFT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LENGTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14726,73 +9383,42 @@ node_t *match_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LENGTH_FUNC LENGTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LENGTH") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LENGTH", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LENGTH_FUNC LENGTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LENGTH_FUNC] ");
+    printf("[LENGTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14800,11 +9426,11 @@ node_t *match_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14812,73 +9438,42 @@ node_t *match_LN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LN_FUNC LN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LN") == 0) {
-      n->OK = 1;
-      n->pos += 2;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LN", 2);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  LN_FUNC LN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LN_FUNC] ");
+    printf("[LN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14886,11 +9481,11 @@ node_t *match_LN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOAD_FILE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14898,73 +9493,42 @@ node_t *match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOAD_FILE_FUNC LOAD_FILE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOAD_FILE") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOAD_FILE", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //file_name  LOAD_FILE_FUNC LOAD_FILE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_file_name(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_file_name(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOAD_FILE_FUNC] ");
+    printf("[LOAD_FILE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -14972,11 +9536,11 @@ node_t *match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOCALTIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -14984,90 +9548,52 @@ node_t *match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOCALTIME_FUNC LOCALTIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOCALTIME") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOCALTIME", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  LOCALTIME_FUNC LOCALTIME_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOCALTIME_FUNC] ");
+    printf("[LOCALTIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15075,11 +9601,11 @@ node_t *match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOCALTIMESTAMP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15087,90 +9613,52 @@ node_t *match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int dept
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOCALTIMESTAMP_FUNC LOCALTIMESTAMP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOCALTIMESTAMP") == 0) {
-      n->OK = 1;
-      n->pos += 14;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOCALTIMESTAMP", 14);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  LOCALTIMESTAMP_FUNC LOCALTIMESTAMP_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOCALTIMESTAMP_FUNC] ");
+    printf("[LOCALTIMESTAMP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15178,11 +9666,11 @@ node_t *match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOCATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOCATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOCATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15190,128 +9678,68 @@ node_t *match_LOCATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOCATE_FUNC LOCATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOCATE") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOCATE", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //substr  LOCATE_FUNC LOCATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_substr(n, name, depth + 1);
-    }
+    match_substr(n, name, depth + 1);
     //None  LOCATE_FUNC LOCATE_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //string  LOCATE_FUNC LOCATE_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
+    match_string(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  LOCATE_FUNC LOCATE_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //pos  LOCATE_FUNC LOCATE_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_pos(n, name, depth + 1);
-        }
+        match_pos(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOCATE_FUNC] ");
+    printf("[LOCATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15319,11 +9747,11 @@ node_t *match_LOCATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOG10_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOG10_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOG10_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15331,73 +9759,42 @@ node_t *match_LOG10_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOG10_FUNC LOG10_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOG10") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOG10", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  LOG10_FUNC LOG10_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOG10_FUNC] ");
+    printf("[LOG10_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15405,11 +9802,11 @@ node_t *match_LOG10_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOG2_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOG2_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOG2_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15417,73 +9814,42 @@ node_t *match_LOG2_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOG2_FUNC LOG2_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOG2") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOG2", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  LOG2_FUNC LOG2_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOG2_FUNC] ");
+    printf("[LOG2_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15491,11 +9857,11 @@ node_t *match_LOG2_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOG_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOG_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOG_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15503,109 +9869,60 @@ node_t *match_LOG_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOG_FUNC LOG_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOG") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOG", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //B  LOG_FUNC LOG_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_B(n, name, depth + 1);
-        }
+        match_B(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
     //None  LOG_FUNC LOG_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //X  LOG_FUNC LOG_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOG_FUNC] ");
+    printf("[LOG_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15613,11 +9930,11 @@ node_t *match_LOG_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LOWER_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LOWER_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LOWER_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15625,73 +9942,42 @@ node_t *match_LOWER_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LOWER_FUNC LOWER_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LOWER") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LOWER", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LOWER_FUNC LOWER_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LOWER_FUNC] ");
+    printf("[LOWER_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15699,11 +9985,11 @@ node_t *match_LOWER_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LPAD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LPAD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LPAD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15711,111 +9997,58 @@ node_t *match_LPAD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LPAD") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LPAD", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
+    match_len(n, name, depth + 1);
     //None  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //padstr  LPAD_FUNC LPAD_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_padstr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_padstr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LPAD_FUNC] ");
+    printf("[LPAD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15823,11 +10056,11 @@ node_t *match_LPAD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_LTRIM_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_LTRIM_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "LTRIM_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15835,73 +10068,42 @@ node_t *match_LTRIM_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  LTRIM_FUNC LTRIM_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "LTRIM") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "LTRIM", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  LTRIM_FUNC LTRIM_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[LTRIM_FUNC] ");
+    printf("[LTRIM_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -15909,11 +10111,11 @@ node_t *match_LTRIM_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MAKEDATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -15921,92 +10123,50 @@ node_t *match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MAKEDATE_FUNC MAKEDATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MAKEDATE") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MAKEDATE", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //year  MAKEDATE_FUNC MAKEDATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_year(n, name, depth + 1);
-    }
+    match_year(n, name, depth + 1);
     //None  MAKEDATE_FUNC MAKEDATE_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //dayofyear  MAKEDATE_FUNC MAKEDATE_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_dayofyear(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_dayofyear(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MAKEDATE_FUNC] ");
+    printf("[MAKEDATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16014,11 +10174,11 @@ node_t *match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MAKE_SET_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16026,111 +10186,65 @@ node_t *match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MAKE_SET_FUNC MAKE_SET_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MAKE_SET") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MAKE_SET", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //bits  MAKE_SET_FUNC MAKE_SET_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_bits(n, name, depth + 1);
-    }
-    // dict
+    match_bits(n, name, depth + 1);
     //zero or more
     push(n->stack, n->OK);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  MAKE_SET_FUNC MAKE_SET_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //string  MAKE_SET_FUNC MAKE_SET_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
 
       }
 
       if (n->OK == 0) {
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+        n->pos = pop(n->stack);
+      } else
+        pop(n->stack);
     }
-    n->OK = peek(n->stack);
-    pop(n->stack);
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    n->OK = pop(n->stack);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MAKE_SET_FUNC] ");
+    printf("[MAKE_SET_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16138,11 +10252,11 @@ node_t *match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MAKETIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16150,111 +10264,58 @@ node_t *match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MAKETIME") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MAKETIME", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //hour  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_hour(n, name, depth + 1);
-    }
+    match_hour(n, name, depth + 1);
     //None  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //minute  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_minute(n, name, depth + 1);
-    }
+    match_minute(n, name, depth + 1);
     //None  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //second  MAKETIME_FUNC MAKETIME_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_second(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_second(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MAKETIME_FUNC] ");
+    printf("[MAKETIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16262,11 +10323,11 @@ node_t *match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MICROSECOND_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16274,73 +10335,42 @@ node_t *match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MICROSECOND_FUNC MICROSECOND_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MICROSECOND") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MICROSECOND", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  MICROSECOND_FUNC MICROSECOND_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MICROSECOND_FUNC] ");
+    printf("[MICROSECOND_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16348,11 +10378,11 @@ node_t *match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MID_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MID_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MID_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16360,111 +10390,58 @@ node_t *match_MID_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MID_FUNC MID_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MID") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MID", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  MID_FUNC MID_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  MID_FUNC MID_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //pos  MID_FUNC MID_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_pos(n, name, depth + 1);
-    }
+    match_pos(n, name, depth + 1);
     //None  MID_FUNC MID_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  MID_FUNC MID_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_len(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MID_FUNC] ");
+    printf("[MID_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16472,11 +10449,11 @@ node_t *match_MID_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MINUTE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MINUTE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MINUTE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16484,73 +10461,42 @@ node_t *match_MINUTE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MINUTE_FUNC MINUTE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MINUTE") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MINUTE", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //time  MINUTE_FUNC MINUTE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_time(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_time(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MINUTE_FUNC] ");
+    printf("[MINUTE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16558,11 +10504,11 @@ node_t *match_MINUTE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MOD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MOD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MOD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16570,97 +10516,50 @@ node_t *match_MOD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MOD_FUNC MOD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MOD") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MOD", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  MOD_FUNC MOD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
+    match_N(n, name, depth + 1);
     //None  MOD_FUNC MOD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  MOD_FUNC MOD_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "M") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "M", 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MOD_FUNC] ");
+    printf("[MOD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16668,11 +10567,11 @@ node_t *match_MOD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MONTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MONTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MONTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16680,73 +10579,42 @@ node_t *match_MONTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MONTH_FUNC MONTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTH") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MONTH", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  MONTH_FUNC MONTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MONTH_FUNC] ");
+    printf("[MONTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16754,11 +10622,11 @@ node_t *match_MONTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "MONTHNAME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16766,73 +10634,42 @@ node_t *match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  MONTHNAME_FUNC MONTHNAME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "MONTHNAME") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "MONTHNAME", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  MONTHNAME_FUNC MONTHNAME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[MONTHNAME_FUNC] ");
+    printf("[MONTHNAME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16840,11 +10677,11 @@ node_t *match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_NOW_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_NOW_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "NOW_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16852,90 +10689,52 @@ node_t *match_NOW_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  NOW_FUNC NOW_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "NOW") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "NOW", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  NOW_FUNC NOW_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[NOW_FUNC] ");
+    printf("[NOW_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -16943,11 +10742,11 @@ node_t *match_NOW_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "OCTET_LENGTH_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -16955,73 +10754,42 @@ node_t *match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  OCTET_LENGTH_FUNC OCTET_LENGTH_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "OCTET_LENGTH") == 0) {
-      n->OK = 1;
-      n->pos += 12;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "OCTET_LENGTH", 12);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  OCTET_LENGTH_FUNC OCTET_LENGTH_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[OCTET_LENGTH_FUNC] ");
+    printf("[OCTET_LENGTH_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17029,11 +10797,11 @@ node_t *match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_OCT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_OCT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "OCT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17041,73 +10809,42 @@ node_t *match_OCT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  OCT_FUNC OCT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "OCT") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "OCT", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  OCT_FUNC OCT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_N(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[OCT_FUNC] ");
+    printf("[OCT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17115,11 +10852,11 @@ node_t *match_OCT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ORD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ORD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ORD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17127,73 +10864,42 @@ node_t *match_ORD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ORD_FUNC ORD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ORD") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ORD", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  ORD_FUNC ORD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ORD_FUNC] ");
+    printf("[ORD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17201,11 +10907,11 @@ node_t *match_ORD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "PERIOD_ADD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17213,97 +10919,50 @@ node_t *match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  PERIOD_ADD_FUNC PERIOD_ADD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "PERIOD_ADD") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "PERIOD_ADD", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //None  PERIOD_ADD_FUNC PERIOD_ADD_FUNC
     //0
-    //string
     // order 2
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "P") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "P", 1);
     //None  PERIOD_ADD_FUNC PERIOD_ADD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //N  PERIOD_ADD_FUNC PERIOD_ADD_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_N(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[PERIOD_ADD_FUNC] ");
+    printf("[PERIOD_ADD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17311,11 +10970,11 @@ node_t *match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "PERIOD_DIFF_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17323,102 +10982,50 @@ node_t *match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  PERIOD_DIFF_FUNC PERIOD_DIFF_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "PERIOD_DIFF") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "PERIOD_DIFF", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //None  PERIOD_DIFF_FUNC PERIOD_DIFF_FUNC
     //0
-    //string
     // order 2
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "P1") == 0) {
-      n->OK = 1;
-      n->pos += 2;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "P1", 2);
     //None  PERIOD_DIFF_FUNC PERIOD_DIFF_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  PERIOD_DIFF_FUNC PERIOD_DIFF_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "P2") == 0) {
-      n->OK = 1;
-      n->pos += 2;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "P2", 2);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[PERIOD_DIFF_FUNC] ");
+    printf("[PERIOD_DIFF_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17426,11 +11033,11 @@ node_t *match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_PI_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_PI_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "PI_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17438,66 +11045,38 @@ node_t *match_PI_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  PI_FUNC PI_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "PI") == 0) {
-      n->OK = 1;
-      n->pos += 2;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "PI", 2);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[PI_FUNC] ");
+    printf("[PI_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17505,11 +11084,11 @@ node_t *match_PI_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_POSITION_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_POSITION_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "POSITION_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17517,92 +11096,50 @@ node_t *match_POSITION_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  POSITION_FUNC POSITION_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "POSITION") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "POSITION", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //substr  POSITION_FUNC POSITION_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_substr(n, name, depth + 1);
-    }
+    match_substr(n, name, depth + 1);
     //None  POSITION_FUNC POSITION_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "IN") == 0) {
-      n->OK = 1;
-      n->pos += 2;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) "IN", 2);
     //string  POSITION_FUNC POSITION_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[POSITION_FUNC] ");
+    printf("[POSITION_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17610,11 +11147,11 @@ node_t *match_POSITION_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_POWER_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_POWER_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "POWER_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17622,97 +11159,50 @@ node_t *match_POWER_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  POWER_FUNC POWER_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "POWER") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "POWER", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  POWER_FUNC POWER_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
+    match_X(n, name, depth + 1);
     //None  POWER_FUNC POWER_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  POWER_FUNC POWER_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "Y") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "Y", 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[POWER_FUNC] ");
+    printf("[POWER_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17720,11 +11210,11 @@ node_t *match_POWER_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_POW_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_POW_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "POW_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17732,97 +11222,50 @@ node_t *match_POW_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  POW_FUNC POW_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "POW") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "POW", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  POW_FUNC POW_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
+    match_X(n, name, depth + 1);
     //None  POW_FUNC POW_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //None  POW_FUNC POW_FUNC
     //0
-    //string
     // order 4
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "Y") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "Y", 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[POW_FUNC] ");
+    printf("[POW_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17830,11 +11273,11 @@ node_t *match_POW_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_QUARTER_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_QUARTER_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "QUARTER_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17842,73 +11285,42 @@ node_t *match_QUARTER_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  QUARTER_FUNC QUARTER_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "QUARTER") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "QUARTER", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  QUARTER_FUNC QUARTER_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[QUARTER_FUNC] ");
+    printf("[QUARTER_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -17916,11 +11328,11 @@ node_t *match_QUARTER_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_QUOTE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_QUOTE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "QUOTE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -17928,73 +11340,42 @@ node_t *match_QUOTE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  QUOTE_FUNC QUOTE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "QUOTE") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "QUOTE", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  QUOTE_FUNC QUOTE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[QUOTE_FUNC] ");
+    printf("[QUOTE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18002,11 +11383,11 @@ node_t *match_QUOTE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_RADIANS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_RADIANS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "RADIANS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18014,73 +11395,42 @@ node_t *match_RADIANS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  RADIANS_FUNC RADIANS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "RADIANS") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "RADIANS", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  RADIANS_FUNC RADIANS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[RADIANS_FUNC] ");
+    printf("[RADIANS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18088,11 +11438,11 @@ node_t *match_RADIANS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_RAND_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_RAND_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "RAND_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18100,90 +11450,52 @@ node_t *match_RAND_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  RAND_FUNC RAND_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "RAND") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "RAND", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //N  RAND_FUNC RAND_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_N(n, name, depth + 1);
-        }
+        match_N(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[RAND_FUNC] ");
+    printf("[RAND_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18191,11 +11503,11 @@ node_t *match_RAND_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_REPEAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_REPEAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "REPEAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18203,92 +11515,50 @@ node_t *match_REPEAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  REPEAT_FUNC REPEAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "REPEAT") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "REPEAT", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  REPEAT_FUNC REPEAT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  REPEAT_FUNC REPEAT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //count  REPEAT_FUNC REPEAT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_count(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_count(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[REPEAT_FUNC] ");
+    printf("[REPEAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18296,11 +11566,11 @@ node_t *match_REPEAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_REPLACE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_REPLACE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "REPLACE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18308,111 +11578,58 @@ node_t *match_REPLACE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "REPLACE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "REPLACE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //from_str  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_from_str(n, name, depth + 1);
-    }
+    match_from_str(n, name, depth + 1);
     //None  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //to_str  REPLACE_FUNC REPLACE_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_to_str(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_to_str(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[REPLACE_FUNC] ");
+    printf("[REPLACE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18420,11 +11637,11 @@ node_t *match_REPLACE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_REVERSE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_REVERSE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "REVERSE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18432,73 +11649,42 @@ node_t *match_REVERSE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  REVERSE_FUNC REVERSE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "REVERSE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "REVERSE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  REVERSE_FUNC REVERSE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[REVERSE_FUNC] ");
+    printf("[REVERSE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18506,11 +11692,11 @@ node_t *match_REVERSE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_RIGHT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_RIGHT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "RIGHT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18518,92 +11704,50 @@ node_t *match_RIGHT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  RIGHT_FUNC RIGHT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "RIGHT") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "RIGHT", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  RIGHT_FUNC RIGHT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  RIGHT_FUNC RIGHT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  RIGHT_FUNC RIGHT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_len(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[RIGHT_FUNC] ");
+    printf("[RIGHT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18611,11 +11755,11 @@ node_t *match_RIGHT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_ROUND_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_ROUND_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "ROUND_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18623,109 +11767,60 @@ node_t *match_ROUND_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  ROUND_FUNC ROUND_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "ROUND") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "ROUND", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  ROUND_FUNC ROUND_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
+    match_X(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  ROUND_FUNC ROUND_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //D  ROUND_FUNC ROUND_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_D(n, name, depth + 1);
-        }
+        match_D(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[ROUND_FUNC] ");
+    printf("[ROUND_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18733,11 +11828,11 @@ node_t *match_ROUND_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_RPAD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_RPAD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "RPAD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18745,111 +11840,58 @@ node_t *match_RPAD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "RPAD") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "RPAD", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //len  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_len(n, name, depth + 1);
-    }
+    match_len(n, name, depth + 1);
     //None  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //padstr  RPAD_FUNC RPAD_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_padstr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_padstr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[RPAD_FUNC] ");
+    printf("[RPAD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18857,11 +11899,11 @@ node_t *match_RPAD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_RTRIM_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_RTRIM_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "RTRIM_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18869,73 +11911,42 @@ node_t *match_RTRIM_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  RTRIM_FUNC RTRIM_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "RTRIM") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "RTRIM", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  RTRIM_FUNC RTRIM_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[RTRIM_FUNC] ");
+    printf("[RTRIM_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -18943,11 +11954,11 @@ node_t *match_RTRIM_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SECOND_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SECOND_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SECOND_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -18955,73 +11966,42 @@ node_t *match_SECOND_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SECOND_FUNC SECOND_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SECOND") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SECOND", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //time  SECOND_FUNC SECOND_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_time(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_time(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SECOND_FUNC] ");
+    printf("[SECOND_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19029,11 +12009,11 @@ node_t *match_SECOND_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SEC_TO_TIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19041,73 +12021,42 @@ node_t *match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SEC_TO_TIME_FUNC SEC_TO_TIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SEC_TO_TIME") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SEC_TO_TIME", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //seconds  SEC_TO_TIME_FUNC SEC_TO_TIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_seconds(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_seconds(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SEC_TO_TIME_FUNC] ");
+    printf("[SEC_TO_TIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19115,11 +12064,11 @@ node_t *match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SIGN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SIGN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SIGN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19127,73 +12076,42 @@ node_t *match_SIGN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SIGN_FUNC SIGN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SIGN") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SIGN", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  SIGN_FUNC SIGN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SIGN_FUNC] ");
+    printf("[SIGN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19201,11 +12119,11 @@ node_t *match_SIGN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SIN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SIN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SIN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19213,73 +12131,42 @@ node_t *match_SIN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SIN_FUNC SIN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SIN") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SIN", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  SIN_FUNC SIN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SIN_FUNC] ");
+    printf("[SIN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19287,11 +12174,11 @@ node_t *match_SIN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SOUNDEX_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19299,73 +12186,42 @@ node_t *match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SOUNDEX_FUNC SOUNDEX_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SOUNDEX") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SOUNDEX", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  SOUNDEX_FUNC SOUNDEX_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SOUNDEX_FUNC] ");
+    printf("[SOUNDEX_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19373,11 +12229,11 @@ node_t *match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SPACE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SPACE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SPACE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19385,73 +12241,42 @@ node_t *match_SPACE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SPACE_FUNC SPACE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SPACE") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SPACE", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //N  SPACE_FUNC SPACE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_N(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_N(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SPACE_FUNC] ");
+    printf("[SPACE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19459,11 +12284,11 @@ node_t *match_SPACE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SQRT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SQRT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SQRT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19471,73 +12296,42 @@ node_t *match_SQRT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SQRT_FUNC SQRT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SQRT") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SQRT", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  SQRT_FUNC SQRT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SQRT_FUNC] ");
+    printf("[SQRT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19545,11 +12339,11 @@ node_t *match_SQRT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "STR_TO_DATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19557,92 +12351,50 @@ node_t *match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  STR_TO_DATE_FUNC STR_TO_DATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "STR_TO_DATE") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "STR_TO_DATE", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  STR_TO_DATE_FUNC STR_TO_DATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  STR_TO_DATE_FUNC STR_TO_DATE_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //format  STR_TO_DATE_FUNC STR_TO_DATE_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_format(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_format(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[STR_TO_DATE_FUNC] ");
+    printf("[STR_TO_DATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19650,11 +12402,11 @@ node_t *match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SUBDATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19662,123 +12414,61 @@ node_t *match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SUBDATE_FUNC SUBDATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SUBDATE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SUBDATE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //OR
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // list
-      //list item switch
       //item 0
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //date  SUBDATE_FUNC SUBDATE_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_date(n, name, depth + 1);
-        }
+        match_date(n, name, depth + 1);
         //None  SUBDATE_FUNC SUBDATE_FUNC
         //0
-        //string
         // order 1
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //None  SUBDATE_FUNC SUBDATE_FUNC
         //0
-        //string
         // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "INTERVAL") == 0) {
-          n->OK = 1;
-          n->pos += 8;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "INTERVAL", 8);
         //interval_expr  SUBDATE_FUNC SUBDATE_FUNC
         //0
-        //string
         //external -> 3
-        if (n_OK(n) == 1) {
-          n = match_interval_expr(n, name, depth + 1);
-        }
+        match_interval_expr(n, name, depth + 1);
 
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
-      //list item switch
       //item+1 1
       if (n->OK == 0) {
         n->OK = 1;
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
           //expr  SUBDATE_FUNC SUBDATE_FUNC
           //0
-          //string
           //external -> 0
-          if (n_OK(n) == 1) {
-            n = match_expr(n, name, depth + 1);
-          }
+          match_expr(n, name, depth + 1);
           //None  SUBDATE_FUNC SUBDATE_FUNC
           //0
-          //string
           // order 1
-          if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) ",", 1);
           //days  SUBDATE_FUNC SUBDATE_FUNC
           //0
-          //string
           //external -> 2
-          if (n_OK(n) == 1) {
-            n = match_days(n, name, depth + 1);
-          }
+          match_days(n, name, depth + 1);
 
         }
 
@@ -19789,37 +12479,27 @@ node_t *match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth)
 
       pop(n->stack);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SUBDATE_FUNC] ");
+    printf("[SUBDATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19827,11 +12507,11 @@ node_t *match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SUBSTRING_INDEX_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19839,111 +12519,58 @@ node_t *match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int dep
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SUBSTRING_INDEX") == 0) {
-      n->OK = 1;
-      n->pos += 15;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SUBSTRING_INDEX", 15);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
+    match_string(n, name, depth + 1);
     //None  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //delim  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_delim(n, name, depth + 1);
-    }
+    match_delim(n, name, depth + 1);
     //None  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //count  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_count(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_count(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SUBSTRING_INDEX_FUNC] ");
+    printf("[SUBSTRING_INDEX_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -19951,11 +12578,11 @@ node_t *match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int dep
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SUBSTRING_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -19963,111 +12590,57 @@ node_t *match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SUBSTRING_FUNC SUBSTRING_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SUBSTRING") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SUBSTRING", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //OR
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // list
-      //list item switch
       //item 0
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //string  SUBSTRING_FUNC SUBSTRING_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
         //None  SUBSTRING_FUNC SUBSTRING_FUNC
         //0
-        //string
         // order 1
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //pos  SUBSTRING_FUNC SUBSTRING_FUNC
         //0
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_pos(n, name, depth + 1);
-        }
+        match_pos(n, name, depth + 1);
 
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
-      //list item switch
       //item+1 1
       if (n->OK == 0) {
         n->OK = 1;
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
           //string  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           //external -> 0
-          if (n_OK(n) == 1) {
-            n = match_string(n, name, depth + 1);
-          }
+          match_string(n, name, depth + 1);
           //None  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           // order 1
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM") == 0) {
-            n->OK = 1;
-            n->pos += 4;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "FROM", 4);
           //pos  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           //external -> 2
-          if (n_OK(n) == 1) {
-            n = match_pos(n, name, depth + 1);
-          }
+          match_pos(n, name, depth + 1);
 
         }
 
@@ -20075,59 +12648,31 @@ node_t *match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth)
           n->pos = peek(n->stack);
         }
       }
-      //list item switch
       //item+1 2
       if (n->OK == 0) {
         n->OK = 1;
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
           //string  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           //external -> 0
-          if (n_OK(n) == 1) {
-            n = match_string(n, name, depth + 1);
-          }
+          match_string(n, name, depth + 1);
           //None  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           // order 1
-          if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) ",", 1);
           //pos  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           //external -> 2
-          if (n_OK(n) == 1) {
-            n = match_pos(n, name, depth + 1);
-          }
+          match_pos(n, name, depth + 1);
           //None  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           // order 3
-          if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) ",", 1);
           //len  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
-          //string
           //external -> 4
-          if (n_OK(n) == 1) {
-            n = match_len(n, name, depth + 1);
-          }
+          match_len(n, name, depth + 1);
 
         }
 
@@ -20138,37 +12683,27 @@ node_t *match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth)
 
       pop(n->stack);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SUBSTRING_FUNC] ");
+    printf("[SUBSTRING_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20176,11 +12711,11 @@ node_t *match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SUBSTR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20188,111 +12723,57 @@ node_t *match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SUBSTR_FUNC SUBSTR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SUBSTR") == 0) {
-      n->OK = 1;
-      n->pos += 6;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SUBSTR", 6);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //OR
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // list
-      //list item switch
       //item 0
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //string  SUBSTR_FUNC SUBSTR_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_string(n, name, depth + 1);
-        }
+        match_string(n, name, depth + 1);
         //None  SUBSTR_FUNC SUBSTR_FUNC
         //0
-        //string
         // order 1
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //pos  SUBSTR_FUNC SUBSTR_FUNC
         //0
-        //string
         //external -> 2
-        if (n_OK(n) == 1) {
-          n = match_pos(n, name, depth + 1);
-        }
+        match_pos(n, name, depth + 1);
 
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
-      //list item switch
       //item+1 1
       if (n->OK == 0) {
         n->OK = 1;
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
           //string  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           //external -> 0
-          if (n_OK(n) == 1) {
-            n = match_string(n, name, depth + 1);
-          }
+          match_string(n, name, depth + 1);
           //None  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           // order 1
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM") == 0) {
-            n->OK = 1;
-            n->pos += 4;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "FROM", 4);
           //pos  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           //external -> 2
-          if (n_OK(n) == 1) {
-            n = match_pos(n, name, depth + 1);
-          }
+          match_pos(n, name, depth + 1);
 
         }
 
@@ -20300,59 +12781,31 @@ node_t *match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth)
           n->pos = peek(n->stack);
         }
       }
-      //list item switch
       //item+1 2
       if (n->OK == 0) {
         n->OK = 1;
-        // dict
         // GROUP
         if (n_OK(n) == 1) {
-          // list
           //string  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           //external -> 0
-          if (n_OK(n) == 1) {
-            n = match_string(n, name, depth + 1);
-          }
+          match_string(n, name, depth + 1);
           //None  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           // order 1
-          if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) ",", 1);
           //pos  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           //external -> 2
-          if (n_OK(n) == 1) {
-            n = match_pos(n, name, depth + 1);
-          }
+          match_pos(n, name, depth + 1);
           //None  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           // order 3
-          if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-            n->OK = 1;
-            n->pos += 1;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) ",", 1);
           //len  SUBSTR_FUNC SUBSTR_FUNC
           //0
-          //string
           //external -> 4
-          if (n_OK(n) == 1) {
-            n = match_len(n, name, depth + 1);
-          }
+          match_len(n, name, depth + 1);
 
         }
 
@@ -20363,37 +12816,27 @@ node_t *match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth)
 
       pop(n->stack);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SUBSTR_FUNC] ");
+    printf("[SUBSTR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20401,11 +12844,11 @@ node_t *match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SUBTIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20413,92 +12856,50 @@ node_t *match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SUBTIME_FUNC SUBTIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SUBTIME") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SUBTIME", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  SUBTIME_FUNC SUBTIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+    match_expr(n, name, depth + 1);
     //None  SUBTIME_FUNC SUBTIME_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //expr  SUBTIME_FUNC SUBTIME_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SUBTIME_FUNC] ");
+    printf("[SUBTIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20506,11 +12907,11 @@ node_t *match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "SYSDATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20518,90 +12919,52 @@ node_t *match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  SYSDATE_FUNC SYSDATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "SYSDATE") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "SYSDATE", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  SYSDATE_FUNC SYSDATE_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[SYSDATE_FUNC] ");
+    printf("[SYSDATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20609,11 +12972,11 @@ node_t *match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TAN_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TAN_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TAN_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20621,73 +12984,42 @@ node_t *match_TAN_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TAN_FUNC TAN_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TAN") == 0) {
-      n->OK = 1;
-      n->pos += 3;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TAN", 3);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  TAN_FUNC TAN_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_X(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TAN_FUNC] ");
+    printf("[TAN_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20695,11 +13027,11 @@ node_t *match_TAN_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIMEDIFF_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20707,92 +13039,50 @@ node_t *match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIMEDIFF_FUNC TIMEDIFF_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIMEDIFF") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIMEDIFF", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  TIMEDIFF_FUNC TIMEDIFF_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+    match_expr(n, name, depth + 1);
     //None  TIMEDIFF_FUNC TIMEDIFF_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //expr  TIMEDIFF_FUNC TIMEDIFF_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIMEDIFF_FUNC] ");
+    printf("[TIMEDIFF_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20800,11 +13090,11 @@ node_t *match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20812,73 +13102,42 @@ node_t *match_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIME_FUNC TIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIME") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIME", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  TIME_FUNC TIME_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIME_FUNC] ");
+    printf("[TIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20886,11 +13145,11 @@ node_t *match_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIME_FORMAT_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -20898,92 +13157,50 @@ node_t *match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIME_FORMAT_FUNC TIME_FORMAT_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIME_FORMAT") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIME_FORMAT", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //time  TIME_FORMAT_FUNC TIME_FORMAT_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_time(n, name, depth + 1);
-    }
+    match_time(n, name, depth + 1);
     //None  TIME_FORMAT_FUNC TIME_FORMAT_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //format  TIME_FORMAT_FUNC TIME_FORMAT_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_format(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_format(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIME_FORMAT_FUNC] ");
+    printf("[TIME_FORMAT_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -20991,11 +13208,11 @@ node_t *match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIMESTAMPADD_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21003,111 +13220,58 @@ node_t *match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIMESTAMPADD") == 0) {
-      n->OK = 1;
-      n->pos += 12;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIMESTAMPADD", 12);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //unit  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_unit(n, name, depth + 1);
-    }
+    match_unit(n, name, depth + 1);
     //None  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //interval  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_interval(n, name, depth + 1);
-    }
+    match_interval(n, name, depth + 1);
     //None  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //datetime_expr  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_datetime_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_datetime_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIMESTAMPADD_FUNC] ");
+    printf("[TIMESTAMPADD_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21115,11 +13279,11 @@ node_t *match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIMESTAMPDIFF_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21127,111 +13291,58 @@ node_t *match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIMESTAMPDIFF") == 0) {
-      n->OK = 1;
-      n->pos += 13;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIMESTAMPDIFF", 13);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //unit  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_unit(n, name, depth + 1);
-    }
+    match_unit(n, name, depth + 1);
     //None  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //datetime_expr  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     //external -> 4
-    if (n_OK(n) == 1) {
-      n = match_datetime_expr(n, name, depth + 1);
-    }
+    match_datetime_expr(n, name, depth + 1);
     //None  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     // order 5
-    if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }
+    compare_string(n, (const char *) ",", 1);
     //datetime_expr  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
-    //string
     //external -> 6
-    if (n_OK(n) == 1) {
-      n = match_datetime_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_datetime_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIMESTAMPDIFF_FUNC] ");
+    printf("[TIMESTAMPDIFF_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21239,11 +13350,11 @@ node_t *match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIMESTAMP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21251,109 +13362,60 @@ node_t *match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIMESTAMP_FUNC TIMESTAMP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIMESTAMP") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIMESTAMP", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  TIMESTAMP_FUNC TIMESTAMP_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
+    match_expr(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  TIMESTAMP_FUNC TIMESTAMP_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //expr  TIMESTAMP_FUNC TIMESTAMP_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_expr(n, name, depth + 1);
-        }
+        match_expr(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIMESTAMP_FUNC] ");
+    printf("[TIMESTAMP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21361,11 +13423,11 @@ node_t *match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TIME_TO_SEC_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21373,73 +13435,42 @@ node_t *match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TIME_TO_SEC_FUNC TIME_TO_SEC_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TIME_TO_SEC") == 0) {
-      n->OK = 1;
-      n->pos += 11;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TIME_TO_SEC", 11);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //time  TIME_TO_SEC_FUNC TIME_TO_SEC_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_time(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_time(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TIME_TO_SEC_FUNC] ");
+    printf("[TIME_TO_SEC_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21447,11 +13478,11 @@ node_t *match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TO_BASE64_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21459,73 +13490,42 @@ node_t *match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TO_BASE64_FUNC TO_BASE64_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TO_BASE64") == 0) {
-      n->OK = 1;
-      n->pos += 9;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TO_BASE64", 9);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  TO_BASE64_FUNC TO_BASE64_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TO_BASE64_FUNC] ");
+    printf("[TO_BASE64_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21533,11 +13533,11 @@ node_t *match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TO_DAYS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21545,73 +13545,42 @@ node_t *match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TO_DAYS_FUNC TO_DAYS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TO_DAYS") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TO_DAYS", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  TO_DAYS_FUNC TO_DAYS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TO_DAYS_FUNC] ");
+    printf("[TO_DAYS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21619,11 +13588,11 @@ node_t *match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TO_SECONDS_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21631,73 +13600,42 @@ node_t *match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TO_SECONDS_FUNC TO_SECONDS_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TO_SECONDS") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TO_SECONDS", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //expr  TO_SECONDS_FUNC TO_SECONDS_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_expr(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TO_SECONDS_FUNC] ");
+    printf("[TO_SECONDS_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21705,11 +13643,11 @@ node_t *match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TRIM_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TRIM_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TRIM_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21717,104 +13655,51 @@ node_t *match_TRIM_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TRIM_FUNC TRIM_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TRIM") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TRIM", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
-        // dict
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          // dict
           // GROUP
           if (n_OK(n) == 1) {
-            // list
-            // dict
             //OR
             if (n_OK(n) == 1) {
               push(n->stack, n->pos);
-              // list
-              //list item switch
               //item 0
-              //string
               // order 0
-              if (n_OK(n) == 1 && stricmp(n, (const char *) "BOTH") == 0) {
-                n->OK = 1;
-                n->pos += 4;
-                if (n->pos >= n->len)
-                  n->pos = -1;
-              } else {
-                n->OK = 0;
-              }
+              compare_string(n, (const char *) "BOTH", 4);
               if (n->OK == 0) {
                 n->pos = peek(n->stack);
               }
-              //list item switch
               //item+1 1
               if (n->OK == 0) {
                 n->OK = 1;
-                //string
                 // order 1
-                if (n_OK(n) == 1 && stricmp(n, (const char *) "LEADING") == 0) {
-                  n->OK = 1;
-                  n->pos += 7;
-                  if (n->pos >= n->len)
-                    n->pos = -1;
-                } else {
-                  n->OK = 0;
-                }
+                compare_string(n, (const char *) "LEADING", 7);
 
                 if (n->OK == 0) {
                   n->pos = peek(n->stack);
                 }
               }
-              //list item switch
               //item+1 2
               if (n->OK == 0) {
                 n->OK = 1;
-                //string
                 // order 2
-                if (n_OK(n) == 1 && stricmp(n, (const char *) "TRAILING") == 0) {
-                  n->OK = 1;
-                  n->pos += 8;
-                  if (n->pos >= n->len)
-                    n->pos = -1;
-                } else {
-                  n->OK = 0;
-                }
+                compare_string(n, (const char *) "TRAILING", 8);
 
                 if (n->OK == 0) {
                   n->pos = peek(n->stack);
@@ -21826,105 +13711,55 @@ node_t *match_TRIM_FUNC(node_t * n, const char last_method[], int depth)
 
           }
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
-        // dict
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
-          //string
           // order None
-          if (n_OK(n) == 1 && stricmp(n, (const char *) "{remstr") == 0) {
-            n->OK = 1;
-            n->pos += 7;
-            if (n->pos >= n->len)
-              n->pos = -1;
-          } else {
-            n->OK = 0;
-          }
+          compare_string(n, (const char *) "{remstr", 7);
 
 
-          if (n->OK == 0) {
-            n->OK = 1;
-            n->pos = peek(n->stack);
-          }
-          pop(n->stack);
+          optional_reset(n);
         }
         //None  TRIM_FUNC TRIM_FUNC
         //0
-        //string
         // order 2
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "}") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "}", 1);
         //None  TRIM_FUNC TRIM_FUNC
         //0
-        //string
         // order 3
-        if (n_OK(n) == 1 && stricmp(n, (const char *) "FROM") == 0) {
-          n->OK = 1;
-          n->pos += 4;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) "FROM", 4);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
     //string  TRIM_FUNC TRIM_FUNC
     //0
-    //string
     //external -> 3
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TRIM_FUNC] ");
+    printf("[TRIM_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -21932,11 +13767,11 @@ node_t *match_TRIM_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "TRUNCATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -21944,109 +13779,60 @@ node_t *match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  TRUNCATE_FUNC TRUNCATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "TRUNCATE") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "TRUNCATE", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //X  TRUNCATE_FUNC TRUNCATE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_X(n, name, depth + 1);
-    }
-    // dict
+    match_X(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  TRUNCATE_FUNC TRUNCATE_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //D  TRUNCATE_FUNC TRUNCATE_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_D(n, name, depth + 1);
-        }
+        match_D(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[TRUNCATE_FUNC] ");
+    printf("[TRUNCATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22054,11 +13840,11 @@ node_t *match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UCASE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UCASE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UCASE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22066,73 +13852,42 @@ node_t *match_UCASE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UCASE_FUNC UCASE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UCASE") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UCASE", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  UCASE_FUNC UCASE_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UCASE_FUNC] ");
+    printf("[UCASE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22140,11 +13895,11 @@ node_t *match_UCASE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UNHEX_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UNHEX_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UNHEX_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22152,73 +13907,42 @@ node_t *match_UNHEX_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UNHEX_FUNC UNHEX_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UNHEX") == 0) {
-      n->OK = 1;
-      n->pos += 5;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UNHEX", 5);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //string  UNHEX_FUNC UNHEX_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_string(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_string(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UNHEX_FUNC] ");
+    printf("[UNHEX_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22226,11 +13950,11 @@ node_t *match_UNHEX_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UNIX_TIMESTAMP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22238,100 +13962,51 @@ node_t *match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int dept
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UNIX_TIMESTAMP_FUNC UNIX_TIMESTAMP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UNIX_TIMESTAMP") == 0) {
-      n->OK = 1;
-      n->pos += 14;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UNIX_TIMESTAMP", 14);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      //string
       // order None
-      if (n_OK(n) == 1 && stricmp(n, (const char *) "{date") == 0) {
-        n->OK = 1;
-        n->pos += 5;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }
+      compare_string(n, (const char *) "{date", 5);
 
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
     //None  UNIX_TIMESTAMP_FUNC UNIX_TIMESTAMP_FUNC
     //0
-    //string
     // order 3
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "}") == 0) {
-      n->OK = 1;
-      n->pos += 1;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "}", 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UNIX_TIMESTAMP_FUNC] ");
+    printf("[UNIX_TIMESTAMP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22339,11 +14014,11 @@ node_t *match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UTC_DATE_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22351,66 +14026,38 @@ node_t *match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UTC_DATE_FUNC UTC_DATE_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UTC_DATE") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UTC_DATE", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UTC_DATE_FUNC] ");
+    printf("[UTC_DATE_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22418,11 +14065,11 @@ node_t *match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UTC_TIMESTAMP_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22430,90 +14077,52 @@ node_t *match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UTC_TIMESTAMP_FUNC UTC_TIMESTAMP_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UTC_TIMESTAMP") == 0) {
-      n->OK = 1;
-      n->pos += 13;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UTC_TIMESTAMP", 13);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  UTC_TIMESTAMP_FUNC UTC_TIMESTAMP_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UTC_TIMESTAMP_FUNC] ");
+    printf("[UTC_TIMESTAMP_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22521,11 +14130,11 @@ node_t *match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "UTC_TIME_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22533,90 +14142,52 @@ node_t *match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  UTC_TIME_FUNC UTC_TIME_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "UTC_TIME") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "UTC_TIME", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
-    // dict
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //fsp  UTC_TIME_FUNC UTC_TIME_FUNC
         //0
-        //string
         //external -> 0
-        if (n_OK(n) == 1) {
-          n = match_fsp(n, name, depth + 1);
-        }
+        match_fsp(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[UTC_TIME_FUNC] ");
+    printf("[UTC_TIME_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22624,11 +14195,11 @@ node_t *match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_WEEK_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_WEEK_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "WEEK_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22636,109 +14207,60 @@ node_t *match_WEEK_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  WEEK_FUNC WEEK_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEK") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "WEEK", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  WEEK_FUNC WEEK_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
+    match_date(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  WEEK_FUNC WEEK_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //mode  WEEK_FUNC WEEK_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_mode(n, name, depth + 1);
-        }
+        match_mode(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[WEEK_FUNC] ");
+    printf("[WEEK_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22746,11 +14268,11 @@ node_t *match_WEEK_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "WEEKDAY_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22758,73 +14280,42 @@ node_t *match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  WEEKDAY_FUNC WEEKDAY_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEKDAY") == 0) {
-      n->OK = 1;
-      n->pos += 7;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "WEEKDAY", 7);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  WEEKDAY_FUNC WEEKDAY_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[WEEKDAY_FUNC] ");
+    printf("[WEEKDAY_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22832,11 +14323,11 @@ node_t *match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "WEEKOFYEAR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22844,73 +14335,42 @@ node_t *match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  WEEKOFYEAR_FUNC WEEKOFYEAR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "WEEKOFYEAR") == 0) {
-      n->OK = 1;
-      n->pos += 10;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "WEEKOFYEAR", 10);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  WEEKOFYEAR_FUNC WEEKOFYEAR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[WEEKOFYEAR_FUNC] ");
+    printf("[WEEKOFYEAR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -22918,11 +14378,11 @@ node_t *match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_YEAR_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_YEAR_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "YEAR_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -22930,73 +14390,42 @@ node_t *match_YEAR_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  YEAR_FUNC YEAR_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "YEAR") == 0) {
-      n->OK = 1;
-      n->pos += 4;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "YEAR", 4);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  YEAR_FUNC YEAR_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    match_date(n, name, depth + 1);
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[YEAR_FUNC] ");
+    printf("[YEAR_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -23004,11 +14433,11 @@ node_t *match_YEAR_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth)
-{
+void match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "YEARWEEK_FUNC";
   int start_pos = n->pos;
   n->depth += 1;
@@ -23016,109 +14445,60 @@ node_t *match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   // GROUP
   if (n_OK(n) == 1) {
-    // list
     //None  YEARWEEK_FUNC YEARWEEK_FUNC
     //0
-    //string
     // order 0
-    if (n_OK(n) == 1 && stricmp(n, (const char *) "YEARWEEK") == 0) {
-      n->OK = 1;
-      n->pos += 8;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    compare_string(n, (const char *) "YEARWEEK", 8);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '('))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == '(')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
-      n->OK = 0;
-    }                           // end char
 
     //date  YEARWEEK_FUNC YEARWEEK_FUNC
     //0
-    //string
     //external -> 2
-    if (n_OK(n) == 1) {
-      n = match_date(n, name, depth + 1);
-    }
-    // dict
+    match_date(n, name, depth + 1);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
-      // dict
       // GROUP
       if (n_OK(n) == 1) {
-        // list
         //None  YEARWEEK_FUNC YEARWEEK_FUNC
         //0
-        //string
         // order 0
-        if (n_OK(n) == 1 && stricmp(n, (const char *) ",") == 0) {
-          n->OK = 1;
-          n->pos += 1;
-          if (n->pos >= n->len)
-            n->pos = -1;
-        } else {
-          n->OK = 0;
-        }
+        compare_string(n, (const char *) ",", 1);
         //mode  YEARWEEK_FUNC YEARWEEK_FUNC
         //0
-        //string
         //external -> 1
-        if (n_OK(n) == 1) {
-          n = match_mode(n, name, depth + 1);
-        }
+        match_mode(n, name, depth + 1);
 
       }
 
-      if (n->OK == 0) {
-        n->OK = 1;
-        n->pos = peek(n->stack);
-      }
-      pop(n->stack);
+      optional_reset(n);
     }
-    // dict
-    if (n_OK(n) == 1 && (
-                          //string
-                          n->value[n->pos] == ')')) {
-      n->OK = 1;
-      n->pos++;
-      if (n->pos >= n->len)
-        n->pos = -1;
-    } else {
+    if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
+      increment_n(n, 1);
+    else
       n->OK = 0;
-    }                           // end char
 
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[YEARWEEK_FUNC] ");
+    printf("[YEARWEEK_FUNC] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -23126,11 +14506,11 @@ node_t *match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_functions(node_t * n, const char last_method[], int depth)
-{
+void match_functions(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "functions";
   int start_pos = n->pos;
   n->depth += 1;
@@ -23138,1935 +14518,1380 @@ node_t *match_functions(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
   //OR
   if (n_OK(n) == 1) {
     push(n->stack, n->pos);
-    // list
-    //list item switch
     //item 0
-    //string
     //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_ABS_FUNC(n, name, depth + 1);
-    }
+    match_ABS_FUNC(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = peek(n->stack);
     }
-    //list item switch
     //item+1 1
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 1
-      if (n_OK(n) == 1) {
-        n = match_ACOS_FUNC(n, name, depth + 1);
-      }
+      match_ACOS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 2
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 2
-      if (n_OK(n) == 1) {
-        n = match_ADDDATE_FUNC(n, name, depth + 1);
-      }
+      match_ADDDATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 3
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 3
-      if (n_OK(n) == 1) {
-        n = match_ADDTIME_FUNC(n, name, depth + 1);
-      }
+      match_ADDTIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 4
-      if (n_OK(n) == 1) {
-        n = match_ASCII_FUNC(n, name, depth + 1);
-      }
+      match_ASCII_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 5
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 5
-      if (n_OK(n) == 1) {
-        n = match_ASIN_FUNC(n, name, depth + 1);
-      }
+      match_ASIN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 6
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 6
-      if (n_OK(n) == 1) {
-        n = match_ATAN_FUNC(n, name, depth + 1);
-      }
+      match_ATAN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 7
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 7
-      if (n_OK(n) == 1) {
-        n = match_ATAN2_FUNC(n, name, depth + 1);
-      }
+      match_ATAN2_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 8
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 8
-      if (n_OK(n) == 1) {
-        n = match_BIN_FUNC(n, name, depth + 1);
-      }
+      match_BIN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 9
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 9
-      if (n_OK(n) == 1) {
-        n = match_BIT_LENGTH_FUNC(n, name, depth + 1);
-      }
+      match_BIT_LENGTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 10
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 10
-      if (n_OK(n) == 1) {
-        n = match_CEILING_FUNC(n, name, depth + 1);
-      }
+      match_CEILING_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 11
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 11
-      if (n_OK(n) == 1) {
-        n = match_CEIL_FUNC(n, name, depth + 1);
-      }
+      match_CEIL_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 12
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 12
-      if (n_OK(n) == 1) {
-        n = match_CHARACTER_LENGTH_FUNC(n, name, depth + 1);
-      }
+      match_CHARACTER_LENGTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 13
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 13
-      if (n_OK(n) == 1) {
-        n = match_CHAR_LENGTH_FUNC(n, name, depth + 1);
-      }
+      match_CHAR_LENGTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 14
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 14
-      if (n_OK(n) == 1) {
-        n = match_CHAR_FUNC(n, name, depth + 1);
-      }
+      match_CHAR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 15
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 15
-      if (n_OK(n) == 1) {
-        n = match_CONCAT_FUNC(n, name, depth + 1);
-      }
+      match_CONCAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 16
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 16
-      if (n_OK(n) == 1) {
-        n = match_CONCAT_WS_FUNC(n, name, depth + 1);
-      }
+      match_CONCAT_WS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 17
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 17
-      if (n_OK(n) == 1) {
-        n = match_CONVERT_TZ_FUNC(n, name, depth + 1);
-      }
+      match_CONVERT_TZ_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 18
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 18
-      if (n_OK(n) == 1) {
-        n = match_CONV_FUNC(n, name, depth + 1);
-      }
+      match_CONV_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 19
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 19
-      if (n_OK(n) == 1) {
-        n = match_COS_FUNC(n, name, depth + 1);
-      }
+      match_COS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 20
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 20
-      if (n_OK(n) == 1) {
-        n = match_COT_FUNC(n, name, depth + 1);
-      }
+      match_COT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 21
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 21
-      if (n_OK(n) == 1) {
-        n = match_CRC32_FUNC(n, name, depth + 1);
-      }
+      match_CRC32_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 22
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 22
-      if (n_OK(n) == 1) {
-        n = match_CURDATE_FUNC(n, name, depth + 1);
-      }
+      match_CURDATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 23
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 23
-      if (n_OK(n) == 1) {
-        n = match_CURRENT_DATE_FUNC(n, name, depth + 1);
-      }
+      match_CURRENT_DATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 24
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 24
-      if (n_OK(n) == 1) {
-        n = match_CURRENT_TIME_FUNC(n, name, depth + 1);
-      }
+      match_CURRENT_TIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 25
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 25
-      if (n_OK(n) == 1) {
-        n = match_CURRENT_TIMESTAMP_FUNC(n, name, depth + 1);
-      }
+      match_CURRENT_TIMESTAMP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 26
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 26
-      if (n_OK(n) == 1) {
-        n = match_CURTIME_FUNC(n, name, depth + 1);
-      }
+      match_CURTIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 27
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 27
-      if (n_OK(n) == 1) {
-        n = match_DATE_ADD_FUNC(n, name, depth + 1);
-      }
+      match_DATE_ADD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 28
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 28
-      if (n_OK(n) == 1) {
-        n = match_DATEDIFF_FUNC(n, name, depth + 1);
-      }
+      match_DATEDIFF_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 29
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 29
-      if (n_OK(n) == 1) {
-        n = match_DATE_FUNC(n, name, depth + 1);
-      }
+      match_DATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 30
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 30
-      if (n_OK(n) == 1) {
-        n = match_DATE_FORMAT_FUNC(n, name, depth + 1);
-      }
+      match_DATE_FORMAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 31
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 31
-      if (n_OK(n) == 1) {
-        n = match_DATE_SUB_FUNC(n, name, depth + 1);
-      }
+      match_DATE_SUB_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 32
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 32
-      if (n_OK(n) == 1) {
-        n = match_DAY_FUNC(n, name, depth + 1);
-      }
+      match_DAY_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 33
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 33
-      if (n_OK(n) == 1) {
-        n = match_DAYNAME_FUNC(n, name, depth + 1);
-      }
+      match_DAYNAME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 34
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 34
-      if (n_OK(n) == 1) {
-        n = match_DAYOFMONTH_FUNC(n, name, depth + 1);
-      }
+      match_DAYOFMONTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 35
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 35
-      if (n_OK(n) == 1) {
-        n = match_DAYOFWEEK_FUNC(n, name, depth + 1);
-      }
+      match_DAYOFWEEK_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 36
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 36
-      if (n_OK(n) == 1) {
-        n = match_DAYOFYEAR_FUNC(n, name, depth + 1);
-      }
+      match_DAYOFYEAR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 37
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 37
-      if (n_OK(n) == 1) {
-        n = match_DEGREES_FUNC(n, name, depth + 1);
-      }
+      match_DEGREES_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 38
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 38
-      if (n_OK(n) == 1) {
-        n = match_ELT_FUNC(n, name, depth + 1);
-      }
+      match_ELT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 39
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 39
-      if (n_OK(n) == 1) {
-        n = match_EXPORT_SET_FUNC(n, name, depth + 1);
-      }
+      match_EXPORT_SET_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 40
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 40
-      if (n_OK(n) == 1) {
-        n = match_EXP_FUNC(n, name, depth + 1);
-      }
+      match_EXP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 41
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 41
-      if (n_OK(n) == 1) {
-        n = match_EXTRACT_FUNC(n, name, depth + 1);
-      }
+      match_EXTRACT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 42
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 42
-      if (n_OK(n) == 1) {
-        n = match_FIELD_FUNC(n, name, depth + 1);
-      }
+      match_FIELD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 43
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 43
-      if (n_OK(n) == 1) {
-        n = match_FIND_IN_SET_FUNC(n, name, depth + 1);
-      }
+      match_FIND_IN_SET_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 44
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 44
-      if (n_OK(n) == 1) {
-        n = match_FLOOR_FUNC(n, name, depth + 1);
-      }
+      match_FLOOR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 45
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 45
-      if (n_OK(n) == 1) {
-        n = match_FORMAT_FUNC(n, name, depth + 1);
-      }
+      match_FORMAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 46
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 46
-      if (n_OK(n) == 1) {
-        n = match_FORMAT_FUNC(n, name, depth + 1);
-      }
+      match_FORMAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 47
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 47
-      if (n_OK(n) == 1) {
-        n = match_FROM_BASE64_FUNC(n, name, depth + 1);
-      }
+      match_FROM_BASE64_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 48
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 48
-      if (n_OK(n) == 1) {
-        n = match_FROM_DAYS_FUNC(n, name, depth + 1);
-      }
+      match_FROM_DAYS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 49
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 49
-      if (n_OK(n) == 1) {
-        n = match_FROM_UNIXTIME_FUNC(n, name, depth + 1);
-      }
+      match_FROM_UNIXTIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 50
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 50
-      if (n_OK(n) == 1) {
-        n = match_GET_FORMAT_FUNC(n, name, depth + 1);
-      }
+      match_GET_FORMAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 51
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 51
-      if (n_OK(n) == 1) {
-        n = match_HEX_FUNC(n, name, depth + 1);
-      }
+      match_HEX_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 52
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 52
-      if (n_OK(n) == 1) {
-        n = match_HOUR_FUNC(n, name, depth + 1);
-      }
+      match_HOUR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 53
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 53
-      if (n_OK(n) == 1) {
-        n = match_INSERT_FUNC(n, name, depth + 1);
-      }
+      match_INSERT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 54
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 54
-      if (n_OK(n) == 1) {
-        n = match_INSTR_FUNC(n, name, depth + 1);
-      }
+      match_INSTR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 55
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 55
-      if (n_OK(n) == 1) {
-        n = match_LAST_DAY_FUNC(n, name, depth + 1);
-      }
+      match_LAST_DAY_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 56
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 56
-      if (n_OK(n) == 1) {
-        n = match_LCASE_FUNC(n, name, depth + 1);
-      }
+      match_LCASE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 57
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 57
-      if (n_OK(n) == 1) {
-        n = match_LEFT_FUNC(n, name, depth + 1);
-      }
+      match_LEFT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 58
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 58
-      if (n_OK(n) == 1) {
-        n = match_LENGTH_FUNC(n, name, depth + 1);
-      }
+      match_LENGTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 59
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 59
-      if (n_OK(n) == 1) {
-        n = match_LN_FUNC(n, name, depth + 1);
-      }
+      match_LN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 60
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 60
-      if (n_OK(n) == 1) {
-        n = match_LOAD_FILE_FUNC(n, name, depth + 1);
-      }
+      match_LOAD_FILE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 61
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 61
-      if (n_OK(n) == 1) {
-        n = match_LOCALTIME_FUNC(n, name, depth + 1);
-      }
+      match_LOCALTIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 62
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 62
-      if (n_OK(n) == 1) {
-        n = match_LOCALTIMESTAMP_FUNC(n, name, depth + 1);
-      }
+      match_LOCALTIMESTAMP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 63
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 63
-      if (n_OK(n) == 1) {
-        n = match_LOCATE_FUNC(n, name, depth + 1);
-      }
+      match_LOCATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 64
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 64
-      if (n_OK(n) == 1) {
-        n = match_LOG10_FUNC(n, name, depth + 1);
-      }
+      match_LOG10_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 65
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 65
-      if (n_OK(n) == 1) {
-        n = match_LOG2_FUNC(n, name, depth + 1);
-      }
+      match_LOG2_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 66
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 66
-      if (n_OK(n) == 1) {
-        n = match_LOG_FUNC(n, name, depth + 1);
-      }
+      match_LOG_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 67
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 67
-      if (n_OK(n) == 1) {
-        n = match_LOWER_FUNC(n, name, depth + 1);
-      }
+      match_LOWER_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 68
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 68
-      if (n_OK(n) == 1) {
-        n = match_LPAD_FUNC(n, name, depth + 1);
-      }
+      match_LPAD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 69
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 69
-      if (n_OK(n) == 1) {
-        n = match_LTRIM_FUNC(n, name, depth + 1);
-      }
+      match_LTRIM_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 70
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 70
-      if (n_OK(n) == 1) {
-        n = match_MAKEDATE_FUNC(n, name, depth + 1);
-      }
+      match_MAKEDATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 71
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 71
-      if (n_OK(n) == 1) {
-        n = match_MAKE_SET_FUNC(n, name, depth + 1);
-      }
+      match_MAKE_SET_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 72
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 72
-      if (n_OK(n) == 1) {
-        n = match_MAKETIME_FUNC(n, name, depth + 1);
-      }
+      match_MAKETIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 73
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 73
-      if (n_OK(n) == 1) {
-        n = match_MICROSECOND_FUNC(n, name, depth + 1);
-      }
+      match_MICROSECOND_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 74
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 74
-      if (n_OK(n) == 1) {
-        n = match_MID_FUNC(n, name, depth + 1);
-      }
+      match_MID_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 75
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 75
-      if (n_OK(n) == 1) {
-        n = match_MINUTE_FUNC(n, name, depth + 1);
-      }
+      match_MINUTE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 76
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 76
-      if (n_OK(n) == 1) {
-        n = match_MOD_FUNC(n, name, depth + 1);
-      }
+      match_MOD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 77
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 77
-      if (n_OK(n) == 1) {
-        n = match_MONTH_FUNC(n, name, depth + 1);
-      }
+      match_MONTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 78
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 78
-      if (n_OK(n) == 1) {
-        n = match_MONTHNAME_FUNC(n, name, depth + 1);
-      }
+      match_MONTHNAME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 79
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 79
-      if (n_OK(n) == 1) {
-        n = match_NOW_FUNC(n, name, depth + 1);
-      }
+      match_NOW_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 80
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 80
-      if (n_OK(n) == 1) {
-        n = match_OCTET_LENGTH_FUNC(n, name, depth + 1);
-      }
+      match_OCTET_LENGTH_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 81
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 81
-      if (n_OK(n) == 1) {
-        n = match_OCT_FUNC(n, name, depth + 1);
-      }
+      match_OCT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 82
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 82
-      if (n_OK(n) == 1) {
-        n = match_ORD_FUNC(n, name, depth + 1);
-      }
+      match_ORD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 83
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 83
-      if (n_OK(n) == 1) {
-        n = match_PERIOD_ADD_FUNC(n, name, depth + 1);
-      }
+      match_PERIOD_ADD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 84
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 84
-      if (n_OK(n) == 1) {
-        n = match_PERIOD_DIFF_FUNC(n, name, depth + 1);
-      }
+      match_PERIOD_DIFF_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 85
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 85
-      if (n_OK(n) == 1) {
-        n = match_PI_FUNC(n, name, depth + 1);
-      }
+      match_PI_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 86
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 86
-      if (n_OK(n) == 1) {
-        n = match_POSITION_FUNC(n, name, depth + 1);
-      }
+      match_POSITION_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 87
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 87
-      if (n_OK(n) == 1) {
-        n = match_POWER_FUNC(n, name, depth + 1);
-      }
+      match_POWER_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 88
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 88
-      if (n_OK(n) == 1) {
-        n = match_POW_FUNC(n, name, depth + 1);
-      }
+      match_POW_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 89
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 89
-      if (n_OK(n) == 1) {
-        n = match_QUARTER_FUNC(n, name, depth + 1);
-      }
+      match_QUARTER_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 90
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 90
-      if (n_OK(n) == 1) {
-        n = match_QUOTE_FUNC(n, name, depth + 1);
-      }
+      match_QUOTE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 91
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 91
-      if (n_OK(n) == 1) {
-        n = match_RADIANS_FUNC(n, name, depth + 1);
-      }
+      match_RADIANS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 92
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 92
-      if (n_OK(n) == 1) {
-        n = match_RAND_FUNC(n, name, depth + 1);
-      }
+      match_RAND_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 93
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 93
-      if (n_OK(n) == 1) {
-        n = match_REPEAT_FUNC(n, name, depth + 1);
-      }
+      match_REPEAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 94
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 94
-      if (n_OK(n) == 1) {
-        n = match_REPLACE_FUNC(n, name, depth + 1);
-      }
+      match_REPLACE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 95
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 95
-      if (n_OK(n) == 1) {
-        n = match_REVERSE_FUNC(n, name, depth + 1);
-      }
+      match_REVERSE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 96
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 96
-      if (n_OK(n) == 1) {
-        n = match_RIGHT_FUNC(n, name, depth + 1);
-      }
+      match_RIGHT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 97
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 97
-      if (n_OK(n) == 1) {
-        n = match_ROUND_FUNC(n, name, depth + 1);
-      }
+      match_ROUND_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 98
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 98
-      if (n_OK(n) == 1) {
-        n = match_RPAD_FUNC(n, name, depth + 1);
-      }
+      match_RPAD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 99
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 99
-      if (n_OK(n) == 1) {
-        n = match_RTRIM_FUNC(n, name, depth + 1);
-      }
+      match_RTRIM_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 100
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 100
-      if (n_OK(n) == 1) {
-        n = match_SECOND_FUNC(n, name, depth + 1);
-      }
+      match_SECOND_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 101
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 101
-      if (n_OK(n) == 1) {
-        n = match_SEC_TO_TIME_FUNC(n, name, depth + 1);
-      }
+      match_SEC_TO_TIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 102
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 102
-      if (n_OK(n) == 1) {
-        n = match_SIGN_FUNC(n, name, depth + 1);
-      }
+      match_SIGN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 103
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 103
-      if (n_OK(n) == 1) {
-        n = match_SIN_FUNC(n, name, depth + 1);
-      }
+      match_SIN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 104
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 104
-      if (n_OK(n) == 1) {
-        n = match_SOUNDEX_FUNC(n, name, depth + 1);
-      }
+      match_SOUNDEX_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 105
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 105
-      if (n_OK(n) == 1) {
-        n = match_SPACE_FUNC(n, name, depth + 1);
-      }
+      match_SPACE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 106
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 106
-      if (n_OK(n) == 1) {
-        n = match_SQRT_FUNC(n, name, depth + 1);
-      }
+      match_SQRT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 107
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 107
-      if (n_OK(n) == 1) {
-        n = match_STR_TO_DATE_FUNC(n, name, depth + 1);
-      }
+      match_STR_TO_DATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 108
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 108
-      if (n_OK(n) == 1) {
-        n = match_SUBDATE_FUNC(n, name, depth + 1);
-      }
+      match_SUBDATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 109
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 109
-      if (n_OK(n) == 1) {
-        n = match_SUBSTRING_INDEX_FUNC(n, name, depth + 1);
-      }
+      match_SUBSTRING_INDEX_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 110
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 110
-      if (n_OK(n) == 1) {
-        n = match_SUBSTRING_FUNC(n, name, depth + 1);
-      }
+      match_SUBSTRING_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 111
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 111
-      if (n_OK(n) == 1) {
-        n = match_SUBSTR_FUNC(n, name, depth + 1);
-      }
+      match_SUBSTR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 112
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 112
-      if (n_OK(n) == 1) {
-        n = match_SUBTIME_FUNC(n, name, depth + 1);
-      }
+      match_SUBTIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 113
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 113
-      if (n_OK(n) == 1) {
-        n = match_SYSDATE_FUNC(n, name, depth + 1);
-      }
+      match_SYSDATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 114
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 114
-      if (n_OK(n) == 1) {
-        n = match_TAN_FUNC(n, name, depth + 1);
-      }
+      match_TAN_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 115
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 115
-      if (n_OK(n) == 1) {
-        n = match_TIMEDIFF_FUNC(n, name, depth + 1);
-      }
+      match_TIMEDIFF_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 116
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 116
-      if (n_OK(n) == 1) {
-        n = match_TIME_FUNC(n, name, depth + 1);
-      }
+      match_TIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 117
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 117
-      if (n_OK(n) == 1) {
-        n = match_TIME_FORMAT_FUNC(n, name, depth + 1);
-      }
+      match_TIME_FORMAT_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 118
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 118
-      if (n_OK(n) == 1) {
-        n = match_TIMESTAMPADD_FUNC(n, name, depth + 1);
-      }
+      match_TIMESTAMPADD_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 119
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 119
-      if (n_OK(n) == 1) {
-        n = match_TIMESTAMPDIFF_FUNC(n, name, depth + 1);
-      }
+      match_TIMESTAMPDIFF_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 120
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 120
-      if (n_OK(n) == 1) {
-        n = match_TIMESTAMP_FUNC(n, name, depth + 1);
-      }
+      match_TIMESTAMP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 121
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 121
-      if (n_OK(n) == 1) {
-        n = match_TIME_TO_SEC_FUNC(n, name, depth + 1);
-      }
+      match_TIME_TO_SEC_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 122
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 122
-      if (n_OK(n) == 1) {
-        n = match_TO_BASE64_FUNC(n, name, depth + 1);
-      }
+      match_TO_BASE64_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 123
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 123
-      if (n_OK(n) == 1) {
-        n = match_TO_DAYS_FUNC(n, name, depth + 1);
-      }
+      match_TO_DAYS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 124
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 124
-      if (n_OK(n) == 1) {
-        n = match_TO_SECONDS_FUNC(n, name, depth + 1);
-      }
+      match_TO_SECONDS_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 125
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 125
-      if (n_OK(n) == 1) {
-        n = match_TRIM_FUNC(n, name, depth + 1);
-      }
+      match_TRIM_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 126
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 126
-      if (n_OK(n) == 1) {
-        n = match_TRUNCATE_FUNC(n, name, depth + 1);
-      }
+      match_TRUNCATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 127
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 127
-      if (n_OK(n) == 1) {
-        n = match_UCASE_FUNC(n, name, depth + 1);
-      }
+      match_UCASE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 128
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 128
-      if (n_OK(n) == 1) {
-        n = match_UNHEX_FUNC(n, name, depth + 1);
-      }
+      match_UNHEX_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 129
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 129
-      if (n_OK(n) == 1) {
-        n = match_UNIX_TIMESTAMP_FUNC(n, name, depth + 1);
-      }
+      match_UNIX_TIMESTAMP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 130
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 130
-      if (n_OK(n) == 1) {
-        n = match_UTC_DATE_FUNC(n, name, depth + 1);
-      }
+      match_UTC_DATE_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 131
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 131
-      if (n_OK(n) == 1) {
-        n = match_UTC_TIMESTAMP_FUNC(n, name, depth + 1);
-      }
+      match_UTC_TIMESTAMP_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 132
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 132
-      if (n_OK(n) == 1) {
-        n = match_UTC_TIME_FUNC(n, name, depth + 1);
-      }
+      match_UTC_TIME_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 133
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 133
-      if (n_OK(n) == 1) {
-        n = match_WEEK_FUNC(n, name, depth + 1);
-      }
+      match_WEEK_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 134
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 134
-      if (n_OK(n) == 1) {
-        n = match_WEEKDAY_FUNC(n, name, depth + 1);
-      }
+      match_WEEKDAY_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 135
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 135
-      if (n_OK(n) == 1) {
-        n = match_WEEKOFYEAR_FUNC(n, name, depth + 1);
-      }
+      match_WEEKOFYEAR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 136
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 136
-      if (n_OK(n) == 1) {
-        n = match_YEAR_FUNC(n, name, depth + 1);
-      }
+      match_YEAR_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
       }
     }
-    //list item switch
     //item+1 137
     if (n->OK == 0) {
       n->OK = 1;
-      //string
       //external -> 137
-      if (n_OK(n) == 1) {
-        n = match_YEARWEEK_FUNC(n, name, depth + 1);
-      }
+      match_YEARWEEK_FUNC(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -25075,24 +15900,21 @@ node_t *match_functions(node_t * n, const char last_method[], int depth)
 
     pop(n->stack);
   }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[functions] ");
+    printf("[functions] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25100,11 +15922,11 @@ node_t *match_functions(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_B(node_t * n, const char last_method[], int depth)
-{
+void match_B(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "B";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25112,38 +15934,26 @@ node_t *match_B(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //bit  B B
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_bit(n, name, depth + 1);
-    }
+  //bit  B B
+  //0
+  //external -> 0
+  match_bit(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[B] ");
+    printf("[B] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25151,11 +15961,11 @@ node_t *match_B(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_bits(node_t * n, const char last_method[], int depth)
-{
+void match_bits(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "bits";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25163,38 +15973,26 @@ node_t *match_bits(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  bits bits
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  bits bits
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[bits] ");
+    printf("[bits] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25202,11 +16000,11 @@ node_t *match_bits(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_charset_name(node_t * n, const char last_method[], int depth)
-{
+void match_charset_name(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "charset_name";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25214,38 +16012,26 @@ node_t *match_charset_name(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  charset_name charset_name
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  charset_name charset_name
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[charset_name] ");
+    printf("[charset_name] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25253,11 +16039,11 @@ node_t *match_charset_name(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_count(node_t * n, const char last_method[], int depth)
-{
+void match_count(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "count";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25265,38 +16051,26 @@ node_t *match_count(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  count count
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  count count
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[count] ");
+    printf("[count] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25304,11 +16078,11 @@ node_t *match_count(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_D(node_t * n, const char last_method[], int depth)
-{
+void match_D(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "D";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25316,38 +16090,26 @@ node_t *match_D(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //real  D D
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_real(n, name, depth + 1);
-    }
+  //real  D D
+  //0
+  //external -> 0
+  match_real(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[D] ");
+    printf("[D] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25355,11 +16117,11 @@ node_t *match_D(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_date(node_t * n, const char last_method[], int depth)
-{
+void match_date(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "date";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25367,38 +16129,26 @@ node_t *match_date(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  date date
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  date date
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[date] ");
+    printf("[date] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25406,11 +16156,11 @@ node_t *match_date(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_datetime_expr(node_t * n, const char last_method[], int depth)
-{
+void match_datetime_expr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "datetime_expr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25418,38 +16168,26 @@ node_t *match_datetime_expr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  datetime_expr datetime_expr
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  datetime_expr datetime_expr
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[datetime_expr] ");
+    printf("[datetime_expr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25457,11 +16195,11 @@ node_t *match_datetime_expr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_dayofyear(node_t * n, const char last_method[], int depth)
-{
+void match_dayofyear(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "dayofyear";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25469,38 +16207,26 @@ node_t *match_dayofyear(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  dayofyear dayofyear
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  dayofyear dayofyear
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[dayofyear] ");
+    printf("[dayofyear] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25508,11 +16234,11 @@ node_t *match_dayofyear(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_days(node_t * n, const char last_method[], int depth)
-{
+void match_days(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "days";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25520,38 +16246,26 @@ node_t *match_days(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  days days
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  days days
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[days] ");
+    printf("[days] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25559,11 +16273,11 @@ node_t *match_days(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_delim(node_t * n, const char last_method[], int depth)
-{
+void match_delim(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "delim";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25571,38 +16285,26 @@ node_t *match_delim(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  delim delim
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  delim delim
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[delim] ");
+    printf("[delim] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25610,11 +16312,11 @@ node_t *match_delim(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_dt(node_t * n, const char last_method[], int depth)
-{
+void match_dt(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "dt";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25622,38 +16324,26 @@ node_t *match_dt(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  dt dt
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  dt dt
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[dt] ");
+    printf("[dt] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25661,11 +16351,11 @@ node_t *match_dt(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_file_name(node_t * n, const char last_method[], int depth)
-{
+void match_file_name(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "file_name";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25673,38 +16363,26 @@ node_t *match_file_name(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  file_name file_name
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  file_name file_name
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[file_name] ");
+    printf("[file_name] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25712,11 +16390,11 @@ node_t *match_file_name(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_format(node_t * n, const char last_method[], int depth)
-{
+void match_format(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "format";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25724,38 +16402,26 @@ node_t *match_format(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  format format
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  format format
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[format] ");
+    printf("[format] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25763,11 +16429,11 @@ node_t *match_format(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_from_base(node_t * n, const char last_method[], int depth)
-{
+void match_from_base(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "from_base";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25775,38 +16441,26 @@ node_t *match_from_base(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  from_base from_base
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  from_base from_base
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[from_base] ");
+    printf("[from_base] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25814,11 +16468,11 @@ node_t *match_from_base(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_from_str(node_t * n, const char last_method[], int depth)
-{
+void match_from_str(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "from_str";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25826,38 +16480,26 @@ node_t *match_from_str(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  from_str from_str
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  from_str from_str
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[from_str] ");
+    printf("[from_str] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25865,11 +16507,11 @@ node_t *match_from_str(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_from_tz(node_t * n, const char last_method[], int depth)
-{
+void match_from_tz(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "from_tz";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25877,38 +16519,26 @@ node_t *match_from_tz(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  from_tz from_tz
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  from_tz from_tz
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[from_tz] ");
+    printf("[from_tz] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25916,11 +16546,11 @@ node_t *match_from_tz(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_fsp(node_t * n, const char last_method[], int depth)
-{
+void match_fsp(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "fsp";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25928,38 +16558,26 @@ node_t *match_fsp(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  fsp fsp
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  fsp fsp
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[fsp] ");
+    printf("[fsp] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -25967,11 +16585,11 @@ node_t *match_fsp(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_hour(node_t * n, const char last_method[], int depth)
-{
+void match_hour(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "hour";
   int start_pos = n->pos;
   n->depth += 1;
@@ -25979,38 +16597,26 @@ node_t *match_hour(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  hour hour
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  hour hour
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[hour] ");
+    printf("[hour] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26018,11 +16624,11 @@ node_t *match_hour(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_interval(node_t * n, const char last_method[], int depth)
-{
+void match_interval(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "interval";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26030,38 +16636,26 @@ node_t *match_interval(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  interval interval
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  interval interval
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[interval] ");
+    printf("[interval] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26069,11 +16663,11 @@ node_t *match_interval(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_len(node_t * n, const char last_method[], int depth)
-{
+void match_len(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "len";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26081,38 +16675,26 @@ node_t *match_len(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  len len
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  len len
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[len] ");
+    printf("[len] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26120,11 +16702,11 @@ node_t *match_len(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_locale(node_t * n, const char last_method[], int depth)
-{
+void match_locale(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "locale";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26132,38 +16714,26 @@ node_t *match_locale(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  locale locale
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  locale locale
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[locale] ");
+    printf("[locale] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26171,11 +16741,11 @@ node_t *match_locale(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_M(node_t * n, const char last_method[], int depth)
-{
+void match_M(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "M";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26183,38 +16753,26 @@ node_t *match_M(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  M M
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  M M
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[M] ");
+    printf("[M] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26222,11 +16780,11 @@ node_t *match_M(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_minute(node_t * n, const char last_method[], int depth)
-{
+void match_minute(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "minute";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26234,38 +16792,26 @@ node_t *match_minute(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  minute minute
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  minute minute
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[minute] ");
+    printf("[minute] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26273,11 +16819,11 @@ node_t *match_minute(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_mode(node_t * n, const char last_method[], int depth)
-{
+void match_mode(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "mode";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26285,38 +16831,26 @@ node_t *match_mode(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  mode mode
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  mode mode
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[mode] ");
+    printf("[mode] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26324,11 +16858,11 @@ node_t *match_mode(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_N(node_t * n, const char last_method[], int depth)
-{
+void match_N(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "N";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26336,38 +16870,26 @@ node_t *match_N(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  N N
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  N N
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[N] ");
+    printf("[N] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26375,11 +16897,11 @@ node_t *match_N(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_newstr(node_t * n, const char last_method[], int depth)
-{
+void match_newstr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "newstr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26387,38 +16909,26 @@ node_t *match_newstr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  newstr newstr
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  newstr newstr
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[newstr] ");
+    printf("[newstr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26426,11 +16936,11 @@ node_t *match_newstr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_N_or_S(node_t * n, const char last_method[], int depth)
-{
+void match_N_or_S(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "N_or_S";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26438,38 +16948,26 @@ node_t *match_N_or_S(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  N_or_S N_or_S
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  N_or_S N_or_S
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[N_or_S] ");
+    printf("[N_or_S] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26477,11 +16975,11 @@ node_t *match_N_or_S(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_number_of_bits(node_t * n, const char last_method[], int depth)
-{
+void match_number_of_bits(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "number_of_bits";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26489,38 +16987,26 @@ node_t *match_number_of_bits(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  number_of_bits number_of_bits
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  number_of_bits number_of_bits
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[number_of_bits] ");
+    printf("[number_of_bits] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26528,11 +17014,11 @@ node_t *match_number_of_bits(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_off(node_t * n, const char last_method[], int depth)
-{
+void match_off(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "off";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26540,38 +17026,26 @@ node_t *match_off(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  off off
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  off off
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[off] ");
+    printf("[off] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26579,11 +17053,11 @@ node_t *match_off(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_on(node_t * n, const char last_method[], int depth)
-{
+void match_on(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "on";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26591,38 +17065,26 @@ node_t *match_on(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  on on
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  on on
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[on] ");
+    printf("[on] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26630,11 +17092,11 @@ node_t *match_on(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_P(node_t * n, const char last_method[], int depth)
-{
+void match_P(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "P";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26642,38 +17104,26 @@ node_t *match_P(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  P P
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  P P
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[P] ");
+    printf("[P] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26681,11 +17131,11 @@ node_t *match_P(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_padstr(node_t * n, const char last_method[], int depth)
-{
+void match_padstr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "padstr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26693,38 +17143,26 @@ node_t *match_padstr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  padstr padstr
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  padstr padstr
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[padstr] ");
+    printf("[padstr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26732,11 +17170,11 @@ node_t *match_padstr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_pos(node_t * n, const char last_method[], int depth)
-{
+void match_pos(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "pos";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26744,38 +17182,26 @@ node_t *match_pos(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  pos pos
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  pos pos
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[pos] ");
+    printf("[pos] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26783,11 +17209,11 @@ node_t *match_pos(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_remstr(node_t * n, const char last_method[], int depth)
-{
+void match_remstr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "remstr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26795,38 +17221,26 @@ node_t *match_remstr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  remstr remstr
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  remstr remstr
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[remstr] ");
+    printf("[remstr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26834,11 +17248,11 @@ node_t *match_remstr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_second(node_t * n, const char last_method[], int depth)
-{
+void match_second(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "second";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26846,38 +17260,26 @@ node_t *match_second(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  second second
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  second second
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[second] ");
+    printf("[second] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26885,11 +17287,11 @@ node_t *match_second(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_seconds(node_t * n, const char last_method[], int depth)
-{
+void match_seconds(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "seconds";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26897,38 +17299,26 @@ node_t *match_seconds(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  seconds seconds
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  seconds seconds
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[seconds] ");
+    printf("[seconds] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26936,11 +17326,11 @@ node_t *match_seconds(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_separator(node_t * n, const char last_method[], int depth)
-{
+void match_separator(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "separator";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26948,38 +17338,26 @@ node_t *match_separator(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  separator separator
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  separator separator
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[separator] ");
+    printf("[separator] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -26987,11 +17365,11 @@ node_t *match_separator(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_strlist(node_t * n, const char last_method[], int depth)
-{
+void match_strlist(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "strlist";
   int start_pos = n->pos;
   n->depth += 1;
@@ -26999,38 +17377,26 @@ node_t *match_strlist(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  strlist strlist
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  strlist strlist
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[strlist] ");
+    printf("[strlist] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27038,11 +17404,11 @@ node_t *match_strlist(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_substr(node_t * n, const char last_method[], int depth)
-{
+void match_substr(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "substr";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27050,38 +17416,26 @@ node_t *match_substr(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  substr substr
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  substr substr
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[substr] ");
+    printf("[substr] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27089,11 +17443,11 @@ node_t *match_substr(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_time(node_t * n, const char last_method[], int depth)
-{
+void match_time(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "time";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27101,38 +17455,26 @@ node_t *match_time(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  time time
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  time time
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[time] ");
+    printf("[time] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27140,11 +17482,11 @@ node_t *match_time(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_to_base(node_t * n, const char last_method[], int depth)
-{
+void match_to_base(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "to_base";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27152,38 +17494,26 @@ node_t *match_to_base(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  to_base to_base
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  to_base to_base
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[to_base] ");
+    printf("[to_base] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27191,11 +17521,11 @@ node_t *match_to_base(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_to_str(node_t * n, const char last_method[], int depth)
-{
+void match_to_str(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "to_str";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27203,38 +17533,26 @@ node_t *match_to_str(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  to_str to_str
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  to_str to_str
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[to_str] ");
+    printf("[to_str] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27242,11 +17560,11 @@ node_t *match_to_str(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_to_tz(node_t * n, const char last_method[], int depth)
-{
+void match_to_tz(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "to_tz";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27254,38 +17572,26 @@ node_t *match_to_tz(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  to_tz to_tz
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  to_tz to_tz
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[to_tz] ");
+    printf("[to_tz] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27293,11 +17599,11 @@ node_t *match_to_tz(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_unit(node_t * n, const char last_method[], int depth)
-{
+void match_unit(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "unit";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27305,38 +17611,26 @@ node_t *match_unit(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //expr  unit unit
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_expr(n, name, depth + 1);
-    }
+  //expr  unit unit
+  //0
+  //external -> 0
+  match_expr(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[unit] ");
+    printf("[unit] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27344,11 +17638,11 @@ node_t *match_unit(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_unix_timestamp(node_t * n, const char last_method[], int depth)
-{
+void match_unix_timestamp(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "unix_timestamp";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27356,38 +17650,26 @@ node_t *match_unix_timestamp(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //integer  unix_timestamp unix_timestamp
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_integer(n, name, depth + 1);
-    }
+  //integer  unix_timestamp unix_timestamp
+  //0
+  //external -> 0
+  match_integer(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[unix_timestamp] ");
+    printf("[unix_timestamp] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27395,11 +17677,11 @@ node_t *match_unix_timestamp(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_X(node_t * n, const char last_method[], int depth)
-{
+void match_X(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "X";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27407,38 +17689,26 @@ node_t *match_X(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //integer  X X
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_integer(n, name, depth + 1);
-    }
+  //integer  X X
+  //0
+  //external -> 0
+  match_integer(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[X] ");
+    printf("[X] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27446,11 +17716,11 @@ node_t *match_X(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_Y(node_t * n, const char last_method[], int depth)
-{
+void match_Y(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "Y";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27458,38 +17728,26 @@ node_t *match_Y(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //integer  Y Y
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_integer(n, name, depth + 1);
-    }
+  //integer  Y Y
+  //0
+  //external -> 0
+  match_integer(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[Y] ");
+    printf("[Y] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27497,11 +17755,11 @@ node_t *match_Y(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_year(node_t * n, const char last_method[], int depth)
-{
+void match_year(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "year";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27509,38 +17767,26 @@ node_t *match_year(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
-  if (n_OK(n) == 1) {
-    // list
-    //integer  year year
-    //0
-    //string
-    //external -> 0
-    if (n_OK(n) == 1) {
-      n = match_integer(n, name, depth + 1);
-    }
+  //integer  year year
+  //0
+  //external -> 0
+  match_integer(n, name, depth + 1);
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[year] ");
+    printf("[year] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27548,11 +17794,11 @@ node_t *match_year(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
-
-node_t *match_catch_all(node_t * n, const char last_method[], int depth)
-{
+void match_catch_all(node_t * n, const char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
   const char name[] = "catch_all";
   int start_pos = n->pos;
   n->depth += 1;
@@ -27560,64 +17806,32 @@ node_t *match_catch_all(node_t * n, const char last_method[], int depth)
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // list
-  // dict
-  // GROUP
+  //NOT
   if (n_OK(n) == 1) {
-    // list
-    // dict
-    //NOT
-    if (n_OK(n) == 1) {
-      push(n->stack, n->pos);
-      // dict
-      if (n_OK(n) == 1 && (
-                            //string
-                            n->value[n->pos] == '\t' ||
-                            //string
-                            n->value[n->pos] == ' ' ||
-                            //string
-                            n->value[n->pos] == '\n' ||
-                            //string
-                            n->value[n->pos] == '\r')) {
-        n->OK = 1;
-        n->pos++;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      } else {
-        n->OK = 0;
-      }                         // end char
+    push(n->stack, n->pos);
+    if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r'))
+      increment_n(n, 1);
+    else
+      n->OK = 0;
 
-      if (n->OK == 1) {
-        n->OK = 0;
-        n->pos = peek(n->stack);
-      } else {
-        n->OK = 1;
-        n->pos += 1;
-        if (n->pos >= n->len)
-          n->pos = -1;
-      }
-      pop(n->stack);
-    }                           //end NOT
+    not_reset(n);
+  }                             //end NOT
 
-  }
-
+#ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
-    //if (depth==0){
     for (int i = 0; i < depth; i++)
       printf(" ");
-    printf("[catch_all] ");
+    printf("[catch_all] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
       print_sub_str(n, start_pos, n->pos);
     }
     printf("\n");
-    // }
-
-#ifdef  DEBUG_SUCCESS
     debug_success(n, name, start_pos);
-#endif
   }
+#endif
+
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -27625,22 +17839,21 @@ node_t *match_catch_all(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
-  return n;
 }
 
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-09
+*   Generated: 2019-11-10
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
 *              If the end of the list is reached the last node is passed
 *     Failure: Returns NULL
 */
-node_t *match_function(char *data)
-{
+node_t *match_function(char *data) {
   printf("In functions\n");
+  int last_pos = -1;
   node_t *n = malloc(sizeof(node_t));
   n->value = data;
   n->len = strlen(data);
@@ -27648,25 +17861,45 @@ node_t *match_function(char *data)
   n->depth = 0;
   n->OK = 1;
   n->stack = createStack(1000);
-  //printf("POS:%d\n",n->pos);
-  //printf("OK:%d\n",n->OK);
-  //printf("--\n");
+  const char *name = "functions";
+  push(n->stack, n->pos);
   while (n->pos > -1) {
+    if (last_pos == n->pos) {
+      break;
+    }
+    last_pos = n->pos;
 
     n->OK = 1;
-    n = match_queries(n, (const char *) "functions", 0);
-    if (n_OK(n) == 1 || n->pos == -1)
-      continue;
+    match_queries(n, name, 0);
+    if (n_OK(n) == 1) {
+      printf("GOOD queries\n");
+    }
     n->OK = 1;
-    n = match_catch_all(n, (const char *) "functions", 0);
-    if (n_OK(n) == 1 || n->pos == -1)
-      continue;
+    match_expr(n, name, 0);
+    if (n_OK(n) == 1) {
+      printf("GOOD expr\n");
+    }
+    n->OK = 1;
+    match_whitespace(n, name, 0);
+    if (n_OK(n) == 1) {
+      printf("GOOD whitespace\n");
+    }
+    n->OK = 1;
+    match_query_delimiter(n, name, 0);
+    if (n_OK(n) == 1) {
+      printf("GOOD query_delimiter\n");
+    }
 
     if (n->OK == 0) {
-      printf("Match not found");
       break;
     }
   }
   pop(n->stack);
+  if (n->OK == 0) {
+    printf("\nMatch not found\n");
+  }
+  if (n->pos != -1) {
+    printf("String parsed until [%d] out of [%d]\n", n->pos, n->len);
+  }
   return n;
 }                               // end match functions

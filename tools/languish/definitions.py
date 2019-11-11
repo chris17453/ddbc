@@ -37,10 +37,11 @@ def load_definition_file(file):
                     else: 
                         data_pattern=""
                 else:
-                    if data_pattern.isspace()==False:
-                        data_pattern="( "+data_pattern + " )"
-                    else: 
-                        data_pattern=""
+                    d1=data_pattern
+                    if len(d1.strip().split(' '))>1:
+                        data_pattern=" ( "+d1 + " ) "
+                    else:
+                        data_pattern=" "+d1 + " "
 
 
             else:
@@ -57,8 +58,9 @@ def load_definition_file(file):
                 else:
                     if data_line.isspace()==False:
                         d1=data_line
+                        #print d1,len(d1.strip().split(' '))
                         if len(d1.strip().split(' '))>1:
-                            data_line="( "+d1 + " ) "
+                            data_line=" ( "+d1 + " ) "
                         else:
                             data_line=" "+d1 + " "
                     else:

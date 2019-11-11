@@ -2,9 +2,9 @@ headers:
 /********************************************
 * Generated: {date_time}                    *
 ********************************************/
-//#define DEBUG_START   1
+#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
-//#define DEBUG_FAIL    1
+#define DEBUG_FAIL    1
 
 #include <stdio.h>
 #include <ctype.h>
@@ -31,7 +31,7 @@ node_t;
 
 
 signature:
-node_t * match_{body}(node_t *n,const char *last_method,int depth);
+void match_{body}(node_t *n,const char *last_method,int depth);
 
 
 signature2:
@@ -78,8 +78,13 @@ void print_n(node_t *n){
 
 }
 int n_OK(node_t *n){
-    //print_n(n);
     if ( n->pos!=-1 && n->OK==1 ) return 1;
     return 0;
+}
+
+
+void increment_n(node_t *n,int len){
+    n->pos+=len; 
+    if(n->pos>=n->len) n->pos= -1;
 }
 

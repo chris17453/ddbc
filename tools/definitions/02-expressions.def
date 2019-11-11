@@ -1,13 +1,13 @@
 
 subquery:
- [\(] {whitespace} {select} {whitespace}  [\)]
+ [\(] {whitespace}? {select} {whitespace}?  [\)]
 
 expr: 
-      {expr} {whitespace}   or     {whitespace}  {expr}
-  |   {expr} {whitespace}   [\|\|] {whitespace}  {expr}
-  |   {expr} {whitespace}   xor    {whitespace}  {expr}
-  |   {expr} {whitespace}   and    {whitespace}  {expr}
-  |   {expr} {whitespace}   &&     {whitespace}  {expr}
+      {expr} {whitespace}  ( or |  xor | and | && )    {whitespace}  {expr}
+#  |   {expr} {whitespace}  ( [\|\|] {whitespace}  {expr}
+#  |   {expr} {whitespace}  ( xor    {whitespace}  {expr}
+#  |   {expr} {whitespace}  ( and    {whitespace}  {expr}
+#  |   {expr} {whitespace}  ( &&     {whitespace}  {expr}
   |   not {whitespace} {expr}
   |   !   {whitespace} {expr}
   |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
@@ -63,15 +63,15 @@ simple_expr:
   | [-] {whitespace} {simple_expr}
   | [~] {whitespace} {simple_expr}
   | [!] {whitespace} {simple_expr}
-# |     {identifier expr}
+# |     {identifier_expr}
   |     {interval_expr}
 
 literal: 
     {hex} 
   | {bit}
-  | {real} 
-  | {null} 
   | {boolean} 
+  | {null}
   | {string} 
+  | {real} 
 
 
