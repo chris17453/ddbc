@@ -3,7 +3,7 @@ headers:
 * Generated: {date_time}                    *
 ********************************************/
 //#define DEBUG_START   1
-#define DEBUG_SUCCESS 1
+//#define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 
 #include <stdio.h>

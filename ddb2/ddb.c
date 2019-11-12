@@ -1,166 +1,94 @@
+#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-//# include "headers/bytecode.h"
+
 #include "headers/func.h"
 
-int main(){
-   
-    char  *query_str=" /*\
-    \
-    \
-   rds \
-    */\
-   SELECT col1 as name, (select 'last_name' as name) as col2 , (select 'bob' as name )  as name \
-    FROM test.mock as f1 \n\
-    WHERE first_name='bob' \n\
-    or id=0x04F \n\
-    and id=0x04F \n\
-    and id=0xFFaf04F \n\
-    and id=0x00 \n\
-    and id=0b00 \n\
-    and id=0b01 \n\
-    and id=0b0101101 \n\
-    and id=0b01011401 \n\
-    and id=-11 \n\
-    and id=-11 \n\
-    and id=-11 \n\
-    and id=+11 \n\
-    and id=+11.44E-11 \n\
-    and id=+11.44E11 \n\
-    and id=11.44E11 \n\
-    and id=11E11 \n\
-    and id=+11E1 \n\
-    and id=11 \n\
-    and id=111.1111111 \n\
-    and id=111.111111111111111  \n\
-    and id=111.111111111111111 + 5 \n\
-    and id=111.111111111111111+45 \n\
-    and last_name not 'sam' \n\
-    and gender=F \n\
-    and last_name in (select last_name FROM test.mock WHERE last_name like '%sam%') as first_name\n\
-    \n\
-    \n\
-    /* this is a block comment */\
-   /* this is a multiline \
-   \
-   INNER JOIN test as j1 ON f1.firstname=j1 \n\
-    LEFT OUTER JOIN test as j2 ON f1.firstname=j2 \n\
-    RIGHT OUTER JOIN test as j3 ON f1.firstname=j3 \n\
-    \
-   \
-    block comment */\
-\
-    heQ-- this is a comment\n\
-Zllo    -- this is another comment /* */ fe\n\
-    -- this is also a comment 'quote'\n\
-    -- this is also a comment \"double quote\"\n";
+#define BUF_SIZE 512
+#define BUF_MIN 128
+
+
+char *get_stdin(){
+  char *input, *p;
+  int len, remain, n, size;
+
+  size = BUF_SIZE;
+  input = malloc(size);
+  len = 0;
+  remain = size;
+  while (!feof(stdin)) {
+      if (remain <= BUF_MIN) {
+          remain += size;
+          size *= 2;
+          p = realloc(input, size);
+          if (p == NULL) {
+            free(input);
+            return NULL;
+          }
+          input = p;
+      }
+      fgets(input + len, remain, stdin);
+      n = strlen(input + len);
+      len += n;
+      remain -= n;
+  }
+  return input;
+}//end get_stdin
+
+
+char* read_file(char *file){
+  FILE *fptr;
+  char *buffer=0;
+  long length=0;
+
+   if ((fptr = fopen(file,"r")) == NULL){
+       printf("Error! opening file: %s",file);
+       exit(1);
+   }
     
-    //char *query_str="11E11";
-    /*
-        ;\n\
-    b=:('rewrew')\n\
-    *\n\
-        Block Comment #1\n\
-    \n\
-    `identifier`.`identifier`.IDENTIFIER\n\
-    sqltable_name_$ \n\
-    sqltable_name12348_$ \n\
-    135sqltable_name12348_$ \n\
-    1\n\
-    12\n\
-    123\n\
-    1234\n\
-    pickup_last_ending
-    */
-
-    printf("Starting\n");
-    printf("Query: %s\n \n",query_str);
-    match_function(query_str);
-    //print_tokens(tokens);
-
-
-
-
-
+  if (fptr) {
+    fseek (fptr, 0, SEEK_END);
+    length = ftell (fptr);
+    fseek (fptr, 0, SEEK_SET);
+    buffer = malloc (length);
+    if (buffer)    {
+      fread (buffer, 1, length, fptr);
+    } else {
+      printf("Cannot allocate memory for file read.");
+      exit(1);
+    }
+    fclose (fptr);
+  }
+  return buffer;
 
 }
 
+int main(int argc, char* argv[]) {
+    char *query_str;
+    // if not a terminal grab from pipe
+    if (!isatty(0)) {   
+      query_str=get_stdin();
+    } else {  //args at this point
+      if (argc==1){
+        printf("\n");
+        printf("usage:\n");
+        printf("   ddbc query.sql\n");
+        printf("   cat query.sql| ddbc\n");
+        printf("   ddbc<query.sql\n");
+        return 0;
+      }
+      char *file=argv[1];
+      query_str=read_file(file);
+    }
 
 
-
-/*
-expr:
-    expr OR expr
-  | expr || expr
-  | expr XOR expr
-  | expr AND expr
-  | expr && expr
-  | NOT expr
-  | ! expr
-  | boolean_primary IS [NOT] {TRUE | FALSE | UNKNOWN}
-  | boolean_primary
-
-boolean_primary:
-    boolean_primary IS [NOT] NULL
-  | boolean_primary <=> predicate
-  | boolean_primary comparison_operator predicate
-  | boolean_primary comparison_operator {ALL | ANY} (subquery)
-  | predicate
-
-comparison_operator: = | >= | > | <= | < | <> | !=
-
-predicate:
-    bit_expr [NOT] IN (subquery)
-  | bit_expr [NOT] IN (expr [, expr] ...)
-  | bit_expr [NOT] BETWEEN bit_expr AND predicate
-  | bit_expr SOUNDS LIKE bit_expr
-  | bit_expr [NOT] LIKE simple_expr [ESCAPE simple_expr]
-  | bit_expr [NOT] REGEXP bit_expr
-  | bit_expr
-
-bit_expr:
-    bit_expr | bit_expr
-  | bit_expr & bit_expr
-  | bit_expr << bit_expr
-  | bit_expr >> bit_expr
-  | bit_expr + bit_expr
-  | bit_expr - bit_expr
-  | bit_expr * bit_expr
-  | bit_expr / bit_expr
-  | bit_expr DIV bit_expr
-  | bit_expr MOD bit_expr
-  | bit_expr % bit_expr
-  | bit_expr ^ bit_expr
-  | bit_expr + interval_expr
-  | bit_expr - interval_expr
-  | simple_expr
-
-
-simple_expr:
-    literal
-  | identifier
-  | function_call
-  | simple_expr COLLATE collation_name
-  | param_marker
-  | variable
-  | simple_expr || simple_expr
-  | + simple_expr
-  | - simple_expr
-  | ~ simple_expr
-  | ! simple_expr
-  | BINARY simple_expr
-  | (expr [, expr] ...)
-  | ROW (expr, expr [, expr] ...)
-  | (subquery)
-  | EXISTS (subquery)
-  | {identifier expr}
-  | match_expr
-  | case_expr
-  | interval_expr
-  */
-
-
-
+    //printf("Query: %s\n \n",query_str);
+    match_function(query_str);
+    free(query_str);
+    return 0;
+}
 
 
 /****

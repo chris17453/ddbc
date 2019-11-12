@@ -7,13 +7,13 @@ func:
 	@cd tools; python -m languish.cli -i | indent -kr -br -brs -brf -ce -ci2 -cli2 -i2 -l150 -nut >../ddb2/headers/func.h
 
 build: func
-	@cd ddb2; /usr/bin/gcc -Wall -g  stack.c func.c ddb.c -o ../builds/ddbc
+	@cd ddb2; /usr/bin/gcc -Wall -g  stack.c func.c ddb.c -o ../builds/ddbc  
 
 build-profile: func
-	@cd ddb2; /usr/bin/gcc -Wall -pg  stack.c func.c ddb.c -o ../builds/ddbc
+	@cd ddb2; /usr/bin/gcc -Wall -pg  stack.c func.c ddb.c -o ../builds/ddbc 
 
 run:
-	@builds/ddbc
+	@builds/ddbc test/sql/cli.txt
 
 func-test:
 	@cd tools; python -m languish.cli
@@ -24,3 +24,8 @@ profile: build-profile run
 watch-time:
 	@watch -n .3 'time make run  >/dev/null'
 
+pipe:
+	@cat test/sql/cli.txt | builds/ddbc 
+
+cli:
+	@builds/ddbc test/sql/cli.txt

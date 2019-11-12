@@ -37,6 +37,9 @@ void match_{function_name}(node_t *n,const char last_method[],int depth){
 #endif
     n->depth-=1;
     n->last_function=name;
+    if( n->OK){
+        printf("%s, %d, %d\n",name,start_pos,n->pos);
+    }
 }
 
 

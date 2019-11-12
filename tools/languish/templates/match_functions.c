@@ -11,7 +11,6 @@ match_functions:
  *     Failure: Returns NULL
  */
 node_t * match_function(char *data) {
-    printf("In functions\n");
     int last_pos=-1;
     node_t * n=malloc(sizeof(node_t));
     n->value=data;
@@ -36,12 +35,14 @@ while (n->pos>-1){
     
 }
     pop(n->stack);
+#ifdef  DEBUG_FAIL
     if ( n->OK == 0) {
         printf("\nMatch not found\n");
     }    
     if (n->pos!=-1) {
         printf("String parsed until [%d] out of [%d]\n",n->pos,n->len);
     }
+#endif
     return n;
 } // end match functions
 
@@ -49,9 +50,13 @@ while (n->pos>-1){
 match_functions_first_var:
     n->OK=1;
     match_{function_name}(n,name,0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }
+#endif
 
 match_functions_second_var:
     n->OK=1;
     match_{function_name}(n,name,0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }
+#endif

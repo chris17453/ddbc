@@ -2,7 +2,7 @@
 * Generated: 2019-11-11                    *
 ********************************************/
 //#define DEBUG_START   1
-#define DEBUG_SUCCESS 1
+//#define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 #include <stdio.h>
 #include <ctype.h>
@@ -141,6 +141,9 @@ void match_queries(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_select(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -310,6 +313,9 @@ void match_select(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_select_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -378,6 +384,9 @@ void match_select_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_select_expr_list(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -451,6 +460,9 @@ void match_select_expr_list(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_subquery(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -518,6 +530,9 @@ void match_subquery(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -799,6 +814,9 @@ void match_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_boolean_primary(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1030,6 +1048,9 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_predicate(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1387,6 +1408,9 @@ void match_predicate(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_bit_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1512,6 +1536,9 @@ void match_bit_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_operations(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1704,6 +1731,9 @@ void match_operations(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_identifier_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1754,6 +1784,9 @@ void match_identifier_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_simple_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1840,6 +1873,9 @@ void match_simple_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_literal(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -1936,6 +1972,9 @@ void match_literal(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_interval_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2172,6 +2211,9 @@ void match_interval_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_YEARS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2211,6 +2253,9 @@ void match_YEARS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_QUARTERS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2250,6 +2295,9 @@ void match_QUARTERS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MONTHS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2289,6 +2337,9 @@ void match_MONTHS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_WEEKS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2328,6 +2379,9 @@ void match_WEEKS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAYS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2367,6 +2421,9 @@ void match_DAYS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOURS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2406,6 +2463,9 @@ void match_HOURS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MINUTES(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2445,6 +2505,9 @@ void match_MINUTES(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SECONDS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2484,6 +2547,9 @@ void match_SECONDS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MICROSECONDS(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2523,6 +2589,9 @@ void match_MICROSECONDS(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MICROSECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2573,6 +2642,9 @@ void match_MICROSECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2623,6 +2695,9 @@ void match_SECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MINUTE(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2673,6 +2748,9 @@ void match_MINUTE(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOUR(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2723,6 +2801,9 @@ void match_HOUR(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2773,6 +2854,9 @@ void match_DAY(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_WEEK(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2823,6 +2907,9 @@ void match_WEEK(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MONTH(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2873,6 +2960,9 @@ void match_MONTH(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_QUARTER(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2923,6 +3013,9 @@ void match_QUARTER(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_YEAR(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -2973,6 +3066,9 @@ void match_YEAR(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3039,6 +3135,9 @@ void match_SECOND_MICROSECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3113,6 +3212,9 @@ void match_MINUTE_MICROSECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MINUTE_SECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3179,6 +3281,9 @@ void match_MINUTE_SECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3261,6 +3366,9 @@ void match_HOUR_MICROSECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOUR_SECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3335,6 +3443,9 @@ void match_HOUR_SECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOUR_MINUTE(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3401,6 +3512,9 @@ void match_HOUR_MINUTE(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3487,6 +3601,9 @@ void match_DAY_MICROSECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY_SECOND(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3565,6 +3682,9 @@ void match_DAY_SECOND(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY_MINUTE(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3635,6 +3755,9 @@ void match_DAY_MINUTE(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY_HOUR(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3697,6 +3820,9 @@ void match_DAY_HOUR(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_YEAR_MONTH(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3763,6 +3889,9 @@ void match_YEAR_MONTH(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_unknown(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3802,6 +3931,9 @@ void match_unknown(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_hex(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3866,6 +3998,9 @@ void match_hex(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_bit(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3928,6 +4063,9 @@ void match_bit(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_null(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -3984,6 +4122,9 @@ void match_null(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_true(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4040,6 +4181,9 @@ void match_true(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_false(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4096,6 +4240,9 @@ void match_false(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_boolean(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4152,6 +4299,9 @@ void match_boolean(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_real(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4256,6 +4406,9 @@ void match_real(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_integer(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4312,6 +4465,9 @@ void match_integer(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_signed_int(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4358,6 +4514,9 @@ void match_signed_int(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_unsigned_int(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4412,6 +4571,9 @@ void match_unsigned_int(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_sign(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4451,6 +4613,9 @@ void match_sign(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_exponent(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4497,6 +4662,9 @@ void match_exponent(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_identifier(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4561,6 +4729,9 @@ void match_identifier(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_keywords(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4757,6 +4928,9 @@ void match_keywords(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_whitespace(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4834,6 +5008,9 @@ void match_whitespace(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_string(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4890,6 +5067,9 @@ void match_string(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_single_quote_string(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -4959,6 +5139,9 @@ void match_single_quote_string(node_t * n, const char last_method[], int depth) 
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_double_quote_string(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5028,6 +5211,9 @@ void match_double_quote_string(node_t * n, const char last_method[], int depth) 
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_query_delimiter(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5067,6 +5253,9 @@ void match_query_delimiter(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_comparison_operator(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5235,6 +5424,9 @@ void match_comparison_operator(node_t * n, const char last_method[], int depth) 
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5291,6 +5483,9 @@ void match_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_block_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5364,6 +5559,9 @@ void match_block_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_single_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5437,6 +5635,9 @@ void match_single_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_left_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5480,6 +5681,9 @@ void match_left_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_right_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5523,6 +5727,9 @@ void match_right_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_inline_comment(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5566,6 +5773,9 @@ void match_inline_comment(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_end_of_line(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5614,6 +5824,9 @@ void match_end_of_line(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ABS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5669,6 +5882,9 @@ void match_ABS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ACOS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5724,6 +5940,9 @@ void match_ACOS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5791,6 +6010,9 @@ void match_ADDDATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5854,6 +6076,9 @@ void match_ADDTIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ASCII_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5909,6 +6134,9 @@ void match_ASCII_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ASIN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -5964,6 +6192,9 @@ void match_ASIN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ATAN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6019,6 +6250,9 @@ void match_ATAN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ATAN2_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6082,6 +6316,9 @@ void match_ATAN2_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_BIN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6137,6 +6374,9 @@ void match_BIN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6192,6 +6432,9 @@ void match_BIT_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CEILING_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6247,6 +6490,9 @@ void match_CEILING_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CEIL_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6302,6 +6548,9 @@ void match_CEIL_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6357,6 +6606,9 @@ void match_CHARACTER_LENGTH_FUNC(node_t * n, const char last_method[], int depth
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6412,6 +6664,9 @@ void match_CHAR_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CHAR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6508,6 +6763,9 @@ void match_CHAR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CONCAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6586,6 +6844,9 @@ void match_CONCAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6664,6 +6925,9 @@ void match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6735,6 +6999,9 @@ void match_CONVERT_TZ_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CONV_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6806,6 +7073,9 @@ void match_CONV_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_COS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6861,6 +7131,9 @@ void match_COS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_COT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6916,6 +7189,9 @@ void match_COT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CRC32_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -6971,6 +7247,9 @@ void match_CRC32_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CURDATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7022,6 +7301,9 @@ void match_CURDATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7073,6 +7355,9 @@ void match_CURRENT_DATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7138,6 +7423,9 @@ void match_CURRENT_TIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7203,6 +7491,9 @@ void match_CURRENT_TIMESTAMP_FUNC(node_t * n, const char last_method[], int dept
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_CURTIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7268,6 +7559,9 @@ void match_CURTIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7335,6 +7629,9 @@ void match_DATE_ADD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7398,6 +7695,9 @@ void match_DATEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7453,6 +7753,9 @@ void match_DATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7516,6 +7819,9 @@ void match_DATE_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7583,6 +7889,9 @@ void match_DATE_SUB_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAY_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7638,6 +7947,9 @@ void match_DAY_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7693,6 +8005,9 @@ void match_DAYNAME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7748,6 +8063,9 @@ void match_DAYOFMONTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7803,6 +8121,9 @@ void match_DAYOFWEEK_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7858,6 +8179,9 @@ void match_DAYOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_DEGREES_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7913,6 +8237,9 @@ void match_DEGREES_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ELT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -7991,6 +8318,9 @@ void match_ELT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8098,6 +8428,9 @@ void match_EXPORT_SET_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_EXP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8153,6 +8486,9 @@ void match_EXP_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8216,6 +8552,9 @@ void match_EXTRACT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FIELD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8294,6 +8633,9 @@ void match_FIELD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8357,6 +8699,9 @@ void match_FIND_IN_SET_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FLOOR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8412,6 +8757,9 @@ void match_FLOOR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8493,6 +8841,9 @@ void match_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8548,6 +8899,9 @@ void match_FROM_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8603,6 +8957,9 @@ void match_FROM_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8676,6 +9033,9 @@ void match_FROM_UNIXTIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8835,6 +9195,9 @@ void match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HEX_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8908,6 +9271,9 @@ void match_HEX_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_HOUR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -8963,6 +9329,9 @@ void match_HOUR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_INSERT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9042,6 +9411,9 @@ void match_INSERT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_INSTR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9105,6 +9477,9 @@ void match_INSTR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9160,6 +9535,9 @@ void match_LAST_DAY_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LCASE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9215,6 +9593,9 @@ void match_LCASE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LEFT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9278,6 +9659,9 @@ void match_LEFT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9333,6 +9717,9 @@ void match_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9388,6 +9775,9 @@ void match_LN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9443,6 +9833,9 @@ void match_LOAD_FILE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9508,6 +9901,9 @@ void match_LOCALTIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9573,6 +9969,9 @@ void match_LOCALTIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) 
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOCATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9654,6 +10053,9 @@ void match_LOCATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOG10_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9709,6 +10111,9 @@ void match_LOG10_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOG2_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9764,6 +10169,9 @@ void match_LOG2_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOG_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9837,6 +10245,9 @@ void match_LOG_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LOWER_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9892,6 +10303,9 @@ void match_LOWER_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LPAD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -9963,6 +10377,9 @@ void match_LPAD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_LTRIM_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10018,6 +10435,9 @@ void match_LTRIM_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10081,6 +10501,9 @@ void match_MAKEDATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10159,6 +10582,9 @@ void match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10230,6 +10656,9 @@ void match_MAKETIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10285,6 +10714,9 @@ void match_MICROSECOND_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MID_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10356,6 +10788,9 @@ void match_MID_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MINUTE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10411,6 +10846,9 @@ void match_MINUTE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MOD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10474,6 +10912,9 @@ void match_MOD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MONTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10529,6 +10970,9 @@ void match_MONTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10584,6 +11028,9 @@ void match_MONTHNAME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_NOW_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10649,6 +11096,9 @@ void match_NOW_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10704,6 +11154,9 @@ void match_OCTET_LENGTH_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_OCT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10759,6 +11212,9 @@ void match_OCT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ORD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10814,6 +11270,9 @@ void match_ORD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10877,6 +11336,9 @@ void match_PERIOD_ADD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10940,6 +11402,9 @@ void match_PERIOD_DIFF_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_PI_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -10991,6 +11456,9 @@ void match_PI_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_POSITION_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11054,6 +11522,9 @@ void match_POSITION_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_POWER_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11117,6 +11588,9 @@ void match_POWER_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_POW_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11180,6 +11654,9 @@ void match_POW_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_QUARTER_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11235,6 +11712,9 @@ void match_QUARTER_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_QUOTE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11290,6 +11770,9 @@ void match_QUOTE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_RADIANS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11345,6 +11828,9 @@ void match_RADIANS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_RAND_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11410,6 +11896,9 @@ void match_RAND_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_REPEAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11473,6 +11962,9 @@ void match_REPEAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_REPLACE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11544,6 +12036,9 @@ void match_REPLACE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_REVERSE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11599,6 +12094,9 @@ void match_REVERSE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_RIGHT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11662,6 +12160,9 @@ void match_RIGHT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_ROUND_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11735,6 +12236,9 @@ void match_ROUND_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_RPAD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11806,6 +12310,9 @@ void match_RPAD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_RTRIM_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11861,6 +12368,9 @@ void match_RTRIM_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SECOND_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11916,6 +12426,9 @@ void match_SECOND_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -11971,6 +12484,9 @@ void match_SEC_TO_TIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SIGN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12026,6 +12542,9 @@ void match_SIGN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SIN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12081,6 +12600,9 @@ void match_SIN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12136,6 +12658,9 @@ void match_SOUNDEX_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SPACE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12191,6 +12716,9 @@ void match_SPACE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SQRT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12246,6 +12774,9 @@ void match_SQRT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12309,6 +12840,9 @@ void match_STR_TO_DATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12414,6 +12948,9 @@ void match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12485,6 +13022,9 @@ void match_SUBSTRING_INDEX_FUNC(node_t * n, const char last_method[], int depth)
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12618,6 +13158,9 @@ void match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12751,6 +13294,9 @@ void match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12814,6 +13360,9 @@ void match_SUBTIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12879,6 +13428,9 @@ void match_SYSDATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TAN_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12934,6 +13486,9 @@ void match_TAN_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -12997,6 +13552,9 @@ void match_TIMEDIFF_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13052,6 +13610,9 @@ void match_TIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13115,6 +13676,9 @@ void match_TIME_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13186,6 +13750,9 @@ void match_TIMESTAMPADD_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13257,6 +13824,9 @@ void match_TIMESTAMPDIFF_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13330,6 +13900,9 @@ void match_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13385,6 +13958,9 @@ void match_TIME_TO_SEC_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13440,6 +14016,9 @@ void match_TO_BASE64_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13495,6 +14074,9 @@ void match_TO_DAYS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13550,6 +14132,9 @@ void match_TO_SECONDS_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TRIM_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13674,6 +14259,9 @@ void match_TRIM_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13747,6 +14335,9 @@ void match_TRUNCATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UCASE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13802,6 +14393,9 @@ void match_UCASE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UNHEX_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13857,6 +14451,9 @@ void match_UNHEX_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13921,6 +14518,9 @@ void match_UNIX_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) 
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -13972,6 +14572,9 @@ void match_UTC_DATE_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14037,6 +14640,9 @@ void match_UTC_TIMESTAMP_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14102,6 +14708,9 @@ void match_UTC_TIME_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_WEEK_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14175,6 +14784,9 @@ void match_WEEK_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14230,6 +14842,9 @@ void match_WEEKDAY_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14285,6 +14900,9 @@ void match_WEEKOFYEAR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_YEAR_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14340,6 +14958,9 @@ void match_YEAR_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -14413,6 +15034,9 @@ void match_YEARWEEK_FUNC(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_functions(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -15829,6 +16453,9 @@ void match_functions(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_B(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -15868,6 +16495,9 @@ void match_B(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_bits(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -15907,6 +16537,9 @@ void match_bits(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_charset_name(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -15946,6 +16579,9 @@ void match_charset_name(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_count(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -15985,6 +16621,9 @@ void match_count(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_D(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16024,6 +16663,9 @@ void match_D(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_date(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16063,6 +16705,9 @@ void match_date(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_datetime_expr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16102,6 +16747,9 @@ void match_datetime_expr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_dayofyear(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16141,6 +16789,9 @@ void match_dayofyear(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_days(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16180,6 +16831,9 @@ void match_days(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_delim(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16219,6 +16873,9 @@ void match_delim(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_dt(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16258,6 +16915,9 @@ void match_dt(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_file_name(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16297,6 +16957,9 @@ void match_file_name(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_format(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16336,6 +16999,9 @@ void match_format(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_from_base(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16375,6 +17041,9 @@ void match_from_base(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_from_str(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16414,6 +17083,9 @@ void match_from_str(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_from_tz(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16453,6 +17125,9 @@ void match_from_tz(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_fsp(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16492,6 +17167,9 @@ void match_fsp(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_hour(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16531,6 +17209,9 @@ void match_hour(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_interval(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16570,6 +17251,9 @@ void match_interval(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_len(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16609,6 +17293,9 @@ void match_len(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_locale(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16648,6 +17335,9 @@ void match_locale(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_M(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16687,6 +17377,9 @@ void match_M(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_minute(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16726,6 +17419,9 @@ void match_minute(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_mode(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16765,6 +17461,9 @@ void match_mode(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_N(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16804,6 +17503,9 @@ void match_N(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_newstr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16843,6 +17545,9 @@ void match_newstr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_N_or_S(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16882,6 +17587,9 @@ void match_N_or_S(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_number_of_bits(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16921,6 +17629,9 @@ void match_number_of_bits(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_off(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16960,6 +17671,9 @@ void match_off(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_on(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -16999,6 +17713,9 @@ void match_on(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_P(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17038,6 +17755,9 @@ void match_P(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_padstr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17077,6 +17797,9 @@ void match_padstr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_pos(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17116,6 +17839,9 @@ void match_pos(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_remstr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17155,6 +17881,9 @@ void match_remstr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_second(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17194,6 +17923,9 @@ void match_second(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_seconds(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17233,6 +17965,9 @@ void match_seconds(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_separator(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17272,6 +18007,9 @@ void match_separator(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_strlist(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17311,6 +18049,9 @@ void match_strlist(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_substr(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17350,6 +18091,9 @@ void match_substr(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_time(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17389,6 +18133,9 @@ void match_time(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_to_base(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17428,6 +18175,9 @@ void match_to_base(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_to_str(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17467,6 +18217,9 @@ void match_to_str(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_to_tz(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17506,6 +18259,9 @@ void match_to_tz(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_unit(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17545,6 +18301,9 @@ void match_unit(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_unix_timestamp(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17584,6 +18343,9 @@ void match_unix_timestamp(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_X(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17623,6 +18385,9 @@ void match_X(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_Y(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17662,6 +18427,9 @@ void match_Y(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_year(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17701,6 +18469,9 @@ void match_year(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 void match_catch_all(node_t * n, const char last_method[], int depth) {
   if (n_OK(n) == 0) {
@@ -17746,6 +18517,9 @@ void match_catch_all(node_t * n, const char last_method[], int depth) {
 #endif
   n->depth -= 1;
   n->last_function = name;
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
 }
 
 /*
@@ -17759,7 +18533,6 @@ void match_catch_all(node_t * n, const char last_method[], int depth) {
 *     Failure: Returns NULL
 */
 node_t *match_function(char *data) {
-  printf("In functions\n");
   int last_pos = -1;
   node_t *n = malloc(sizeof(node_t));
   n->value = data;
@@ -17778,35 +18551,45 @@ node_t *match_function(char *data) {
 
     n->OK = 1;
     match_queries(n, name, 0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n) == 1) {
       printf("GOOD queries\n");
     }
+#endif
     n->OK = 1;
     match_expr(n, name, 0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n) == 1) {
       printf("GOOD expr\n");
     }
+#endif
     n->OK = 1;
     match_whitespace(n, name, 0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n) == 1) {
       printf("GOOD whitespace\n");
     }
+#endif
     n->OK = 1;
     match_query_delimiter(n, name, 0);
+#ifdef  DEBUG_SUCCESS
     if (n_OK(n) == 1) {
       printf("GOOD query_delimiter\n");
     }
+#endif
 
     if (n->OK == 0) {
       break;
     }
   }
   pop(n->stack);
+#ifdef  DEBUG_FAIL
   if (n->OK == 0) {
     printf("\nMatch not found\n");
   }
   if (n->pos != -1) {
     printf("String parsed until [%d] out of [%d]\n", n->pos, n->len);
   }
+#endif
   return n;
 }                               // end match functions
