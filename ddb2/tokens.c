@@ -108,21 +108,30 @@ int token_cmp(token_t *token,char* match){
     return 1;
 }
 
-// compare a character range
-int token_cmp_range(token_t *token,char* match1,char* match2){
-    int needle1_len=strlen(match1);
-    int needle2_len=strlen(match2);
-    if (needle1_len!=1) return NULL;
-    if (needle3_len!=1) return NULL;
-    if (token->data_length!=1) return NULL;
-    
-    if token->data[0]>=match1 and token->data[0]<=match2) return 1;
-    return NULL;
+
+void push_token(node_t *n){
+    ++n->token_index;
+    push(n->token_stack,n->token_index);
 }
 
+void pop_token(node_t *n){
+    pop(n->token_stack);
+}
 
-//struct token *new_token_list(){
-//    struct token *token_list;
-//
-//    return token_list;
-//}
+char * sub_str_cpy(char *data,int start,int length){
+    char *buffer=malloc(length);
+    if (buffer==NULL){
+        printf("Cannoit allocate memory");
+        exit(1);
+    }
+
+    memcopy(buffer,data[start],length);
+
+    return buffer;
+}
+
+void n_token(node_t *n){
+    int last_pos=peek(n->stack);
+    int len=n->pos-last_pos;
+*    char *buffer=sub_str_cpy(n->data,last_pos,len);
+}

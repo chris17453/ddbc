@@ -2,10 +2,15 @@ or:
 //OR
 if( n_OK(n)==1 ) {
     push(n->stack,n->pos);
+    push_token(n);
     {body}
-    n_token(n);
+    
+    if(n->OK==0){
+        trim_token(n);
+    } 
 
     pop(n->stack);
+    pop_token(n);
 }
 
 
@@ -27,15 +32,17 @@ or_list_item1:
 {body}
 if (n->OK==0) {
     n->pos=peek(n->stack); 
+    trim_token(n);
 }
 
 or_list_item+1:
 //item+1 {order}
 if (n->OK==0 ) {
-n->OK=1;
-{body}
+    n->OK=1;
+    {body}
     if (n->OK==0) {
         n->pos=peek(n->stack); 
+        trim_token(n);
     }
 } 
 
