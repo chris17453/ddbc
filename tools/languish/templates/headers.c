@@ -26,6 +26,7 @@ typedef struct node_t{
     const char  *last_function;
     char  *value;
     struct stack_t *stack;
+    struct stack_t *token_index;
 }
 node_t;
 
@@ -62,11 +63,26 @@ int stricmp(node_t *n, const char * b){
     return 0;
 }
 
+char * substr(node_t *n,int start,int stop){
+    int buffer_len=stop-start+1;
+    char * buffer=malloc(buffer_len);
+    if(buffer==NULL) {
+        printf("Cannot allocate memory for substring copy.");
+        exit(1);
+    }
+    memset(buffer,buffer_len,0);
+
+    for (int i=start;i<stop;i++) {
+        buffer[i-start]=n->value[i];
+    }
+    return buffer;
+}
+
 void print_sub_str(node_t *n,int start,int end){
     printf("***");
     for (int i=start;i<end;i++) {
         if (n->value[i]=='\n'){
-            printf("\n***",n->value[i]);
+            printf("\n***");
         } else {
             printf("%c",n->value[i]);
         }

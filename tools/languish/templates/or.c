@@ -3,6 +3,8 @@ or:
 if( n_OK(n)==1 ) {
     push(n->stack,n->pos);
     {body}
+    n_token(n);
+
     pop(n->stack);
 }
 

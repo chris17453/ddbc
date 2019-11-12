@@ -7,8 +7,11 @@ typedef struct token_t{
     uint32_t        code;         // the byte code used for comparison
     uint16_t        type;         // string,literal,delimiter,operator,function,reserverd,keyword
     uint16_t        depth;
+    char           *element;      // string value
     char           *data;         // string value
     uint16_t        data_length;  // data length
+    uint16_t        start_index;  // data length
+    uint16_t        end_index;    // data length
     void           *value;        //value of token ? Just-in-case
     
     struct token_t  *left;         // previous node

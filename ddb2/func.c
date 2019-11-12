@@ -1,5 +1,5 @@
 /********************************************
-* Generated: 2019-11-11                    *
+* Generated: 2019-11-12                    *
 ********************************************/
 //#define DEBUG_START   1
 //#define DEBUG_SUCCESS 1
@@ -34,7 +34,7 @@ void print_sub_str(node_t * n, int start, int end) {
   printf("***");
   for (int i = start; i < end; i++) {
     if (n->value[i] == '\n') {
-      printf("\n***", n->value[i]);
+      printf("\n***");
     } else {
       printf("%c", n->value[i]);
     }
@@ -430,6 +430,7 @@ void match_select_expr_list(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -625,6 +626,7 @@ void match_expr(node_t * n, const char last_method[], int depth) {
               }
             }
 
+            n_token(n);
             pop(n->stack);
           }
 
@@ -759,6 +761,7 @@ void match_expr(node_t * n, const char last_method[], int depth) {
               }
             }
 
+            n_token(n);
             pop(n->stack);
           }
 
@@ -781,6 +784,7 @@ void match_expr(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -975,6 +979,7 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
                     }
                   }
 
+                  n_token(n);
                   pop(n->stack);
                 }
 
@@ -995,6 +1000,7 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
             }
           }
 
+          n_token(n);
           pop(n->stack);
         }
 
@@ -1015,6 +1021,7 @@ void match_boolean_primary(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -1183,6 +1190,7 @@ void match_predicate(node_t * n, const char last_method[], int depth) {
 
                   }
 
+                  n_token(n);
                   if (n->OK == 0) {
                     n->pos = pop(n->stack);
                   } else
@@ -1370,6 +1378,7 @@ void match_predicate(node_t * n, const char last_method[], int depth) {
           }
         }
 
+        n_token(n);
         pop(n->stack);
       }
 
@@ -1503,6 +1512,7 @@ void match_bit_expr(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -1707,6 +1717,7 @@ void match_operations(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -1849,6 +1860,7 @@ void match_simple_expr(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -1948,6 +1960,7 @@ void match_literal(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -2187,6 +2200,7 @@ void match_interval_expr(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4098,6 +4112,7 @@ void match_null(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4157,6 +4172,7 @@ void match_true(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4216,6 +4232,7 @@ void match_false(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4275,6 +4292,7 @@ void match_boolean(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4382,6 +4400,7 @@ void match_real(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4441,6 +4460,7 @@ void match_integer(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4904,6 +4924,7 @@ void match_keywords(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -4973,11 +4994,13 @@ void match_whitespace(node_t * n, const char last_method[], int depth) {
             }
           }
 
+          n_token(n);
           pop(n->stack);
         }
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -5043,6 +5066,7 @@ void match_string(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -5400,6 +5424,7 @@ void match_comparison_operator(node_t * n, const char last_method[], int depth) 
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -5459,6 +5484,7 @@ void match_comment(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -5525,6 +5551,7 @@ void match_block_comment(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -5601,6 +5628,7 @@ void match_single_comment(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -6711,6 +6739,7 @@ void match_CHAR_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -6810,6 +6839,7 @@ void match_CONCAT_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -6891,6 +6921,7 @@ void match_CONCAT_WS_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -8284,6 +8315,7 @@ void match_ELT_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -8599,6 +8631,7 @@ void match_FIELD_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -9094,6 +9127,7 @@ void match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
             }
           }
 
+          n_token(n);
           pop(n->stack);
         }
 
@@ -9160,6 +9194,7 @@ void match_GET_FORMAT_FUNC(node_t * n, const char last_method[], int depth) {
             }
           }
 
+          n_token(n);
           pop(n->stack);
         }
 
@@ -9241,6 +9276,7 @@ void match_HEX_FUNC(node_t * n, const char last_method[], int depth) {
         }
       }
 
+      n_token(n);
       pop(n->stack);
     }
     if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
@@ -10548,6 +10584,7 @@ void match_MAKE_SET_FUNC(node_t * n, const char last_method[], int depth) {
 
       }
 
+      n_token(n);
       if (n->OK == 0) {
         n->pos = pop(n->stack);
       } else
@@ -12918,6 +12955,7 @@ void match_SUBDATE_FUNC(node_t * n, const char last_method[], int depth) {
         }
       }
 
+      n_token(n);
       pop(n->stack);
     }
     if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
@@ -13128,6 +13166,7 @@ void match_SUBSTRING_FUNC(node_t * n, const char last_method[], int depth) {
         }
       }
 
+      n_token(n);
       pop(n->stack);
     }
     if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
@@ -13264,6 +13303,7 @@ void match_SUBSTR_FUNC(node_t * n, const char last_method[], int depth) {
         }
       }
 
+      n_token(n);
       pop(n->stack);
     }
     if (n_OK(n) == 1 && (n->value[n->pos] == ')'))
@@ -14198,6 +14238,7 @@ void match_TRIM_FUNC(node_t * n, const char last_method[], int depth) {
                 }
               }
 
+              n_token(n);
               pop(n->stack);
             }
 
@@ -16429,6 +16470,7 @@ void match_functions(node_t * n, const char last_method[], int depth) {
       }
     }
 
+    n_token(n);
     pop(n->stack);
   }
 #ifdef  DEBUG_SUCCESS
@@ -18525,7 +18567,7 @@ void match_catch_all(node_t * n, const char last_method[], int depth) {
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-11
+*   Generated: 2019-11-12
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match

@@ -19,6 +19,7 @@ node_t * match_function(char *data) {
     n->depth=0;
     n->OK=1;
     n->stack=createStack(1000);
+    n->token_index=createStack(1000);
 const char* name="functions";
 
 push(n->stack,n->pos);
