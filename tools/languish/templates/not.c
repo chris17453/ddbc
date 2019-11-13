@@ -14,11 +14,11 @@ void not_reset(node_t *n){
     if (n->OK==1 ) {
         n->OK=0;
         n->pos=pop(n->stack);
-        trim_token();
-        pop_token();
+        trim_token(n);
+        pop_token(n);
     } else { 
         n->OK=1;
         pop(n->stack);
-        pop_token();
+        pop_token(n);
     }
 }

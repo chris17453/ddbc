@@ -7,7 +7,7 @@ range:
 char:
 if( n_OK(n)==1 && ( {conditions} ) )   {
     increment_m(n,1);
-    n_token(n);
+    n_token(n,name);
 } else {
     n->OK=0;
 }

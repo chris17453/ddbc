@@ -10,7 +10,7 @@ token_t *create_token(  uint32_t   code,
                         uint16_t   id,
                         uint16_t   depth,
                         char      *element,
-                        int       *src_index,
+                        int        src_index,
                         char      *data,
                         uint16_t   data_length,
                         void      *value) {
@@ -136,7 +136,7 @@ char * sub_str_cpy(char *data,int start,int length){
     return buffer;
 }
 
-void n_token(node_t *n,char *element){
+void n_token(node_t *n,const char *element){
     int last_pos=peek(n->stack);
     int len=n->pos-last_pos;
     char *buffer=sub_str_cpy(n->data,last_pos,len);

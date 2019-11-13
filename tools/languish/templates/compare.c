@@ -1,15 +1,15 @@
 compare_func:
-void compare_string(node_t *n,const char *  data,int length){
+void compare_string(node_t *n,const char *  data,int length,const char * name){
     if( n_OK(n)==1 && stricmp(n,data)==0) {
         increment_n(n,length);
-        n_token(n);
+        n_token(n,name);
     }
     else n->OK=0; 
 }
 
 compare:
  // order {order}
- compare_string(n,(const char * ) "{compare_value}",{compare_value_length});
+ compare_string(n,(const char * ) "{compare_value}",{compare_value_length},name);
 
 
 compare_method:

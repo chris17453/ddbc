@@ -11,7 +11,8 @@ headers:
 #include <string.h>
 
 #include "headers/stack.h"
-#include "headers/func.h"
+//#include "headers/func.h"
+#include "headers/tokens.h"
 
 
 node_t:
@@ -70,7 +71,7 @@ char * substr(node_t *n,int start,int stop){
         printf("Cannot allocate memory for substring copy.");
         exit(1);
     }
-    memset(buffer,buffer_len,0);
+    memset(buffer,0,buffer_len);
 
     for (int i=start;i<stop;i++) {
         buffer[i-start]=n->value[i];

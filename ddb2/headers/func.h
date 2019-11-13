@@ -8,6 +8,7 @@ typedef struct node_t {
   const char *last_function;
   char *value;
   struct stack_t *stack;
+  struct stack_t *token_index;
 } node_t;
 void match_queries(node_t * n, const char *last_method, int depth);
 void match_select(node_t * n, const char *last_method, int depth);

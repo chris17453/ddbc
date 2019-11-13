@@ -1,5 +1,5 @@
 #include <stdint.h>
-
+#include "func.h"
 
 
 // token element in bytecode list
@@ -20,7 +20,15 @@ typedef struct token_t{
 
 
 // signatures
-token_t  * create_token(uint32_t code,uint16_t type,uint16_t depth,char *data,uint16_t data_length,void *value);
+token_t  * create_token( uint32_t   code,
+                        uint16_t   type,
+                        uint16_t   id,
+                        uint16_t   depth,
+                        char      *element,
+                        int        src_index,
+                        char      *data,
+                        uint16_t   data_length,
+                        void      *value);
 void       free_token(token_t *token);
 token_t *  next_token(token_t *token);
 token_t *  previous_token(token_t *token);
@@ -31,5 +39,9 @@ void       insert_token_after(token_t *token_left,token_t *token_insert);
 void       insert_token_before(token_t *token_right,token_t *token_insert);
 void       append_token(token_t *token_list,token_t *token_insert);
 int        token_cmp(token_t *token,char* match);
-int        token_cmp_range(token_t *token,char* match1,char* match2);
+void       push_token(node_t *n);
+void       pop_token(node_t *n);
+char       * sub_str_cpy(char *data,int start,int length);
+void       n_token(node_t *n,const char *element);
+void       trim_token(node_t *n);
 
