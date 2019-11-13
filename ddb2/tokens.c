@@ -5,12 +5,15 @@
 
 
 // allocates memory and assigns values for a new node, u nlinked
-token_t *create_token( uint32_t   code,
-                            uint16_t   type,
-                            uint16_t   depth,
-                            char      *data,
-                            uint16_t   data_length,
-                            void      *value) {
+token_t *create_token(  uint32_t   code,
+                        uint16_t   type,
+                        uint16_t   id,
+                        uint16_t   depth,
+                        char      *element,
+                        int       *src_index,
+                        char      *data,
+                        uint16_t   data_length,
+                        void      *value) {
     
     // allocate memory for types in struct
     token_t *new_token=(token_t*)malloc(sizeof(token_t)); 
@@ -20,7 +23,10 @@ token_t *create_token( uint32_t   code,
 
     new_token->code        =code;
     new_token->type        =type;
+    new_token->id          =id;
     new_token->depth       =depth;
+    new_token->src_index   =src_index;
+    new_token->element     =element;
     new_token->data        =data;
     new_token->data_length =data_length;
     new_token->value       =value;
@@ -61,7 +67,7 @@ token_t *next_token(token_t *haystack){
 // return previous element of token list
 token_t *previous_token(token_t *haystack){
     if (haystack->left==NULL){
-        return haystack;
+        return NULL;
     }
     return haystack->left;
 }
@@ -130,8 +136,41 @@ char * sub_str_cpy(char *data,int start,int length){
     return buffer;
 }
 
-void n_token(node_t *n){
+void n_token(node_t *n,char *element){
     int last_pos=peek(n->stack);
     int len=n->pos-last_pos;
-*    char *buffer=sub_str_cpy(n->data,last_pos,len);
+    char *buffer=sub_str_cpy(n->data,last_pos,len);
+    
+    uint32_t   code       =0;
+    uint16_t   type       =0;
+    uint16_t   depth      =n->depth;
+    char      *element    =element;
+    int        src_index  =n->pos;
+    int        id         =id;
+    char      *data       =buffer;
+    uint16_t   data_length=len;
+    void      *value      =NULL;
+        
+    token_t *t=create_token(code,type,id,depth,element,src_index,data,data_length,value);
+    if(n->tokens==NULL) {
+        n->tokens=t;
+    } else {
+        token_t *tail=get_token_tail(n->tokens);
+        connect_token(tail,t);
+    }
+}
+
+void trim_token(node_t *n){
+    int pos=peek(n->token_stack);
+    printf("Trimming : %d->%d",pos,n->token_index)
+    if(n->tokens!=NULL){
+        token_t *cur_token=n->tokens;
+        if (cur_token->id!=id) {
+            cur_token=next_token(cur_token);
+        }
+        
+    } else {
+        printf("No tokens");
+    }
+
 }

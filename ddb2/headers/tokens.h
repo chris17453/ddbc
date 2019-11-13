@@ -6,13 +6,13 @@
 typedef struct token_t{
     uint32_t        code;         // the byte code used for comparison
     uint16_t        type;         // string,literal,delimiter,operator,function,reserverd,keyword
-    uint16_t        depth;
-    char           *element;      // string value
+    uint16_t        id;           // incremental ID for trimming 
+    uint16_t        depth;        // pattern matching depth, sub elements and recursion
+    char           *element;      // name function/element type
+    int             src_index;    // src location in original string
     char           *data;         // string value
     uint16_t        data_length;  // data length
-    uint16_t        start_index;  // data length
-    uint16_t        end_index;    // data length
-    void           *value;        //value of token ? Just-in-case
+    void           *value;        // value of token ? Just-in-case
     
     struct token_t  *left;         // previous node
     struct token_t  *right;        // next node
