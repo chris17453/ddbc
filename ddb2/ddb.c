@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
       query_str=read_file(file);
     }
 
-
+    printf ("Starting");
     //printf("Query: %s\n \n",query_str);
     match_function(query_str);
     free(query_str);

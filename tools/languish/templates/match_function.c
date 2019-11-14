@@ -1,10 +1,10 @@
 match_function:
-void match_{function_name}(node_t *n,const char last_method[],int depth){
+void match_{function_name}(node_t *n,char last_method[],int depth){
     if( n_OK(n)==0) {
         return;
     }
     
-    const char name[]="{function_name}";
+    char *name="{function_name}";
     int start_pos=n->pos;
     n->depth+=1;
     n->function=name;
@@ -37,9 +37,12 @@ void match_{function_name}(node_t *n,const char last_method[],int depth){
 #endif
     n->depth-=1;
     n->last_function=name;
+#ifdef DEBUG_SUCCESS
     if( n->OK){
         printf("%s, %d, %d\n",name,start_pos,n->pos);
     }
+#endif
+
 }
 
 

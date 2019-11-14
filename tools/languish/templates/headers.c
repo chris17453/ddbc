@@ -9,8 +9,9 @@ headers:
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
-#include "headers/stack.h"
+//#include "headers/stack.h"
 //#include "headers/func.h"
 #include "headers/tokens.h"
 
@@ -23,17 +24,19 @@ typedef struct node_t{
     int    pos;
     int    OK;
     int    depth;
-    const char  *function;
-    const char  *last_function;
-    char  *value;
+    int             token_index;
+    char           *function;
+    char           *last_function;
+    char           *value;
+    struct stack_t *token_stack;
     struct stack_t *stack;
-    struct stack_t *token_index;
+    struct token_t *tokens;
 }
 node_t;
 
 
 signature:
-void match_{body}(node_t *n,const char *last_method,int depth);
+void match_{body}(node_t *n,char *last_method,int depth);
 
 
 signature2:
@@ -46,7 +49,7 @@ stricmp:
 // node values are only compared if string length is the same, no need to validate
 // comparitors is against a precompiled value thats already case optimised
 // returns 0 for equal
-int stricmp(node_t *n, const char * b){
+int stricmp(node_t *n, char * b){
     int d=0;
     int b_len=strlen(b);
     //printf("Compare %s\n",b);

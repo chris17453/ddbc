@@ -12,15 +12,17 @@ match_functions:
  */
 node_t * match_function(char *data) {
     int last_pos=-1;
-    node_t * n=malloc(sizeof(node_t));
-    n->value=data;
-    n->len=strlen(data);
-    n->pos=0;
-    n->depth=0;
-    n->OK=1;
-    n->stack=createStack(1000);
-    n->token_index=createStack(1000);
-const char* name="functions";
+    node_t *  n =malloc(sizeof(node_t));
+    n->value      = data;
+    n->len        = strlen(data);
+    n->pos        = 0;
+    n->depth      = 0;
+    n->OK         = 1;
+    n->token_index= 0;
+    n->stack      = createStack(1000);
+    n->token_stack= createStack(1000);
+    n->tokens       =NULL;
+ char* name="functions";
 
 push(n->stack,n->pos);
 while (n->pos>-1){
@@ -51,13 +53,19 @@ while (n->pos>-1){
 match_functions_first_var:
     n->OK=1;
     match_{function_name}(n,name,0);
+    if (n_OK(n)==1 ) {
+        continue;
 #ifdef  DEBUG_SUCCESS
-    if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }
+     printf ("GOOD {function_name}\n");  
 #endif
+}
 
 match_functions_second_var:
     n->OK=1;
     match_{function_name}(n,name,0);
+    if (n_OK(n)==1 ) {
+        continue;
 #ifdef  DEBUG_SUCCESS
-    if (n_OK(n)==1 ) { printf ("GOOD {function_name}\n");  }
+     printf ("GOOD {function_name}\n");  
 #endif
+}
