@@ -1,7 +1,7 @@
 /********************************************
-* Generated: 2019-11-13                    *
+* Generated: 2019-11-14                    *
 ********************************************/
-//#define DEBUG_START   1
+//define DEBUG_START   1
 //#define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 #include <stdio.h>
@@ -292,6 +292,7 @@ void match_select(node_t * n, char last_method[], int depth) {
           push_token(n);
           while (n_OK(n) == 1) {
             push(n->stack, n->pos);
+            push_token(n);
             // GROUP
             if (n_OK(n) == 1) {
               //whitespace  select select
@@ -891,12 +892,16 @@ void match_expr(node_t * n, char last_method[], int depth) {
 #endif
   if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
     push(n->stack, n->pos);
+    push_token(n);
     match_expr(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = pop(n->stack);
+      trim_token(n);
+      pop_token(n);
       n->OK = 1;
     } else {
       pop(n->stack);
+      pop_token(n);
     }
   }
 #ifdef  DEBUG_FAILED
@@ -1151,12 +1156,16 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
 #endif
   if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
     push(n->stack, n->pos);
+    push_token(n);
     match_boolean_primary(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = pop(n->stack);
+      trim_token(n);
+      pop_token(n);
       n->OK = 1;
     } else {
       pop(n->stack);
+      pop_token(n);
     }
   }
 #ifdef  DEBUG_FAILED
@@ -1544,12 +1553,16 @@ void match_predicate(node_t * n, char last_method[], int depth) {
 #endif
   if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
     push(n->stack, n->pos);
+    push_token(n);
     match_predicate(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = pop(n->stack);
+      trim_token(n);
+      pop_token(n);
       n->OK = 1;
     } else {
       pop(n->stack);
+      pop_token(n);
     }
   }
 #ifdef  DEBUG_FAILED
@@ -1683,12 +1696,16 @@ void match_bit_expr(node_t * n, char last_method[], int depth) {
 #endif
   if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
     push(n->stack, n->pos);
+    push_token(n);
     match_bit_expr(n, name, depth + 1);
     if (n->OK == 0) {
       n->pos = pop(n->stack);
+      trim_token(n);
+      pop_token(n);
       n->OK = 1;
     } else {
       pop(n->stack);
+      pop_token(n);
     }
   }
 #ifdef  DEBUG_FAILED
@@ -4309,6 +4326,7 @@ void match_hex(node_t * n, char last_method[], int depth) {
     push_token(n);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
+      push_token(n);
       if (n_OK(n) == 1
           && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || (n->value[n->pos] >= 'A' && n->value[n->pos] <= 'F')
               || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'f'))) {
@@ -4390,6 +4408,7 @@ void match_bit(node_t * n, char last_method[], int depth) {
     push_token(n);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
+      push_token(n);
       if (n_OK(n) == 1 && (n->value[n->pos] == '0' || n->value[n->pos] == '1')) {
         increment_n(n, 1);
         n_token(n, name);
@@ -4970,6 +4989,7 @@ void match_unsigned_int(node_t * n, char last_method[], int depth) {
     push_token(n);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
+      push_token(n);
       if (n_OK(n) == 1 && ((n->value[n->pos] >= '0' && n->value[n->pos] <= '9'))) {
         increment_n(n, 1);
         n_token(n, name);
@@ -5145,6 +5165,7 @@ void match_identifier(node_t * n, char last_method[], int depth) {
     push_token(n);
     while (n_OK(n) == 1) {
       push(n->stack, n->pos);
+      push_token(n);
       if (n_OK(n) == 1
           && ((n->value[n->pos] >= 'A' && n->value[n->pos] <= 'Z') || (n->value[n->pos] >= 'a' && n->value[n->pos] <= 'z')
               || (n->value[n->pos] >= '0' && n->value[n->pos] <= '9') || n->value[n->pos] == '$' || n->value[n->pos] == '_')) {
@@ -5613,6 +5634,7 @@ void match_single_quote_string(node_t * n, char last_method[], int depth) {
       push_token(n);
       while (n_OK(n) == 1) {
         push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
           if (n_OK(n) == 1 && (n->value[n->pos] != '\'')) {
@@ -5699,6 +5721,7 @@ void match_double_quote_string(node_t * n, char last_method[], int depth) {
       push_token(n);
       while (n_OK(n) == 1) {
         push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
           if (n_OK(n) == 1 && (n->value[n->pos] != '"')) {
@@ -20090,7 +20113,7 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-13
+*   Generated: 2019-11-14
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
@@ -20111,6 +20134,7 @@ node_t *match_function(char *data) {
   n->tokens = NULL;
   char *name = "functions";
   push(n->stack, n->pos);
+  push_token(n);
   while (n->pos > -1) {
     if (last_pos == n->pos) {
       break;
@@ -20155,6 +20179,7 @@ node_t *match_function(char *data) {
     }
   }
   pop(n->stack);
+  pop_token(n);
 #ifdef  DEBUG_FAIL
   if (n->OK == 0) {
     printf("\nMatch not found\n");
@@ -20163,5 +20188,6 @@ node_t *match_function(char *data) {
     printf("String parsed until [%d] out of [%d]\n", n->pos, n->len);
   }
 #endif
+  print_tokens(n->tokens);
   return n;
 }                               // end match functions

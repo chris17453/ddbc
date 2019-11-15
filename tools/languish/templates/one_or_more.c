@@ -7,6 +7,7 @@ if( n_OK(n)==1 ) {
     push_token(n);
     while( n_OK(n)==1 ) {
         push(n->stack,n->pos);
+        push_token(n);
         {body}
         if(n->OK==0) {
             n->pos=pop(n->stack); 

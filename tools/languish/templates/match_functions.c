@@ -25,6 +25,7 @@ node_t * match_function(char *data) {
  char* name="functions";
 
 push(n->stack,n->pos);
+push_token(n);
 while (n->pos>-1){
     if (last_pos==n->pos) {
         break;
@@ -38,6 +39,7 @@ while (n->pos>-1){
     
 }
     pop(n->stack);
+    pop_token(n);
 #ifdef  DEBUG_FAIL
     if ( n->OK == 0) {
         printf("\nMatch not found\n");
@@ -46,6 +48,7 @@ while (n->pos>-1){
         printf("String parsed until [%d] out of [%d]\n",n->pos,n->len);
     }
 #endif
+    print_tokens(n->tokens);
     return n;
 } // end match functions
 

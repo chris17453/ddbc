@@ -49,11 +49,15 @@ void match_{function_name}(node_t *n,char last_method[],int depth){
 func_recursion:
     if(n_OK(n)==1 && n->pos!=-1 && start_pos!=n->pos) { //recur
         push(n->stack,n->pos);
+        push_token(n);
         match_{function_name}(n,name,depth+1);
         if (n->OK==0) {
             n->pos=pop(n->stack);
+            trim_token(n);
+            pop_token(n);
             n->OK=1;
         } else {
             pop(n->stack);
+            pop_token(n);
         }
     }

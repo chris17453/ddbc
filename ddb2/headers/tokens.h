@@ -42,6 +42,7 @@ void       append_token(token_t *token_list,token_t *token_insert);
 int        token_cmp(token_t *token,char* match);
 void       push_token(node_t *n);
 void       pop_token(node_t *n);
+void       print_tokens(token_t *token);
 char       * sub_str_cpy(char *data,int start,int length);
 void       n_token(node_t *n,char *element);
 void       trim_token(node_t *n);

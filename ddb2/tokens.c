@@ -33,6 +33,10 @@ token_t *create_token(  uint32_t     code,
     new_token->data        =data;
     new_token->data_length =data_length;
     new_token->value       =value;
+    new_token->left        =NULL;
+    new_token->right       =NULL;
+    
+    
     return new_token;
 }
 
@@ -78,9 +82,11 @@ token_t *previous_token(token_t *haystack){
 //Connect 2 tokens as immedate siblings
 void connect_token(token_t *token_left,token_t *token_right){
     if (token_left!=NULL){
+        //printf("CONNECTING A->R to B");
         token_left->right=token_right;
     }
     if (token_right!=NULL){
+        //printf("CONNECTING B->L to A");
         token_right->left=token_left;
     }
 }
@@ -153,9 +159,11 @@ void print_tokens(token_t *token){
     if (token!=NULL){
         while (token!=NULL){
             if (token->data_length>0){
-                printf(" [%s] %s - %d \n",token->element,token->data,token->id);
+                for (int i=0;i<token->depth;i++) printf(" ");
+                printf("[%s] %s - %d \n",token->element,token->data,token->id);
             } else {
-                printf(" [%s] %s - %d \n","NO DATA",token->element,token->data,token->id);
+                for (int i=0;i<token->depth;i++) printf(" ");
+                printf("^ [%s] %s - %d \n","NO DATA",token->element,token->data,token->id);
             }
             token=token->right;
         }
@@ -187,24 +195,41 @@ void n_token(node_t *n,char *element){
     if(n->tokens==NULL) {
         n->tokens=t;
     } else {
-        print_tokens(n->tokens);
+        //print_tokens(n->tokens);
         token_t *tail=get_token_tail(n->tokens);
-        //connect_token(tail,t);
+        //print_tokens(tail);
+        
+        connect_token(tail,t);
     }
 }
 
 void trim_token(node_t *n){
-    return;
+    
     int id=peek(n->token_stack);
-    printf("Trimming : %d->%d",id,n->token_index);
+    //printf("Trimming : %d->%d",id,n->token_index);
     if(n->tokens!=NULL){
-        token_t *cur_token=n->tokens;
-        if (cur_token->id!=id) {
-            cur_token=next_token(cur_token);
+        token_t *cur_token=get_token_tail(n->tokens);
+        token_t *last_token=NULL;
+        if(cur_token!=NULL){
+            printf("Trimming from %d to %d\n",cur_token->id,id);
+        }
+        while (cur_token!=NULL){
+            if (cur_token->id==id) {
+                return;
+            }
+            last_token=cur_token;
+            //free_token(last_token);
+            cur_token=previous_token(cur_token);
+            if (cur_token!=NULL){
+                cur_token->right=NULL;
+            }
+            
         }
         
-    } else {
-        printf("No tokens");
-    }
+        
+        
+    } //else {
+        //printf("No tokens");
+    //}
 
 }
