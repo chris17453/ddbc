@@ -210,9 +210,9 @@ void trim_token(node_t *n){
     if(n->tokens!=NULL){
         token_t *cur_token=get_token_tail(n->tokens);
         token_t *last_token=NULL;
-        if(cur_token!=NULL){
-            printf("Trimming from %d to %d\n",cur_token->id,id);
-        }
+        //if(cur_token!=NULL){
+        //    printf("Trimming from %d to %d\n-",cur_token->id,id);
+        //}
         while (cur_token!=NULL){
             if (cur_token->id==id) {
                 return;

@@ -10,7 +10,9 @@ match_functions:
  *              If the end of the list is reached the last node is passed
  *     Failure: Returns NULL
  */
-node_t * match_function(char *data) {
+node_t * match_function(char *d) {
+    char *data=prep_sql(d);
+    printf("%s",data);
     int last_pos=-1;
     node_t *  n =malloc(sizeof(node_t));
     n->value      = data;
@@ -56,19 +58,19 @@ while (n->pos>-1){
 match_functions_first_var:
     n->OK=1;
     match_{function_name}(n,name,0);
-    if (n_OK(n)==1 ) {
-        continue;
-#ifdef  DEBUG_SUCCESS
+    if (n->OK==1 ) {
+//#ifdef  DEBUG_SUCCESS
      printf ("GOOD {function_name}\n");  
-#endif
+//#endif
+        continue;
 }
 
 match_functions_second_var:
     n->OK=1;
     match_{function_name}(n,name,0);
-    if (n_OK(n)==1 ) {
-        continue;
+    if (n->OK==1 ) {
 #ifdef  DEBUG_SUCCESS
      printf ("GOOD {function_name}\n");  
 #endif
+        continue;
 }

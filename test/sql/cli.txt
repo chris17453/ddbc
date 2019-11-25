@@ -1,9 +1,4 @@
-/*
-  blah
-  */
-
-
-   SELECT col1 as name, (select 'last_name' as name) as col2 , (select 'bob' as name )  as name
+SELECT col1 as name, (select 'last_name' as name) as col2 , (select 'bob' as name )  as name
     FROM test.mock as f1
     WHERE first_name='bob'
     or id=0x04F
@@ -39,7 +34,7 @@
     LEFT OUTER JOIN test as j2 ON f1.firstname=j2
     RIGHT OUTER JOIN test as j3 ON f1.firstname=j3
     block comment */
-    heQ-- this is a commen
-Zllo-- this is another comment /* */ f
+   heQ-- this is a commen
+-- this is another comment /* */ f
     -- this is also a comment 'quote
     -- this is also a comment \"double quote\"

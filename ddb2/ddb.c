@@ -52,7 +52,8 @@ char* read_file(char *file){
     fseek (fptr, 0, SEEK_END);
     length = ftell (fptr);
     fseek (fptr, 0, SEEK_SET);
-    buffer = malloc (length);
+    buffer = malloc (length+1);
+    memset(buffer,0,length+1);
     if (buffer)    {
       fread (buffer, 1, length, fptr);
     } else {
@@ -83,8 +84,8 @@ int main(int argc, char* argv[]) {
       query_str=read_file(file);
     }
 
-    printf ("Starting");
-    //printf("Query: %s\n \n",query_str);
+    printf ("Starting\n");
+    //printf("Query: \n\n%s\n --\n",query_str);
     match_function(query_str);
     free(query_str);
     return 0;

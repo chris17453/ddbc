@@ -69,7 +69,7 @@ keywords:
   | like
 
 whitespace:           
-  ([\t\s\n\r] | {comment} )*
+  [\s]*
 
 string:
     {single_quote_string} 

@@ -3,7 +3,6 @@ void match_{function_name}(node_t *n,char last_method[],int depth){
     if( n_OK(n)==0) {
         return;
     }
-    
     char *name="{function_name}";
     int start_pos=n->pos;
     n->depth+=1;

@@ -7,7 +7,7 @@ expr:
   |   not {whitespace} {expr}
   |   !   {whitespace} {expr}
   |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
-  |  {boolean_primary} 
+#  |  {boolean_primary} 
 
 boolean_primary:
     (
@@ -78,3 +78,6 @@ literal:
   | {real} 
 
 
+
+
+# where condition must be an expression + [and//or/not/ is not etc]

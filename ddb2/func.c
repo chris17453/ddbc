@@ -1,8 +1,8 @@
 /********************************************
-* Generated: 2019-11-14                    *
+* Generated: 2019-11-24                    *
 ********************************************/
-//define DEBUG_START   1
-//#define DEBUG_SUCCESS 1
+#define DEBUG_START   1
+#define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 #include <stdio.h>
 #include <ctype.h>
@@ -70,6 +70,114 @@ void increment_n(node_t * n, int len) {
   n->pos += len;
   if (n->pos >= n->len)
     n->pos = -1;
+}
+
+#define ZONE_PLAIN_TEXT    1
+#define ZONE_STRING_BLOCK  2
+#define ZONE_COMMENT_BLOCK 3
+#define ZONE_COMMENT_LINE  4
+#define TOKEN_SEPARATOR    0
+char *prep_sql(char *query_str) {
+  int string_length = strlen(query_str) + 1;
+  int mem_size = string_length * sizeof(char);
+  char *temp = (char *) malloc(mem_size);
+  char character = 0;
+  char last_character = 0;
+  int zone = ZONE_PLAIN_TEXT;
+  int zone_identifier = 0;
+  int start_index = 0;
+  int end_index = 0;
+  int start_set = 0;
+  int new_string_length = 0;
+  int index = 0;
+  memset(temp, 0, mem_size);
+  memcpy(temp, query_str, string_length);
+  for (uint32_t i = 0; i < mem_size; i++) {
+    last_character = character;
+    character = temp[i];        //assign current character to c, strlength ends at null, so no value will have a 0
+    switch (zone) {
+      case ZONE_STRING_BLOCK:
+        if (zone_identifier == character) {     //ending a string block, the match is the previouslt set block identifier
+          zone = ZONE_PLAIN_TEXT;
+          zone_identifier = 0;
+        }
+        break;
+      case ZONE_PLAIN_TEXT:
+        if (character == '\'' || character == '"' || character == '`') {
+          zone = ZONE_STRING_BLOCK;
+          zone_identifier = character;
+          break;
+        }
+        if (last_character == '/' && character == '*') {
+          temp[i - 1] = TOKEN_SEPARATOR;
+          temp[i] = TOKEN_SEPARATOR;
+          zone = ZONE_COMMENT_BLOCK;
+          break;
+        }
+        if (last_character == '-' && character == '-') {
+          temp[i - 1] = TOKEN_SEPARATOR;
+          temp[i] = TOKEN_SEPARATOR;
+          zone = ZONE_COMMENT_LINE;
+          break;
+        }
+        if (character == '\r' || character == '\n' || character == ' ' || character == '\t')
+          temp[i] = TOKEN_SEPARATOR;    //remove whitespace
+        break;
+      case ZONE_COMMENT_BLOCK:
+        if (last_character == '*' && character == '/')
+          zone = ZONE_PLAIN_TEXT;
+        temp[i] = TOKEN_SEPARATOR;
+        break;
+      case ZONE_COMMENT_LINE:
+        if (character == '\n')
+          zone = ZONE_PLAIN_TEXT;
+        temp[i] = TOKEN_SEPARATOR;
+        break;
+    }                           //end zone switch
+    if (start_set == 0) {       //this is the first printable character
+      if (temp[i] != TOKEN_SEPARATOR) {
+        start_set = 1;
+        start_index = i;
+      }
+    }
+    if (temp[i] != TOKEN_SEPARATOR) {   //increase length f string if valid. move end index
+      end_index = i + 1;
+    }
+  }                             //end for
+  // at the end of this loop
+  // start_index = the first printable character
+  // end_index = the last printable character
+  // tmp = string with lots of 0's for stuff we want to delete
+  //remove convert seperators to single spaces, calculate new string length
+  int in_whitespace = 0;
+  new_string_length = 0;
+  for (uint32_t i = start_index; i <= end_index; i++) {
+    if (temp[i] == 0) {
+      if (in_whitespace == 0) {
+        temp[i] = ' ';
+        ++new_string_length;
+        in_whitespace = 1;
+      }
+    } else {
+      ++new_string_length;
+      in_whitespace = 0;
+    }
+  }                             //end for
+  //allocate the length of the string + 1 character for the null terminator
+  int data_size = (new_string_length + 10) * sizeof(char);
+  char *data = (char *) malloc(data_size);
+  memset(data, 0, data_size);
+  //copy the string into its permant location, without seperators
+  index = 0;
+  for (uint32_t i = 0; i < mem_size; i++) {
+    if (temp[i] != 0) {
+      data[index] = temp[i];
+      ++index;
+    }
+  }                             //end for
+  data[index] = 0;              // add null terminator to the end of the string
+  free(temp);                   // release the temp memory we used for copying and editing
+  return data;                  //return the cleansed string
 }
 void debug_start(node_t * n, char *name, int start_pos) {
   for (int i = 0; i < n->depth; i++)
@@ -852,17 +960,6 @@ void match_expr(node_t * n, char last_method[], int depth) {
         }
 
       }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        trim_token(n);
-      }
-    }
-    //item+1 4
-    if (n->OK == 0) {
-      n->OK = 1;
-      //external -> 4
-      match_boolean_primary(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -2894,13 +2991,9 @@ void match_MICROSECOND(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_MICROSECONDS(n, name, depth + 1);
-    //whitespace  MICROSECOND MICROSECOND
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  MICROSECOND MICROSECOND
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "MICROSECOND", 11, name);
 
   }
@@ -2949,13 +3042,9 @@ void match_SECOND(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_SECONDS(n, name, depth + 1);
-    //whitespace  SECOND SECOND
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  SECOND SECOND
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "SECOND", 6, name);
 
   }
@@ -3004,13 +3093,9 @@ void match_MINUTE(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_MINUTES(n, name, depth + 1);
-    //whitespace  MINUTE MINUTE
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  MINUTE MINUTE
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "MINUTE", 6, name);
 
   }
@@ -3059,13 +3144,9 @@ void match_HOUR(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_HOURS(n, name, depth + 1);
-    //whitespace  HOUR HOUR
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  HOUR HOUR
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "HOUR", 4, name);
 
   }
@@ -3114,13 +3195,9 @@ void match_DAY(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_DAYS(n, name, depth + 1);
-    //whitespace  DAY DAY
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  DAY DAY
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "DAY", 3, name);
 
   }
@@ -3169,13 +3246,9 @@ void match_WEEK(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_WEEKS(n, name, depth + 1);
-    //whitespace  WEEK WEEK
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  WEEK WEEK
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "WEEK", 4, name);
 
   }
@@ -3224,13 +3297,9 @@ void match_MONTH(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_MONTHS(n, name, depth + 1);
-    //whitespace  MONTH MONTH
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  MONTH MONTH
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "MONTH", 5, name);
 
   }
@@ -3279,13 +3348,9 @@ void match_QUARTER(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_QUARTERS(n, name, depth + 1);
-    //whitespace  QUARTER QUARTER
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  QUARTER QUARTER
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "QUARTER", 7, name);
 
   }
@@ -3334,13 +3399,9 @@ void match_YEAR(node_t * n, char last_method[], int depth) {
     //0
     //external -> 0
     match_YEARS(n, name, depth + 1);
-    //whitespace  YEAR YEAR
-    //0
-    //external -> 1
-    match_whitespace(n, name, depth + 1);
     //None  YEAR YEAR
     //0
-    // order 2
+    // order 1
     compare_string(n, (char *) "YEAR", 4, name);
 
   }
@@ -3408,13 +3469,9 @@ void match_SECOND_MICROSECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  SECOND_MICROSECOND SECOND_MICROSECOND
-    //0
-    //external -> 5
-    match_whitespace(n, name, depth + 1);
     //None  SECOND_MICROSECOND SECOND_MICROSECOND
     //0
-    // order 6
+    // order 5
     compare_string(n, (char *) "SECOND_MICROSECOND", 18, name);
 
   }
@@ -3491,13 +3548,9 @@ void match_MINUTE_MICROSECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  MINUTE_MICROSECOND MINUTE_MICROSECOND
-    //0
-    //external -> 7
-    match_whitespace(n, name, depth + 1);
     //None  MINUTE_MICROSECOND MINUTE_MICROSECOND
     //0
-    // order 8
+    // order 7
     compare_string(n, (char *) "MINUTE_MICROSECOND", 18, name);
 
   }
@@ -3565,13 +3618,9 @@ void match_MINUTE_SECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  MINUTE_SECOND MINUTE_SECOND
-    //0
-    //external -> 5
-    match_whitespace(n, name, depth + 1);
     //None  MINUTE_SECOND MINUTE_SECOND
     //0
-    // order 6
+    // order 5
     compare_string(n, (char *) "MINUTE_SECOND", 13, name);
 
   }
@@ -3657,13 +3706,9 @@ void match_HOUR_MICROSECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  HOUR_MICROSECOND HOUR_MICROSECOND
-    //0
-    //external -> 9
-    match_whitespace(n, name, depth + 1);
     //None  HOUR_MICROSECOND HOUR_MICROSECOND
     //0
-    // order 10
+    // order 9
     compare_string(n, (char *) "HOUR_MICROSECOND", 16, name);
 
   }
@@ -3740,13 +3785,9 @@ void match_HOUR_SECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  HOUR_SECOND HOUR_SECOND
-    //0
-    //external -> 7
-    match_whitespace(n, name, depth + 1);
     //None  HOUR_SECOND HOUR_SECOND
     //0
-    // order 8
+    // order 7
     compare_string(n, (char *) "HOUR_SECOND", 11, name);
 
   }
@@ -3814,13 +3855,9 @@ void match_HOUR_MINUTE(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  HOUR_MINUTE HOUR_MINUTE
-    //0
-    //external -> 5
-    match_whitespace(n, name, depth + 1);
     //None  HOUR_MINUTE HOUR_MINUTE
     //0
-    // order 6
+    // order 5
     compare_string(n, (char *) "HOUR_MINUTE", 11, name);
 
   }
@@ -3910,13 +3947,9 @@ void match_DAY_MICROSECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  DAY_MICROSECOND DAY_MICROSECOND
-    //0
-    //external -> 10
-    match_whitespace(n, name, depth + 1);
     //None  DAY_MICROSECOND DAY_MICROSECOND
     //0
-    // order 11
+    // order 10
     compare_string(n, (char *) "DAY_MICROSECOND", 15, name);
 
   }
@@ -3997,13 +4030,9 @@ void match_DAY_SECOND(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  DAY_SECOND DAY_SECOND
-    //0
-    //external -> 8
-    match_whitespace(n, name, depth + 1);
     //None  DAY_SECOND DAY_SECOND
     //0
-    // order 9
+    // order 8
     compare_string(n, (char *) "DAY_SECOND", 10, name);
 
   }
@@ -4075,13 +4104,9 @@ void match_DAY_MINUTE(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  DAY_MINUTE DAY_MINUTE
-    //0
-    //external -> 6
-    match_whitespace(n, name, depth + 1);
     //None  DAY_MINUTE DAY_MINUTE
     //0
-    // order 7
+    // order 6
     compare_string(n, (char *) "DAY_MINUTE", 10, name);
 
   }
@@ -4144,13 +4169,9 @@ void match_DAY_HOUR(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  DAY_HOUR DAY_HOUR
-    //0
-    //external -> 4
-    match_whitespace(n, name, depth + 1);
     //None  DAY_HOUR DAY_HOUR
     //0
-    // order 5
+    // order 4
     compare_string(n, (char *) "DAY_HOUR", 8, name);
 
   }
@@ -4217,13 +4238,9 @@ void match_YEAR_MONTH(node_t * n, char last_method[], int depth) {
       n_token(n, name);
     } else
       n->OK = 0;
-    //whitespace  YEAR_MONTH YEAR_MONTH
-    //0
-    //external -> 5
-    match_whitespace(n, name, depth + 1);
     //None  YEAR_MONTH YEAR_MONTH
     //0
-    // order 6
+    // order 5
     compare_string(n, (char *) "YEAR_MONTH", 10, name);
 
   }
@@ -5453,66 +5470,31 @@ void match_whitespace(node_t * n, char last_method[], int depth) {
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  // GROUP
+  //zero or more
   if (n_OK(n) == 1) {
-    //zero or more
-    if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
+    while (n_OK(n) == 1) {
       push(n->stack, n->pos);
       push_token(n);
-      while (n_OK(n) == 1) {
-        push(n->stack, n->pos);
-        push_token(n);
-        // GROUP
-        if (n_OK(n) == 1) {
-          //OR
-          if (n_OK(n) == 1) {
-            push(n->stack, n->pos);
-            push_token(n);
-            //item 0
-            if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r')) {
-              increment_n(n, 1);
-              n_token(n, name);
-            } else
-              n->OK = 0;
-            if (n->OK == 0) {
-              n->pos = peek(n->stack);
-              trim_token(n);
-            }
-            //item+1 1
-            if (n->OK == 0) {
-              n->OK = 1;
-              //external -> 1
-              match_comment(n, name, depth + 1);
+      if (n_OK(n) == 1 && (n->value[n->pos] == ' ')) {
+        increment_n(n, 1);
+        n_token(n, name);
+      } else
+        n->OK = 0;
 
-              if (n->OK == 0) {
-                n->pos = peek(n->stack);
-                trim_token(n);
-              }
-            }
-
-            if (n->OK == 0) {
-              trim_token(n);
-            }
-            pop(n->stack);
-            pop_token(n);
-          }
-
-        }
-
-        if (n->OK == 0) {
-          n->pos = pop(n->stack);
-          trim_token(n);
-          pop_token(n);
-        } else {
-          pop(n->stack);
-          pop_token(n);
-        }
+      if (n->OK == 0) {
+        n->pos = pop(n->stack);
+        trim_token(n);
+        pop_token(n);
+      } else {
+        pop(n->stack);
+        pop_token(n);
       }
-      n->OK = 1;
-      pop(n->stack);
-      pop_token(n);
     }
-
+    n->OK = 1;
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -20068,19 +20050,22 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
 #ifdef  DEBUG_START
   debug_start(n, name, start_pos);
 #endif
-  //NOT
+  // GROUP
   if (n_OK(n) == 1) {
-    push(n->stack, n->pos);
-    push_token(n);
-    if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r')) {
-      increment_n(n, 1);
-      n_token(n, name);
-    } else
-      n->OK = 0;
+    //NOT
+    if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
+      if (n_OK(n) == 1 && (n->value[n->pos] == '\t' || n->value[n->pos] == ' ' || n->value[n->pos] == '\n' || n->value[n->pos] == '\r')) {
+        increment_n(n, 1);
+        n_token(n, name);
+      } else
+        n->OK = 0;
 
-    not_reset(n);
-  }                             //end NOT
+      not_reset(n);
+    }                           //end NOT
 
+  }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
     for (int i = 0; i < depth; i++)
@@ -20113,14 +20098,16 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-14
+*   Generated: 2019-11-24
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
 *              If the end of the list is reached the last node is passed
 *     Failure: Returns NULL
 */
-node_t *match_function(char *data) {
+node_t *match_function(char *d) {
+  char *data = prep_sql(d);
+  printf("%s", data);
   int last_pos = -1;
   node_t *n = malloc(sizeof(node_t));
   n->value = data;
@@ -20143,35 +20130,35 @@ node_t *match_function(char *data) {
 
     n->OK = 1;
     match_queries(n, name, 0);
-    if (n_OK(n) == 1) {
-      continue;
-#ifdef  DEBUG_SUCCESS
+    if (n->OK == 1) {
+      //#ifdef  DEBUG_SUCCESS
       printf("GOOD queries\n");
-#endif
+      //#endif
+      continue;
     }
     n->OK = 1;
     match_expr(n, name, 0);
-    if (n_OK(n) == 1) {
-      continue;
+    if (n->OK == 1) {
 #ifdef  DEBUG_SUCCESS
       printf("GOOD expr\n");
 #endif
+      continue;
     }
     n->OK = 1;
     match_whitespace(n, name, 0);
-    if (n_OK(n) == 1) {
-      continue;
+    if (n->OK == 1) {
 #ifdef  DEBUG_SUCCESS
       printf("GOOD whitespace\n");
 #endif
+      continue;
     }
     n->OK = 1;
     match_query_delimiter(n, name, 0);
-    if (n_OK(n) == 1) {
-      continue;
+    if (n->OK == 1) {
 #ifdef  DEBUG_SUCCESS
       printf("GOOD query_delimiter\n");
 #endif
+      continue;
     }
 
     if (n->OK == 0) {
