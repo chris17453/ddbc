@@ -7,7 +7,7 @@ expr:
   |   not {whitespace} {expr}
   |   !   {whitespace} {expr}
   |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
-#  |  {boolean_primary} 
+  |  {boolean_primary} 
 
 boolean_primary:
     (
@@ -60,12 +60,12 @@ simple_expr:
     {literal} 
   | {identifier}
   | {subquery}
-  #| {functions}
- # | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
- # | [+] {whitespace} {simple_expr}
- # | [-] {whitespace} {simple_expr}
- # | [~] {whitespace} {simple_expr}
- # | [!] {whitespace} {simple_expr}
+  | {functions}
+  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
+  | [+] {whitespace} {simple_expr}
+  | [-] {whitespace} {simple_expr}
+  | [~] {whitespace} {simple_expr}
+  | [!] {whitespace} {simple_expr}
   |     {identifier_expr}
   |     {interval_expr}
 

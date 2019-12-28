@@ -4,7 +4,7 @@ import sys
 import datetime
 from pprint import pprint
 import re
-from tpl import tpl
+from .tpl import tpl
 
 from .functions import build_functions
 from .headers import build_headers

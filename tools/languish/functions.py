@@ -52,6 +52,6 @@ def build_functions(template_dir):
     
     t.add("match_functions","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
     o+=t.build("match_functions")
-    print o
+    print (o)
 
 

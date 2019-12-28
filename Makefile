@@ -15,11 +15,14 @@ build-profile: func
 run:
 	@builds/ddbc test/sql/cli.txt
 
+go: build run
+
+
 func-test:
 	@cd tools; python -m languish.cli
 
 profile: build-profile run
-	@gprof builds/ddbc gmon.out > profiles/profile.txt
+	@gprof builds/ddbc profiles/gmon.out > profiles/profile.txt
 
 watch-time:
 	@watch -n .3 'time make run  >/dev/null'

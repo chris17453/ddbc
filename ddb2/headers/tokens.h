@@ -11,6 +11,7 @@ typedef struct token_t{
     uint16_t        depth;        // pattern matching depth, sub elements and recursion
     char           *element;      // name function/element type
     int             src_index;    // src location in original string
+    int             uuid;         // unique ID for token
     char           *data;         // string value
     uint16_t        data_length;  // data length
     void           *value;        // value of token ? Just-in-case

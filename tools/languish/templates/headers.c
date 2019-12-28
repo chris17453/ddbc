@@ -2,7 +2,7 @@ headers:
 /********************************************
 * Generated: {date_time}                    *
 ********************************************/
-#define DEBUG_START   1
+//#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 
@@ -31,6 +31,7 @@ typedef struct node_t{
     struct stack_t *token_stack;
     struct stack_t *stack;
     struct token_t *tokens;
+    struct token_t *last_token;
 }
 node_t;
 
@@ -111,8 +112,10 @@ int n_OK(node_t *n){
 
 
 void increment_n(node_t *n,int len){
-    n->pos+=len; 
-    if(n->pos>=n->len) n->pos= -1;
+    if( n->pos!=-1 ) {
+        n->pos+=len; 
+        if(n->pos>=n->len) n->pos= -1;
+    }
 }
 
 #define ZONE_PLAIN_TEXT    1            

@@ -1,7 +1,7 @@
 /********************************************
-* Generated: 2019-11-24                    *
+* Generated: 2019-12-27                    *
 ********************************************/
-#define DEBUG_START   1
+//#define DEBUG_START   1
 #define DEBUG_SUCCESS 1
 //#define DEBUG_FAIL    1
 #include <stdio.h>
@@ -67,9 +67,11 @@ int n_OK(node_t * n) {
   return 0;
 }
 void increment_n(node_t * n, int len) {
-  n->pos += len;
-  if (n->pos >= n->len)
-    n->pos = -1;
+  if (n->pos != -1) {
+    n->pos += len;
+    if (n->pos >= n->len)
+      n->pos = -1;
+  }
 }
 
 #define ZONE_PLAIN_TEXT    1
@@ -239,6 +241,8 @@ void match_queries(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //whitespace  queries queries
     //0
     //external -> 0
@@ -248,6 +252,15 @@ void match_queries(node_t * n, char last_method[], int depth) {
     //external -> 1
     match_select(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -306,12 +319,16 @@ void match_select(node_t * n, char last_method[], int depth) {
   match_whitespace(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  select select
         //0
         // order 0
@@ -330,6 +347,8 @@ void match_select(node_t * n, char last_method[], int depth) {
           push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             if (n_OK(n) == 1 && (1)) {
               increment_n(n, 1);
               n_token(n, name);
@@ -340,6 +359,15 @@ void match_select(node_t * n, char last_method[], int depth) {
             //external -> 1
             match_identifier(n, name, depth + 1);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           optional_reset(n);
@@ -350,6 +378,8 @@ void match_select(node_t * n, char last_method[], int depth) {
           push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  select select
             //0
             //external -> 0
@@ -367,16 +397,43 @@ void match_select(node_t * n, char last_method[], int depth) {
             //external -> 3
             match_identifier(n, name, depth + 1);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           optional_reset(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
     }
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
   //whitespace  select select
   //0
@@ -384,12 +441,16 @@ void match_select(node_t * n, char last_method[], int depth) {
   match_whitespace(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //optional
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  select select
         //0
         // order 0
@@ -403,6 +464,8 @@ void match_select(node_t * n, char last_method[], int depth) {
             push_token(n);
             // GROUP
             if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              push_token(n);
               //whitespace  select select
               //0
               //external -> 0
@@ -412,6 +475,15 @@ void match_select(node_t * n, char last_method[], int depth) {
               //external -> 1
               match_expr(n, name, depth + 1);
 
+              if (n->OK == 1) {
+                char group_name[100];
+                memset(group_name, 0, 100);
+                int r = sprintf(group_name, "GROUP %s", name);
+                //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                //  n_token(n,group_name);
+              }
+              pop(n->stack);
+              pop_token(n);
             }
 
             if (n->OK == 0) {
@@ -432,11 +504,29 @@ void match_select(node_t * n, char last_method[], int depth) {
           pop_token(n);
         }                       //end one or more
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
     }
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -479,6 +569,8 @@ void match_select_expr(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //expr  select_expr select_expr
     //0
     //external -> 0
@@ -493,6 +585,8 @@ void match_select_expr(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  select_expr select_expr
         //0
         // order 0
@@ -506,11 +600,29 @@ void match_select_expr(node_t * n, char last_method[], int depth) {
         //external -> 2
         match_identifier(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
     }
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -557,6 +669,8 @@ void match_select_expr_list(node_t * n, char last_method[], int depth) {
   match_select_expr(n, name, depth + 1);
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //zero or more
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -566,6 +680,8 @@ void match_select_expr_list(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //whitespace  select_expr_list select_expr_list
           //0
           //external -> 0
@@ -584,6 +700,15 @@ void match_select_expr_list(node_t * n, char last_method[], int depth) {
           //external -> 3
           match_select_expr(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -600,6 +725,15 @@ void match_select_expr_list(node_t * n, char last_method[], int depth) {
       pop_token(n);
     }
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -642,6 +776,8 @@ void match_subquery(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '(')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -676,6 +812,15 @@ void match_subquery(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -723,8 +868,12 @@ void match_expr(node_t * n, char last_method[], int depth) {
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //expr  expr expr
         //2
         //item 0  //skip if not called by self
@@ -737,6 +886,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
         match_whitespace(n, name, depth + 1);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //OR
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
@@ -753,6 +904,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
               n->OK = 1;
               // GROUP
               if (n_OK(n) == 1) {
+                push(n->stack, n->pos);
+                push_token(n);
                 if (n_OK(n) == 1 && (n->value[n->pos] == '|')) {
                   increment_n(n, 1);
                   n_token(n, name);
@@ -764,6 +917,15 @@ void match_expr(node_t * n, char last_method[], int depth) {
                 } else
                   n->OK = 0;
 
+                if (n->OK == 1) {
+                  char group_name[100];
+                  memset(group_name, 0, 100);
+                  int r = sprintf(group_name, "GROUP %s", name);
+                  //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                  //  n_token(n,group_name);
+                }
+                pop(n->stack);
+                pop_token(n);
               }
 
               if (n->OK == 0) {
@@ -812,6 +974,15 @@ void match_expr(node_t * n, char last_method[], int depth) {
             pop_token(n);
           }
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
         //whitespace  expr expr
         //2
@@ -824,8 +995,26 @@ void match_expr(node_t * n, char last_method[], int depth) {
           match_expr(n, name, depth + 1);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
+      if (n->OK == 1) {
+        char group_name[100];
+        memset(group_name, 0, 100);
+        int r = sprintf(group_name, "GROUP %s", name);
+        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+        //  n_token(n,group_name);
+      }
+      pop(n->stack);
+      pop_token(n);
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
@@ -836,6 +1025,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  expr expr
         //1
         // order 0
@@ -851,6 +1042,15 @@ void match_expr(node_t * n, char last_method[], int depth) {
           match_expr(n, name, depth + 1);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -863,6 +1063,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  expr expr
         //1
         // order 0
@@ -878,6 +1080,15 @@ void match_expr(node_t * n, char last_method[], int depth) {
           match_expr(n, name, depth + 1);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -890,6 +1101,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //boolean_primary  expr expr
         //0
         //external -> 0
@@ -908,6 +1121,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
           push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  expr expr
             //0
             //external -> 0
@@ -917,6 +1132,15 @@ void match_expr(node_t * n, char last_method[], int depth) {
             // order 1
             compare_string(n, (char *) "not", 3, name);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           optional_reset(n);
@@ -927,6 +1151,8 @@ void match_expr(node_t * n, char last_method[], int depth) {
         match_whitespace(n, name, depth + 1);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //OR
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
@@ -957,9 +1183,38 @@ void match_expr(node_t * n, char last_method[], int depth) {
             pop_token(n);
           }
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 4
+    if (n->OK == 0) {
+      n->OK = 1;
+      //external -> 4
+      match_boolean_primary(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -1032,6 +1287,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
       //boolean_primary  boolean_primary boolean_primary
       //1
       //item 0  //skip if not called by self
@@ -1044,6 +1301,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
       match_whitespace(n, name, depth + 1);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //OR
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -1051,8 +1310,12 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
           //item 0
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             // GROUP
             if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              push_token(n);
               //comparison_operator  boolean_primary boolean_primary
               //0
               //external -> 0
@@ -1066,8 +1329,26 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
               //external -> 2
               match_predicate(n, name, depth + 1);
 
+              if (n->OK == 1) {
+                char group_name[100];
+                memset(group_name, 0, 100);
+                int r = sprintf(group_name, "GROUP %s", name);
+                //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                //  n_token(n,group_name);
+              }
+              pop(n->stack);
+              pop_token(n);
             }
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
           if (n->OK == 0) {
             n->pos = peek(n->stack);
@@ -1078,6 +1359,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
             n->OK = 1;
             // GROUP
             if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              push_token(n);
               //None  boolean_primary boolean_primary
               //0
               // order 0
@@ -1088,6 +1371,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
                 push_token(n);
                 // GROUP
                 if (n_OK(n) == 1) {
+                  push(n->stack, n->pos);
+                  push_token(n);
                   //whitespace  boolean_primary boolean_primary
                   //0
                   //external -> 0
@@ -1097,6 +1382,15 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
                   // order 1
                   compare_string(n, (char *) "not", 3, name);
 
+                  if (n->OK == 1) {
+                    char group_name[100];
+                    memset(group_name, 0, 100);
+                    int r = sprintf(group_name, "GROUP %s", name);
+                    //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                    //  n_token(n,group_name);
+                  }
+                  pop(n->stack);
+                  pop_token(n);
                 }
 
                 optional_reset(n);
@@ -1110,6 +1404,15 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
               //external -> 3
               match_null(n, name, depth + 1);
 
+              if (n->OK == 1) {
+                char group_name[100];
+                memset(group_name, 0, 100);
+                int r = sprintf(group_name, "GROUP %s", name);
+                //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                //  n_token(n,group_name);
+              }
+              pop(n->stack);
+              pop_token(n);
             }
 
             if (n->OK == 0) {
@@ -1122,6 +1425,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
             n->OK = 1;
             // GROUP
             if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              push_token(n);
               //None  boolean_primary boolean_primary
               //0
               // order 0
@@ -1135,6 +1440,15 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
               //external -> 2
               match_predicate(n, name, depth + 1);
 
+              if (n->OK == 1) {
+                char group_name[100];
+                memset(group_name, 0, 100);
+                int r = sprintf(group_name, "GROUP %s", name);
+                //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                //  n_token(n,group_name);
+              }
+              pop(n->stack);
+              pop_token(n);
             }
 
             if (n->OK == 0) {
@@ -1147,6 +1461,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
             n->OK = 1;
             // GROUP
             if (n_OK(n) == 1) {
+              push(n->stack, n->pos);
+              push_token(n);
               //comparison_operator  boolean_primary boolean_primary
               //0
               //external -> 0
@@ -1157,6 +1473,8 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
               match_whitespace(n, name, depth + 1);
               // GROUP
               if (n_OK(n) == 1) {
+                push(n->stack, n->pos);
+                push_token(n);
                 //OR
                 if (n_OK(n) == 1) {
                   push(n->stack, n->pos);
@@ -1187,6 +1505,15 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
                   pop_token(n);
                 }
 
+                if (n->OK == 1) {
+                  char group_name[100];
+                  memset(group_name, 0, 100);
+                  int r = sprintf(group_name, "GROUP %s", name);
+                  //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                  //  n_token(n,group_name);
+                }
+                pop(n->stack);
+                pop_token(n);
               }
               //whitespace  boolean_primary boolean_primary
               //0
@@ -1197,6 +1524,15 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
               //external -> 4
               match_subquery(n, name, depth + 1);
 
+              if (n->OK == 1) {
+                char group_name[100];
+                memset(group_name, 0, 100);
+                int r = sprintf(group_name, "GROUP %s", name);
+                //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                //  n_token(n,group_name);
+              }
+              pop(n->stack);
+              pop_token(n);
             }
 
             if (n->OK == 0) {
@@ -1212,8 +1548,26 @@ void match_boolean_primary(node_t * n, char last_method[], int depth) {
           pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
+      if (n->OK == 1) {
+        char group_name[100];
+        memset(group_name, 0, 100);
+        int r = sprintf(group_name, "GROUP %s", name);
+        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+        //  n_token(n,group_name);
+      }
+      pop(n->stack);
+      pop_token(n);
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
@@ -1299,6 +1653,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
     push_token(n);
     // GROUP
     if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
       //OR
       if (n_OK(n) == 1) {
         push(n->stack, n->pos);
@@ -1306,8 +1662,12 @@ void match_predicate(node_t * n, char last_method[], int depth) {
         //item 0
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  predicate predicate
             //0
             //external -> 0
@@ -1338,8 +1698,26 @@ void match_predicate(node_t * n, char last_method[], int depth) {
             //external -> 5
             match_subquery(n, name, depth + 1);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
         if (n->OK == 0) {
           n->pos = peek(n->stack);
@@ -1350,6 +1728,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
           n->OK = 1;
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  predicate predicate
             //0
             //external -> 0
@@ -1391,6 +1771,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
               push_token(n);
               // GROUP
               if (n_OK(n) == 1) {
+                push(n->stack, n->pos);
+                push_token(n);
                 //zero or more
                 if (n_OK(n) == 1) {
                   push(n->stack, n->pos);
@@ -1400,6 +1782,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
                     push_token(n);
                     // GROUP
                     if (n_OK(n) == 1) {
+                      push(n->stack, n->pos);
+                      push_token(n);
                       //whitespace  predicate predicate
                       //0
                       //external -> 0
@@ -1418,6 +1802,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
                       //external -> 3
                       match_expr(n, name, depth + 1);
 
+                      if (n->OK == 1) {
+                        char group_name[100];
+                        memset(group_name, 0, 100);
+                        int r = sprintf(group_name, "GROUP %s", name);
+                        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                        //  n_token(n,group_name);
+                      }
+                      pop(n->stack);
+                      pop_token(n);
                     }
 
                     if (n->OK == 0) {
@@ -1434,6 +1827,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
                   pop_token(n);
                 }
 
+                if (n->OK == 1) {
+                  char group_name[100];
+                  memset(group_name, 0, 100);
+                  int r = sprintf(group_name, "GROUP %s", name);
+                  //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                  //  n_token(n,group_name);
+                }
+                pop(n->stack);
+                pop_token(n);
               }
 
               optional_reset(n);
@@ -1444,6 +1846,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
             } else
               n->OK = 0;
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           if (n->OK == 0) {
@@ -1456,6 +1867,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
           n->OK = 1;
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  predicate predicate
             //1
             //external -> 0
@@ -1504,6 +1917,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
               match_predicate(n, name, depth + 1);
             }
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           if (n->OK == 0) {
@@ -1516,6 +1938,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
           n->OK = 1;
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  predicate predicate
             //0
             //external -> 0
@@ -1551,6 +1975,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
               push_token(n);
               // GROUP
               if (n_OK(n) == 1) {
+                push(n->stack, n->pos);
+                push_token(n);
                 //whitespace  predicate predicate
                 //0
                 //external -> 0
@@ -1568,11 +1994,29 @@ void match_predicate(node_t * n, char last_method[], int depth) {
                 //external -> 3
                 match_simple_expr(n, name, depth + 1);
 
+                if (n->OK == 1) {
+                  char group_name[100];
+                  memset(group_name, 0, 100);
+                  int r = sprintf(group_name, "GROUP %s", name);
+                  //  printf ("[%s] is a string %d chars long\n",group_name,r);
+                  //  n_token(n,group_name);
+                }
+                pop(n->stack);
+                pop_token(n);
               }
 
               optional_reset(n);
             }
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           if (n->OK == 0) {
@@ -1585,6 +2029,8 @@ void match_predicate(node_t * n, char last_method[], int depth) {
           n->OK = 1;
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //whitespace  predicate predicate
             //0
             //external -> 0
@@ -1615,6 +2061,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
             //external -> 5
             match_bit_expr(n, name, depth + 1);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           if (n->OK == 0) {
@@ -1630,6 +2085,15 @@ void match_predicate(node_t * n, char last_method[], int depth) {
         pop_token(n);
       }
 
+      if (n->OK == 1) {
+        char group_name[100];
+        memset(group_name, 0, 100);
+        int r = sprintf(group_name, "GROUP %s", name);
+        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+        //  n_token(n,group_name);
+      }
+      pop(n->stack);
+      pop_token(n);
     }
 
     optional_reset(n);
@@ -1693,6 +2157,8 @@ void match_bit_expr(node_t * n, char last_method[], int depth) {
     //item 0
     // GROUP
     if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
       //bit_expr  bit_expr bit_expr
       //2
       //item 0  //skip if not called by self
@@ -1718,6 +2184,15 @@ void match_bit_expr(node_t * n, char last_method[], int depth) {
         match_bit_expr(n, name, depth + 1);
       }
 
+      if (n->OK == 1) {
+        char group_name[100];
+        memset(group_name, 0, 100);
+        int r = sprintf(group_name, "GROUP %s", name);
+        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+        //  n_token(n,group_name);
+      }
+      pop(n->stack);
+      pop_token(n);
     }
     if (n->OK == 0) {
       n->pos = peek(n->stack);
@@ -1728,6 +2203,8 @@ void match_bit_expr(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //bit_expr  bit_expr bit_expr
         //1
         //item 0  //skip if not called by self
@@ -1752,6 +2229,15 @@ void match_bit_expr(node_t * n, char last_method[], int depth) {
         //external -> 4
         match_interval_expr(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -1862,6 +2348,8 @@ void match_operations(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
           increment_n(n, 1);
           n_token(n, name);
@@ -1873,6 +2361,15 @@ void match_operations(node_t * n, char last_method[], int depth) {
         } else
           n->OK = 0;
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -1885,6 +2382,8 @@ void match_operations(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
           increment_n(n, 1);
           n_token(n, name);
@@ -1896,6 +2395,15 @@ void match_operations(node_t * n, char last_method[], int depth) {
         } else
           n->OK = 0;
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -2057,6 +2565,8 @@ void match_identifier_expr(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //identifier  identifier_expr identifier_expr
     //0
     //external -> 0
@@ -2070,6 +2580,15 @@ void match_identifier_expr(node_t * n, char last_method[], int depth) {
     //external -> 2
     match_identifier(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -2147,7 +2666,7 @@ void match_simple_expr(node_t * n, char last_method[], int depth) {
     if (n->OK == 0) {
       n->OK = 1;
       //external -> 3
-      match_identifier_expr(n, name, depth + 1);
+      match_functions(n, name, depth + 1);
 
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -2157,7 +2676,228 @@ void match_simple_expr(node_t * n, char last_method[], int depth) {
     //item+1 4
     if (n->OK == 0) {
       n->OK = 1;
-      //external -> 4
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        //simple_expr  simple_expr simple_expr
+        //2
+        //item 0  //skip if not called by self
+        if (strcmp(name, last_method) != 0) {
+          n->OK = 0;
+        }
+        //whitespace  simple_expr simple_expr
+        //2
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '|')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        if (n_OK(n) == 1 && (n->value[n->pos] == '|')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //whitespace  simple_expr simple_expr
+        //2
+        //external -> 4
+        match_whitespace(n, name, depth + 1);
+        //simple_expr  simple_expr simple_expr
+        //2
+        //item 5  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_simple_expr(n, name, depth + 1);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 5
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '+')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //whitespace  simple_expr simple_expr
+        //1
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        //simple_expr  simple_expr simple_expr
+        //1
+        //item 2  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_simple_expr(n, name, depth + 1);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 6
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '-')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //whitespace  simple_expr simple_expr
+        //1
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        //simple_expr  simple_expr simple_expr
+        //1
+        //item 2  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_simple_expr(n, name, depth + 1);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 7
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '~')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //whitespace  simple_expr simple_expr
+        //1
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        //simple_expr  simple_expr simple_expr
+        //1
+        //item 2  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_simple_expr(n, name, depth + 1);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 8
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        if (n_OK(n) == 1 && (n->value[n->pos] == '!')) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //whitespace  simple_expr simple_expr
+        //1
+        //external -> 1
+        match_whitespace(n, name, depth + 1);
+        //simple_expr  simple_expr simple_expr
+        //1
+        //item 2  //non index 0 recursion
+        if (n_OK(n) == 1 && strcmp(name, last_method) == 0 && n->pos > start_pos) {
+          match_simple_expr(n, name, depth + 1);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 9
+    if (n->OK == 0) {
+      n->OK = 1;
+      //external -> 9
+      match_identifier_expr(n, name, depth + 1);
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 10
+    if (n->OK == 0) {
+      n->OK = 1;
+      //external -> 10
       match_interval_expr(n, name, depth + 1);
 
       if (n->OK == 0) {
@@ -2186,7 +2926,20 @@ void match_simple_expr(node_t * n, char last_method[], int depth) {
     debug_success(n, name, start_pos);
   }
 #endif
-
+  if (n_OK(n) == 1 && n->pos != -1 && start_pos != n->pos) {    //recur
+    push(n->stack, n->pos);
+    push_token(n);
+    match_simple_expr(n, name, depth + 1);
+    if (n->OK == 0) {
+      n->pos = pop(n->stack);
+      trim_token(n);
+      pop_token(n);
+      n->OK = 1;
+    } else {
+      pop(n->stack);
+      pop_token(n);
+    }
+  }
 #ifdef  DEBUG_FAILED
   if (n->OK == 0) {
     debug_failed(n, name, start_pos);
@@ -2987,6 +3740,8 @@ void match_MICROSECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //MICROSECONDS  MICROSECOND MICROSECOND
     //0
     //external -> 0
@@ -2996,6 +3751,15 @@ void match_MICROSECOND(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "MICROSECOND", 11, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3038,6 +3802,8 @@ void match_SECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //SECONDS  SECOND SECOND
     //0
     //external -> 0
@@ -3047,6 +3813,15 @@ void match_SECOND(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "SECOND", 6, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3089,6 +3864,8 @@ void match_MINUTE(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //MINUTES  MINUTE MINUTE
     //0
     //external -> 0
@@ -3098,6 +3875,15 @@ void match_MINUTE(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "MINUTE", 6, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3140,6 +3926,8 @@ void match_HOUR(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //HOURS  HOUR HOUR
     //0
     //external -> 0
@@ -3149,6 +3937,15 @@ void match_HOUR(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "HOUR", 4, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3191,6 +3988,8 @@ void match_DAY(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //DAYS  DAY DAY
     //0
     //external -> 0
@@ -3200,6 +3999,15 @@ void match_DAY(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "DAY", 3, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3242,6 +4050,8 @@ void match_WEEK(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //WEEKS  WEEK WEEK
     //0
     //external -> 0
@@ -3251,6 +4061,15 @@ void match_WEEK(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "WEEK", 4, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3293,6 +4112,8 @@ void match_MONTH(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //MONTHS  MONTH MONTH
     //0
     //external -> 0
@@ -3302,6 +4123,15 @@ void match_MONTH(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "MONTH", 5, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3344,6 +4174,8 @@ void match_QUARTER(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //QUARTERS  QUARTER QUARTER
     //0
     //external -> 0
@@ -3353,6 +4185,15 @@ void match_QUARTER(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "QUARTER", 7, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3395,6 +4236,8 @@ void match_YEAR(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //YEARS  YEAR YEAR
     //0
     //external -> 0
@@ -3404,6 +4247,15 @@ void match_YEAR(node_t * n, char last_method[], int depth) {
     // order 1
     compare_string(n, (char *) "YEAR", 4, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3446,6 +4298,8 @@ void match_SECOND_MICROSECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3474,6 +4328,15 @@ void match_SECOND_MICROSECOND(node_t * n, char last_method[], int depth) {
     // order 5
     compare_string(n, (char *) "SECOND_MICROSECOND", 18, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3516,6 +4379,8 @@ void match_MINUTE_MICROSECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3553,6 +4418,15 @@ void match_MINUTE_MICROSECOND(node_t * n, char last_method[], int depth) {
     // order 7
     compare_string(n, (char *) "MINUTE_MICROSECOND", 18, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3595,6 +4469,8 @@ void match_MINUTE_SECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3623,6 +4499,15 @@ void match_MINUTE_SECOND(node_t * n, char last_method[], int depth) {
     // order 5
     compare_string(n, (char *) "MINUTE_SECOND", 13, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3665,6 +4550,8 @@ void match_HOUR_MICROSECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3711,6 +4598,15 @@ void match_HOUR_MICROSECOND(node_t * n, char last_method[], int depth) {
     // order 9
     compare_string(n, (char *) "HOUR_MICROSECOND", 16, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3753,6 +4649,8 @@ void match_HOUR_SECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3790,6 +4688,15 @@ void match_HOUR_SECOND(node_t * n, char last_method[], int depth) {
     // order 7
     compare_string(n, (char *) "HOUR_SECOND", 11, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3832,6 +4739,8 @@ void match_HOUR_MINUTE(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3860,6 +4769,15 @@ void match_HOUR_MINUTE(node_t * n, char last_method[], int depth) {
     // order 5
     compare_string(n, (char *) "HOUR_MINUTE", 11, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3902,6 +4820,8 @@ void match_DAY_MICROSECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -3952,6 +4872,15 @@ void match_DAY_MICROSECOND(node_t * n, char last_method[], int depth) {
     // order 10
     compare_string(n, (char *) "DAY_MICROSECOND", 15, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -3994,6 +4923,8 @@ void match_DAY_SECOND(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -4035,6 +4966,15 @@ void match_DAY_SECOND(node_t * n, char last_method[], int depth) {
     // order 8
     compare_string(n, (char *) "DAY_SECOND", 10, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -4077,6 +5017,8 @@ void match_DAY_MINUTE(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -4109,6 +5051,15 @@ void match_DAY_MINUTE(node_t * n, char last_method[], int depth) {
     // order 6
     compare_string(n, (char *) "DAY_MINUTE", 10, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -4151,6 +5102,8 @@ void match_DAY_HOUR(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -4174,6 +5127,15 @@ void match_DAY_HOUR(node_t * n, char last_method[], int depth) {
     // order 4
     compare_string(n, (char *) "DAY_HOUR", 8, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -4216,6 +5178,8 @@ void match_YEAR_MONTH(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -4243,12 +5207,86 @@ void match_YEAR_MONTH(node_t * n, char last_method[], int depth) {
     // order 5
     compare_string(n, (char *) "YEAR_MONTH", 10, name);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
     for (int i = 0; i < depth; i++)
       printf(" ");
     printf("[YEAR_MONTH] SUCCESS");
+    if (n->pos == -1) {
+      print_sub_str(n, start_pos, n->len);
+    } else {
+      print_sub_str(n, start_pos, n->pos);
+    }
+    printf("\n");
+    debug_success(n, name, start_pos);
+  }
+#endif
+
+#ifdef  DEBUG_FAILED
+  if (n->OK == 0) {
+    debug_failed(n, name, start_pos);
+  }
+#endif
+  n->depth -= 1;
+  n->last_function = name;
+#ifdef DEBUG_SUCCESS
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
+#endif
+}
+void match_whitespace(node_t * n, char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
+  char *name = "whitespace";
+  int start_pos = n->pos;
+  n->depth += 1;
+  n->function = name;
+#ifdef  DEBUG_START
+  debug_start(n, name, start_pos);
+#endif
+  //zero or more
+  if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
+    while (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
+      if (n_OK(n) == 1 && (n->value[n->pos] == ' ')) {
+        increment_n(n, 1);
+        n_token(n, name);
+      } else
+        n->OK = 0;
+
+      if (n->OK == 0) {
+        n->pos = pop(n->stack);
+        trim_token(n);
+        pop_token(n);
+      } else {
+        pop(n->stack);
+        pop_token(n);
+      }
+    }
+    n->OK = 1;
+    pop(n->stack);
+    pop_token(n);
+  }
+#ifdef  DEBUG_SUCCESS
+  if (n->OK == 1) {
+    for (int i = 0; i < depth; i++)
+      printf(" ");
+    printf("[whitespace] SUCCESS");
     if (n->pos == -1) {
       print_sub_str(n, start_pos, n->len);
     } else {
@@ -4750,126 +5788,6 @@ void match_boolean(node_t * n, char last_method[], int depth) {
   }
 #endif
 }
-void match_real(node_t * n, char last_method[], int depth) {
-  if (n_OK(n) == 0) {
-    return;
-  }
-  char *name = "real";
-  int start_pos = n->pos;
-  n->depth += 1;
-  n->function = name;
-#ifdef  DEBUG_START
-  debug_start(n, name, start_pos);
-#endif
-  //OR
-  if (n_OK(n) == 1) {
-    push(n->stack, n->pos);
-    push_token(n);
-    //item 0
-    // GROUP
-    if (n_OK(n) == 1) {
-      //integer  real real
-      //0
-      //external -> 0
-      match_integer(n, name, depth + 1);
-      if (n_OK(n) == 1 && (1)) {
-        increment_n(n, 1);
-        n_token(n, name);
-      } else
-        n->OK = 0;
-      //unsigned_int  real real
-      //0
-      //external -> 2
-      match_unsigned_int(n, name, depth + 1);
-
-    }
-    if (n->OK == 0) {
-      n->pos = peek(n->stack);
-      trim_token(n);
-    }
-    //item+1 1
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        if (n_OK(n) == 1 && (1)) {
-          increment_n(n, 1);
-          n_token(n, name);
-        } else
-          n->OK = 0;
-        //unsigned_int  real real
-        //0
-        //external -> 1
-        match_unsigned_int(n, name, depth + 1);
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        trim_token(n);
-      }
-    }
-    //item+1 2
-    if (n->OK == 0) {
-      n->OK = 1;
-      // GROUP
-      if (n_OK(n) == 1) {
-        //integer  real real
-        //0
-        //external -> 0
-        match_integer(n, name, depth + 1);
-        //optional
-        if (n_OK(n) == 1) {
-          push(n->stack, n->pos);
-          push_token(n);
-          //external -> None
-          match_exponent(n, name, depth + 1);
-
-          optional_reset(n);
-        }
-
-      }
-
-      if (n->OK == 0) {
-        n->pos = peek(n->stack);
-        trim_token(n);
-      }
-    }
-
-    if (n->OK == 0) {
-      trim_token(n);
-    }
-    pop(n->stack);
-    pop_token(n);
-  }
-#ifdef  DEBUG_SUCCESS
-  if (n->OK == 1) {
-    for (int i = 0; i < depth; i++)
-      printf(" ");
-    printf("[real] SUCCESS");
-    if (n->pos == -1) {
-      print_sub_str(n, start_pos, n->len);
-    } else {
-      print_sub_str(n, start_pos, n->pos);
-    }
-    printf("\n");
-    debug_success(n, name, start_pos);
-  }
-#endif
-
-#ifdef  DEBUG_FAILED
-  if (n->OK == 0) {
-    debug_failed(n, name, start_pos);
-  }
-#endif
-  n->depth -= 1;
-  n->last_function = name;
-#ifdef DEBUG_SUCCESS
-  if (n->OK) {
-    printf("%s, %d, %d\n", name, start_pos, n->pos);
-  }
-#endif
-}
 void match_integer(node_t * n, char last_method[], int depth) {
   if (n_OK(n) == 0) {
     return;
@@ -4951,6 +5869,8 @@ void match_signed_int(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //sign  signed_int signed_int
     //0
     //external -> 0
@@ -4960,6 +5880,15 @@ void match_signed_int(node_t * n, char last_method[], int depth) {
     //external -> 1
     match_unsigned_int(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -5059,6 +5988,204 @@ void match_unsigned_int(node_t * n, char last_method[], int depth) {
   }
 #endif
 }
+void match_real(node_t * n, char last_method[], int depth) {
+  if (n_OK(n) == 0) {
+    return;
+  }
+  char *name = "real";
+  int start_pos = n->pos;
+  n->depth += 1;
+  n->function = name;
+#ifdef  DEBUG_START
+  debug_start(n, name, start_pos);
+#endif
+  //OR
+  if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
+    //item 0
+    // GROUP
+    if (n_OK(n) == 1) {
+      push(n->stack, n->pos);
+      push_token(n);
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        //integer  real real
+        //0
+        //external -> 0
+        match_integer(n, name, depth + 1);
+        if (n_OK(n) == 1 && (1)) {
+          increment_n(n, 1);
+          n_token(n, name);
+        } else
+          n->OK = 0;
+        //unsigned_int  real real
+        //0
+        //external -> 2
+        match_unsigned_int(n, name, depth + 1);
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 1) {
+        char group_name[100];
+        memset(group_name, 0, 100);
+        int r = sprintf(group_name, "GROUP %s", name);
+        //  printf ("[%s] is a string %d chars long\n",group_name,r);
+        //  n_token(n,group_name);
+      }
+      pop(n->stack);
+      pop_token(n);
+    }
+    if (n->OK == 0) {
+      n->pos = peek(n->stack);
+      trim_token(n);
+    }
+    //item+1 1
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        // GROUP
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
+          if (n_OK(n) == 1 && (1)) {
+            increment_n(n, 1);
+            n_token(n, name);
+          } else
+            n->OK = 0;
+          //unsigned_int  real real
+          //0
+          //external -> 1
+          match_unsigned_int(n, name, depth + 1);
+
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+    //item+1 2
+    if (n->OK == 0) {
+      n->OK = 1;
+      // GROUP
+      if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
+        // GROUP
+        if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
+          //integer  real real
+          //0
+          //external -> 0
+          match_integer(n, name, depth + 1);
+          //optional
+          if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
+            //external -> None
+            match_exponent(n, name, depth + 1);
+
+            optional_reset(n);
+          }
+
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
+        }
+
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
+      }
+
+      if (n->OK == 0) {
+        n->pos = peek(n->stack);
+        trim_token(n);
+      }
+    }
+
+    if (n->OK == 0) {
+      trim_token(n);
+    }
+    pop(n->stack);
+    pop_token(n);
+  }
+#ifdef  DEBUG_SUCCESS
+  if (n->OK == 1) {
+    for (int i = 0; i < depth; i++)
+      printf(" ");
+    printf("[real] SUCCESS");
+    if (n->pos == -1) {
+      print_sub_str(n, start_pos, n->len);
+    } else {
+      print_sub_str(n, start_pos, n->pos);
+    }
+    printf("\n");
+    debug_success(n, name, start_pos);
+  }
+#endif
+
+#ifdef  DEBUG_FAILED
+  if (n->OK == 0) {
+    debug_failed(n, name, start_pos);
+  }
+#endif
+  n->depth -= 1;
+  n->last_function = name;
+#ifdef DEBUG_SUCCESS
+  if (n->OK) {
+    printf("%s, %d, %d\n", name, start_pos, n->pos);
+  }
+#endif
+}
 void match_sign(node_t * n, char last_method[], int depth) {
   if (n_OK(n) == 0) {
     return;
@@ -5117,6 +6244,8 @@ void match_exponent(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == 'E' || n->value[n->pos] == 'e')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -5127,6 +6256,15 @@ void match_exponent(node_t * n, char last_method[], int depth) {
     //external -> 1
     match_integer(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -5459,71 +6597,6 @@ void match_keywords(node_t * n, char last_method[], int depth) {
   }
 #endif
 }
-void match_whitespace(node_t * n, char last_method[], int depth) {
-  if (n_OK(n) == 0) {
-    return;
-  }
-  char *name = "whitespace";
-  int start_pos = n->pos;
-  n->depth += 1;
-  n->function = name;
-#ifdef  DEBUG_START
-  debug_start(n, name, start_pos);
-#endif
-  //zero or more
-  if (n_OK(n) == 1) {
-    push(n->stack, n->pos);
-    push_token(n);
-    while (n_OK(n) == 1) {
-      push(n->stack, n->pos);
-      push_token(n);
-      if (n_OK(n) == 1 && (n->value[n->pos] == ' ')) {
-        increment_n(n, 1);
-        n_token(n, name);
-      } else
-        n->OK = 0;
-
-      if (n->OK == 0) {
-        n->pos = pop(n->stack);
-        trim_token(n);
-        pop_token(n);
-      } else {
-        pop(n->stack);
-        pop_token(n);
-      }
-    }
-    n->OK = 1;
-    pop(n->stack);
-    pop_token(n);
-  }
-#ifdef  DEBUG_SUCCESS
-  if (n->OK == 1) {
-    for (int i = 0; i < depth; i++)
-      printf(" ");
-    printf("[whitespace] SUCCESS");
-    if (n->pos == -1) {
-      print_sub_str(n, start_pos, n->len);
-    } else {
-      print_sub_str(n, start_pos, n->pos);
-    }
-    printf("\n");
-    debug_success(n, name, start_pos);
-  }
-#endif
-
-#ifdef  DEBUG_FAILED
-  if (n->OK == 0) {
-    debug_failed(n, name, start_pos);
-  }
-#endif
-  n->depth -= 1;
-  n->last_function = name;
-#ifdef DEBUG_SUCCESS
-  if (n->OK) {
-    printf("%s, %d, %d\n", name, start_pos, n->pos);
-  }
-#endif
-}
 void match_string(node_t * n, char last_method[], int depth) {
   if (n_OK(n) == 0) {
     return;
@@ -5605,6 +6678,8 @@ void match_single_quote_string(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '\'')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -5619,12 +6694,23 @@ void match_single_quote_string(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] != '\'')) {
             increment_n(n, 1);
             n_token(n, name);
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -5650,6 +6736,15 @@ void match_single_quote_string(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -5692,6 +6787,8 @@ void match_double_quote_string(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     if (n_OK(n) == 1 && (n->value[n->pos] == '"')) {
       increment_n(n, 1);
       n_token(n, name);
@@ -5706,12 +6803,23 @@ void match_double_quote_string(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] != '"')) {
             increment_n(n, 1);
             n_token(n, name);
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -5737,6 +6845,15 @@ void match_double_quote_string(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -5841,8 +6958,12 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
             increment_n(n, 1);
             n_token(n, name);
@@ -5854,8 +6975,26 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -5868,8 +7007,12 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] == '>')) {
             increment_n(n, 1);
             n_token(n, name);
@@ -5881,8 +7024,26 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -5895,8 +7056,12 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] == '<')) {
             increment_n(n, 1);
             n_token(n, name);
@@ -5908,8 +7073,26 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -5922,8 +7105,12 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
       n->OK = 1;
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           if (n_OK(n) == 1 && (n->value[n->pos] == '!')) {
             increment_n(n, 1);
             n_token(n, name);
@@ -5935,8 +7122,26 @@ void match_comparison_operator(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       if (n->OK == 0) {
@@ -6088,6 +7293,8 @@ void match_block_comment(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //left_comment  block_comment block_comment
     //0
     //external -> 0
@@ -6101,6 +7308,8 @@ void match_block_comment(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //NOT
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
@@ -6116,6 +7325,15 @@ void match_block_comment(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -6136,6 +7354,15 @@ void match_block_comment(node_t * n, char last_method[], int depth) {
     //external -> 2
     match_right_comment(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6178,6 +7405,8 @@ void match_single_comment(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //inline_comment  single_comment single_comment
     //0
     //external -> 0
@@ -6191,6 +7420,8 @@ void match_single_comment(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //NOT
           if (n_OK(n) == 1) {
             push(n->stack, n->pos);
@@ -6206,6 +7437,15 @@ void match_single_comment(node_t * n, char last_method[], int depth) {
           } else
             n->OK = 0;
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -6226,6 +7466,15 @@ void match_single_comment(node_t * n, char last_method[], int depth) {
     //external -> 2
     match_end_of_line(n, name, depth + 1);
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6474,6 +7723,8 @@ void match_ABS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ABS_FUNC ABS_FUNC
     //0
     // order 0
@@ -6494,6 +7745,15 @@ void match_ABS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6536,6 +7796,8 @@ void match_ACOS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ACOS_FUNC ACOS_FUNC
     //0
     // order 0
@@ -6556,6 +7818,15 @@ void match_ACOS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6598,6 +7869,8 @@ void match_ADDDATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ADDDATE_FUNC ADDDATE_FUNC
     //0
     // order 0
@@ -6630,6 +7903,15 @@ void match_ADDDATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6672,6 +7954,8 @@ void match_ADDTIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ADDTIME_FUNC ADDTIME_FUNC
     //0
     // order 0
@@ -6700,6 +7984,15 @@ void match_ADDTIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6742,6 +8035,8 @@ void match_ASCII_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ASCII_FUNC ASCII_FUNC
     //0
     // order 0
@@ -6762,6 +8057,15 @@ void match_ASCII_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6804,6 +8108,8 @@ void match_ASIN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ASIN_FUNC ASIN_FUNC
     //0
     // order 0
@@ -6824,6 +8130,15 @@ void match_ASIN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6866,6 +8181,8 @@ void match_ATAN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ATAN_FUNC ATAN_FUNC
     //0
     // order 0
@@ -6886,6 +8203,15 @@ void match_ATAN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6928,6 +8254,8 @@ void match_ATAN2_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ATAN2_FUNC ATAN2_FUNC
     //0
     // order 0
@@ -6956,6 +8284,15 @@ void match_ATAN2_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -6998,6 +8335,8 @@ void match_BIN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  BIN_FUNC BIN_FUNC
     //0
     // order 0
@@ -7018,6 +8357,15 @@ void match_BIN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7060,6 +8408,8 @@ void match_BIT_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  BIT_LENGTH_FUNC BIT_LENGTH_FUNC
     //0
     // order 0
@@ -7080,6 +8430,15 @@ void match_BIT_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7122,6 +8481,8 @@ void match_CEILING_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CEILING_FUNC CEILING_FUNC
     //0
     // order 0
@@ -7142,6 +8503,15 @@ void match_CEILING_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7184,6 +8554,8 @@ void match_CEIL_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CEIL_FUNC CEIL_FUNC
     //0
     // order 0
@@ -7204,6 +8576,15 @@ void match_CEIL_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7246,6 +8627,8 @@ void match_CHARACTER_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CHARACTER_LENGTH_FUNC CHARACTER_LENGTH_FUNC
     //0
     // order 0
@@ -7266,6 +8649,15 @@ void match_CHARACTER_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7308,6 +8700,8 @@ void match_CHAR_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CHAR_LENGTH_FUNC CHAR_LENGTH_FUNC
     //0
     // order 0
@@ -7328,6 +8722,15 @@ void match_CHAR_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7370,6 +8773,8 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CHAR_FUNC CHAR_FUNC
     //0
     // order 0
@@ -7393,6 +8798,8 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  CHAR_FUNC CHAR_FUNC
           //0
           // order 0
@@ -7402,6 +8809,15 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_N(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -7423,6 +8839,8 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  CHAR_FUNC CHAR_FUNC
         //0
         // order 0
@@ -7432,6 +8850,15 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_charset_name(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -7442,6 +8869,15 @@ void match_CHAR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7484,6 +8920,8 @@ void match_CONCAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CONCAT_FUNC CONCAT_FUNC
     //0
     // order 0
@@ -7507,6 +8945,8 @@ void match_CONCAT_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  CONCAT_FUNC CONCAT_FUNC
           //0
           // order 0
@@ -7516,6 +8956,15 @@ void match_CONCAT_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_string(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -7537,6 +8986,15 @@ void match_CONCAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7579,6 +9037,8 @@ void match_CONCAT_WS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CONCAT_WS_FUNC CONCAT_WS_FUNC
     //0
     // order 0
@@ -7602,6 +9062,8 @@ void match_CONCAT_WS_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  CONCAT_WS_FUNC CONCAT_WS_FUNC
           //0
           // order 0
@@ -7611,6 +9073,15 @@ void match_CONCAT_WS_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_string(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -7632,6 +9103,15 @@ void match_CONCAT_WS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7674,6 +9154,8 @@ void match_CONVERT_TZ_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CONVERT_TZ_FUNC CONVERT_TZ_FUNC
     //0
     // order 0
@@ -7710,6 +9192,15 @@ void match_CONVERT_TZ_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7752,6 +9243,8 @@ void match_CONV_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CONV_FUNC CONV_FUNC
     //0
     // order 0
@@ -7788,6 +9281,15 @@ void match_CONV_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7830,6 +9332,8 @@ void match_COS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  COS_FUNC COS_FUNC
     //0
     // order 0
@@ -7850,6 +9354,15 @@ void match_COS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7892,6 +9405,8 @@ void match_COT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  COT_FUNC COT_FUNC
     //0
     // order 0
@@ -7912,6 +9427,15 @@ void match_COT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -7954,6 +9478,8 @@ void match_CRC32_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CRC32_FUNC CRC32_FUNC
     //0
     // order 0
@@ -7974,6 +9500,15 @@ void match_CRC32_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8016,6 +9551,8 @@ void match_CURDATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CURDATE_FUNC CURDATE_FUNC
     //0
     // order 0
@@ -8032,6 +9569,15 @@ void match_CURDATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8074,6 +9620,8 @@ void match_CURRENT_DATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CURRENT_DATE_FUNC CURRENT_DATE_FUNC
     //0
     // order 0
@@ -8090,6 +9638,15 @@ void match_CURRENT_DATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8132,6 +9689,8 @@ void match_CURRENT_TIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CURRENT_TIME_FUNC CURRENT_TIME_FUNC
     //0
     // order 0
@@ -8148,11 +9707,22 @@ void match_CURRENT_TIME_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  CURRENT_TIME_FUNC CURRENT_TIME_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -8163,6 +9733,15 @@ void match_CURRENT_TIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8205,6 +9784,8 @@ void match_CURRENT_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CURRENT_TIMESTAMP_FUNC CURRENT_TIMESTAMP_FUNC
     //0
     // order 0
@@ -8221,11 +9802,22 @@ void match_CURRENT_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  CURRENT_TIMESTAMP_FUNC CURRENT_TIMESTAMP_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -8236,6 +9828,15 @@ void match_CURRENT_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8278,6 +9879,8 @@ void match_CURTIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  CURTIME_FUNC CURTIME_FUNC
     //0
     // order 0
@@ -8294,11 +9897,22 @@ void match_CURTIME_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  CURTIME_FUNC CURTIME_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -8309,6 +9923,15 @@ void match_CURTIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8351,6 +9974,8 @@ void match_DATE_ADD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DATE_ADD_FUNC DATE_ADD_FUNC
     //0
     // order 0
@@ -8383,6 +10008,15 @@ void match_DATE_ADD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8425,6 +10059,8 @@ void match_DATEDIFF_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DATEDIFF_FUNC DATEDIFF_FUNC
     //0
     // order 0
@@ -8453,6 +10089,15 @@ void match_DATEDIFF_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8495,6 +10140,8 @@ void match_DATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DATE_FUNC DATE_FUNC
     //0
     // order 0
@@ -8515,6 +10162,15 @@ void match_DATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8557,6 +10213,8 @@ void match_DATE_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DATE_FORMAT_FUNC DATE_FORMAT_FUNC
     //0
     // order 0
@@ -8585,6 +10243,15 @@ void match_DATE_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8627,6 +10294,8 @@ void match_DATE_SUB_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DATE_SUB_FUNC DATE_SUB_FUNC
     //0
     // order 0
@@ -8659,6 +10328,15 @@ void match_DATE_SUB_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8701,6 +10379,8 @@ void match_DAY_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DAY_FUNC DAY_FUNC
     //0
     // order 0
@@ -8721,6 +10401,15 @@ void match_DAY_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8763,6 +10452,8 @@ void match_DAYNAME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DAYNAME_FUNC DAYNAME_FUNC
     //0
     // order 0
@@ -8783,6 +10474,15 @@ void match_DAYNAME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8825,6 +10525,8 @@ void match_DAYOFMONTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DAYOFMONTH_FUNC DAYOFMONTH_FUNC
     //0
     // order 0
@@ -8845,6 +10547,15 @@ void match_DAYOFMONTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8887,6 +10598,8 @@ void match_DAYOFWEEK_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DAYOFWEEK_FUNC DAYOFWEEK_FUNC
     //0
     // order 0
@@ -8907,6 +10620,15 @@ void match_DAYOFWEEK_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -8949,6 +10671,8 @@ void match_DAYOFYEAR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DAYOFYEAR_FUNC DAYOFYEAR_FUNC
     //0
     // order 0
@@ -8969,6 +10693,15 @@ void match_DAYOFYEAR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9011,6 +10744,8 @@ void match_DEGREES_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  DEGREES_FUNC DEGREES_FUNC
     //0
     // order 0
@@ -9031,6 +10766,15 @@ void match_DEGREES_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9073,6 +10817,8 @@ void match_ELT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ELT_FUNC ELT_FUNC
     //0
     // order 0
@@ -9096,6 +10842,8 @@ void match_ELT_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  ELT_FUNC ELT_FUNC
           //0
           // order 0
@@ -9105,6 +10853,15 @@ void match_ELT_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_string(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -9126,6 +10883,15 @@ void match_ELT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9168,6 +10934,8 @@ void match_EXPORT_SET_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
     //0
     // order 0
@@ -9204,6 +10972,8 @@ void match_EXPORT_SET_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
         //0
         // order 0
@@ -9218,6 +10988,8 @@ void match_EXPORT_SET_FUNC(node_t * n, char last_method[], int depth) {
           push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //None  EXPORT_SET_FUNC EXPORT_SET_FUNC
             //0
             // order 0
@@ -9227,11 +10999,29 @@ void match_EXPORT_SET_FUNC(node_t * n, char last_method[], int depth) {
             //external -> 1
             match_number_of_bits(n, name, depth + 1);
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           optional_reset(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -9242,6 +11032,15 @@ void match_EXPORT_SET_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9284,6 +11083,8 @@ void match_EXP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  EXP_FUNC EXP_FUNC
     //0
     // order 0
@@ -9304,6 +11105,15 @@ void match_EXP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9346,6 +11156,8 @@ void match_EXTRACT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  EXTRACT_FUNC EXTRACT_FUNC
     //0
     // order 0
@@ -9374,6 +11186,15 @@ void match_EXTRACT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9416,6 +11237,8 @@ void match_FIELD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FIELD_FUNC FIELD_FUNC
     //0
     // order 0
@@ -9439,6 +11262,8 @@ void match_FIELD_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  FIELD_FUNC FIELD_FUNC
           //0
           // order 0
@@ -9448,6 +11273,15 @@ void match_FIELD_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_string(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -9469,6 +11303,15 @@ void match_FIELD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9511,6 +11354,8 @@ void match_FIND_IN_SET_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FIND_IN_SET_FUNC FIND_IN_SET_FUNC
     //0
     // order 0
@@ -9539,6 +11384,15 @@ void match_FIND_IN_SET_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9581,6 +11435,8 @@ void match_FLOOR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FLOOR_FUNC FLOOR_FUNC
     //0
     // order 0
@@ -9601,6 +11457,15 @@ void match_FLOOR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9643,6 +11508,8 @@ void match_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FORMAT_FUNC FORMAT_FUNC
     //0
     // order 0
@@ -9671,6 +11538,8 @@ void match_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  FORMAT_FUNC FORMAT_FUNC
         //0
         // order 0
@@ -9680,6 +11549,15 @@ void match_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_locale(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -9690,6 +11568,15 @@ void match_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9732,6 +11619,8 @@ void match_FROM_BASE64_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FROM_BASE64_FUNC FROM_BASE64_FUNC
     //0
     // order 0
@@ -9752,6 +11641,15 @@ void match_FROM_BASE64_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9794,6 +11692,8 @@ void match_FROM_DAYS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FROM_DAYS_FUNC FROM_DAYS_FUNC
     //0
     // order 0
@@ -9814,6 +11714,15 @@ void match_FROM_DAYS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9856,6 +11765,8 @@ void match_FROM_UNIXTIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
     //0
     // order 0
@@ -9876,6 +11787,8 @@ void match_FROM_UNIXTIME_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  FROM_UNIXTIME_FUNC FROM_UNIXTIME_FUNC
         //0
         // order 0
@@ -9885,6 +11798,15 @@ void match_FROM_UNIXTIME_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_format(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -9895,6 +11817,15 @@ void match_FROM_UNIXTIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -9937,6 +11868,8 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  GET_FORMAT_FUNC GET_FORMAT_FUNC
     //0
     // order 0
@@ -9953,6 +11886,8 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //OR
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -9994,6 +11929,15 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
           pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -10008,6 +11952,8 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //OR
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
@@ -10071,6 +12017,15 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
           pop_token(n);
         }
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -10081,6 +12036,15 @@ void match_GET_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10123,6 +12087,8 @@ void match_HEX_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  HEX_FUNC HEX_FUNC
     //0
     // order 0
@@ -10168,6 +12134,15 @@ void match_HEX_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10210,6 +12185,8 @@ void match_HOUR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  HOUR_FUNC HOUR_FUNC
     //0
     // order 0
@@ -10230,6 +12207,15 @@ void match_HOUR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10272,6 +12258,8 @@ void match_INSERT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  INSERT_FUNC INSERT_FUNC
     //0
     // order 0
@@ -10316,6 +12304,15 @@ void match_INSERT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10358,6 +12355,8 @@ void match_INSTR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  INSTR_FUNC INSTR_FUNC
     //0
     // order 0
@@ -10386,6 +12385,15 @@ void match_INSTR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10428,6 +12436,8 @@ void match_LAST_DAY_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LAST_DAY_FUNC LAST_DAY_FUNC
     //0
     // order 0
@@ -10448,6 +12458,15 @@ void match_LAST_DAY_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10490,6 +12509,8 @@ void match_LCASE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LCASE_FUNC LCASE_FUNC
     //0
     // order 0
@@ -10510,6 +12531,15 @@ void match_LCASE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10552,6 +12582,8 @@ void match_LEFT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LEFT_FUNC LEFT_FUNC
     //0
     // order 0
@@ -10580,6 +12612,15 @@ void match_LEFT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10622,6 +12663,8 @@ void match_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LENGTH_FUNC LENGTH_FUNC
     //0
     // order 0
@@ -10642,6 +12685,15 @@ void match_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10684,6 +12736,8 @@ void match_LN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LN_FUNC LN_FUNC
     //0
     // order 0
@@ -10704,6 +12758,15 @@ void match_LN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10746,6 +12809,8 @@ void match_LOAD_FILE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOAD_FILE_FUNC LOAD_FILE_FUNC
     //0
     // order 0
@@ -10766,6 +12831,15 @@ void match_LOAD_FILE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10808,6 +12882,8 @@ void match_LOCALTIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOCALTIME_FUNC LOCALTIME_FUNC
     //0
     // order 0
@@ -10824,11 +12900,22 @@ void match_LOCALTIME_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  LOCALTIME_FUNC LOCALTIME_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -10839,6 +12926,15 @@ void match_LOCALTIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10881,6 +12977,8 @@ void match_LOCALTIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOCALTIMESTAMP_FUNC LOCALTIMESTAMP_FUNC
     //0
     // order 0
@@ -10897,11 +12995,22 @@ void match_LOCALTIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  LOCALTIMESTAMP_FUNC LOCALTIMESTAMP_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -10912,6 +13021,15 @@ void match_LOCALTIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -10954,6 +13072,8 @@ void match_LOCATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOCATE_FUNC LOCATE_FUNC
     //0
     // order 0
@@ -10982,6 +13102,8 @@ void match_LOCATE_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  LOCATE_FUNC LOCATE_FUNC
         //0
         // order 0
@@ -10991,6 +13113,15 @@ void match_LOCATE_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_pos(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -11001,6 +13132,15 @@ void match_LOCATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11043,6 +13183,8 @@ void match_LOG10_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOG10_FUNC LOG10_FUNC
     //0
     // order 0
@@ -11063,6 +13205,15 @@ void match_LOG10_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11105,6 +13256,8 @@ void match_LOG2_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOG2_FUNC LOG2_FUNC
     //0
     // order 0
@@ -11125,6 +13278,15 @@ void match_LOG2_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11167,6 +13329,8 @@ void match_LOG_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOG_FUNC LOG_FUNC
     //0
     // order 0
@@ -11183,11 +13347,22 @@ void match_LOG_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //B  LOG_FUNC LOG_FUNC
         //0
         //external -> 0
         match_B(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -11206,6 +13381,15 @@ void match_LOG_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11248,6 +13432,8 @@ void match_LOWER_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LOWER_FUNC LOWER_FUNC
     //0
     // order 0
@@ -11268,6 +13454,15 @@ void match_LOWER_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11310,6 +13505,8 @@ void match_LPAD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LPAD_FUNC LPAD_FUNC
     //0
     // order 0
@@ -11346,6 +13543,15 @@ void match_LPAD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11388,6 +13594,8 @@ void match_LTRIM_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  LTRIM_FUNC LTRIM_FUNC
     //0
     // order 0
@@ -11408,6 +13616,15 @@ void match_LTRIM_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11450,6 +13667,8 @@ void match_MAKEDATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MAKEDATE_FUNC MAKEDATE_FUNC
     //0
     // order 0
@@ -11478,6 +13697,15 @@ void match_MAKEDATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11520,6 +13748,8 @@ void match_MAKE_SET_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MAKE_SET_FUNC MAKE_SET_FUNC
     //0
     // order 0
@@ -11543,6 +13773,8 @@ void match_MAKE_SET_FUNC(node_t * n, char last_method[], int depth) {
         push_token(n);
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //None  MAKE_SET_FUNC MAKE_SET_FUNC
           //0
           // order 0
@@ -11552,6 +13784,15 @@ void match_MAKE_SET_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 1
           match_string(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -11573,6 +13814,15 @@ void match_MAKE_SET_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11615,6 +13865,8 @@ void match_MAKETIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MAKETIME_FUNC MAKETIME_FUNC
     //0
     // order 0
@@ -11651,6 +13903,15 @@ void match_MAKETIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11693,6 +13954,8 @@ void match_MICROSECOND_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MICROSECOND_FUNC MICROSECOND_FUNC
     //0
     // order 0
@@ -11713,6 +13976,15 @@ void match_MICROSECOND_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11755,6 +14027,8 @@ void match_MID_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MID_FUNC MID_FUNC
     //0
     // order 0
@@ -11791,6 +14065,15 @@ void match_MID_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11833,6 +14116,8 @@ void match_MINUTE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MINUTE_FUNC MINUTE_FUNC
     //0
     // order 0
@@ -11853,6 +14138,15 @@ void match_MINUTE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11895,6 +14189,8 @@ void match_MOD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MOD_FUNC MOD_FUNC
     //0
     // order 0
@@ -11923,6 +14219,15 @@ void match_MOD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -11965,6 +14270,8 @@ void match_MONTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MONTH_FUNC MONTH_FUNC
     //0
     // order 0
@@ -11985,6 +14292,15 @@ void match_MONTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12027,6 +14343,8 @@ void match_MONTHNAME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  MONTHNAME_FUNC MONTHNAME_FUNC
     //0
     // order 0
@@ -12047,6 +14365,15 @@ void match_MONTHNAME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12089,6 +14416,8 @@ void match_NOW_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  NOW_FUNC NOW_FUNC
     //0
     // order 0
@@ -12105,11 +14434,22 @@ void match_NOW_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  NOW_FUNC NOW_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -12120,6 +14460,15 @@ void match_NOW_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12162,6 +14511,8 @@ void match_OCTET_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  OCTET_LENGTH_FUNC OCTET_LENGTH_FUNC
     //0
     // order 0
@@ -12182,6 +14533,15 @@ void match_OCTET_LENGTH_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12224,6 +14584,8 @@ void match_OCT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  OCT_FUNC OCT_FUNC
     //0
     // order 0
@@ -12244,6 +14606,15 @@ void match_OCT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12286,6 +14657,8 @@ void match_ORD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ORD_FUNC ORD_FUNC
     //0
     // order 0
@@ -12306,6 +14679,15 @@ void match_ORD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12348,6 +14730,8 @@ void match_PERIOD_ADD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  PERIOD_ADD_FUNC PERIOD_ADD_FUNC
     //0
     // order 0
@@ -12376,6 +14760,15 @@ void match_PERIOD_ADD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12418,6 +14811,8 @@ void match_PERIOD_DIFF_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  PERIOD_DIFF_FUNC PERIOD_DIFF_FUNC
     //0
     // order 0
@@ -12446,6 +14841,15 @@ void match_PERIOD_DIFF_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12488,6 +14892,8 @@ void match_PI_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  PI_FUNC PI_FUNC
     //0
     // order 0
@@ -12504,6 +14910,15 @@ void match_PI_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12546,6 +14961,8 @@ void match_POSITION_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  POSITION_FUNC POSITION_FUNC
     //0
     // order 0
@@ -12574,6 +14991,15 @@ void match_POSITION_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12616,6 +15042,8 @@ void match_POWER_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  POWER_FUNC POWER_FUNC
     //0
     // order 0
@@ -12644,6 +15072,15 @@ void match_POWER_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12686,6 +15123,8 @@ void match_POW_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  POW_FUNC POW_FUNC
     //0
     // order 0
@@ -12714,6 +15153,15 @@ void match_POW_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12756,6 +15204,8 @@ void match_QUARTER_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  QUARTER_FUNC QUARTER_FUNC
     //0
     // order 0
@@ -12776,6 +15226,15 @@ void match_QUARTER_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12818,6 +15277,8 @@ void match_QUOTE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  QUOTE_FUNC QUOTE_FUNC
     //0
     // order 0
@@ -12838,6 +15299,15 @@ void match_QUOTE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12880,6 +15350,8 @@ void match_RADIANS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  RADIANS_FUNC RADIANS_FUNC
     //0
     // order 0
@@ -12900,6 +15372,15 @@ void match_RADIANS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -12942,6 +15423,8 @@ void match_RAND_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  RAND_FUNC RAND_FUNC
     //0
     // order 0
@@ -12958,11 +15441,22 @@ void match_RAND_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //N  RAND_FUNC RAND_FUNC
         //0
         //external -> 0
         match_N(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -12973,6 +15467,15 @@ void match_RAND_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13015,6 +15518,8 @@ void match_REPEAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  REPEAT_FUNC REPEAT_FUNC
     //0
     // order 0
@@ -13043,6 +15548,15 @@ void match_REPEAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13085,6 +15599,8 @@ void match_REPLACE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  REPLACE_FUNC REPLACE_FUNC
     //0
     // order 0
@@ -13121,6 +15637,15 @@ void match_REPLACE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13163,6 +15688,8 @@ void match_REVERSE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  REVERSE_FUNC REVERSE_FUNC
     //0
     // order 0
@@ -13183,6 +15710,15 @@ void match_REVERSE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13225,6 +15761,8 @@ void match_RIGHT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  RIGHT_FUNC RIGHT_FUNC
     //0
     // order 0
@@ -13253,6 +15791,15 @@ void match_RIGHT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13295,6 +15842,8 @@ void match_ROUND_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  ROUND_FUNC ROUND_FUNC
     //0
     // order 0
@@ -13315,6 +15864,8 @@ void match_ROUND_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  ROUND_FUNC ROUND_FUNC
         //0
         // order 0
@@ -13324,6 +15875,15 @@ void match_ROUND_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_D(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -13334,6 +15894,15 @@ void match_ROUND_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13376,6 +15945,8 @@ void match_RPAD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  RPAD_FUNC RPAD_FUNC
     //0
     // order 0
@@ -13412,6 +15983,15 @@ void match_RPAD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13454,6 +16034,8 @@ void match_RTRIM_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  RTRIM_FUNC RTRIM_FUNC
     //0
     // order 0
@@ -13474,6 +16056,15 @@ void match_RTRIM_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13516,6 +16107,8 @@ void match_SECOND_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SECOND_FUNC SECOND_FUNC
     //0
     // order 0
@@ -13536,6 +16129,15 @@ void match_SECOND_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13578,6 +16180,8 @@ void match_SEC_TO_TIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SEC_TO_TIME_FUNC SEC_TO_TIME_FUNC
     //0
     // order 0
@@ -13598,6 +16202,15 @@ void match_SEC_TO_TIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13640,6 +16253,8 @@ void match_SIGN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SIGN_FUNC SIGN_FUNC
     //0
     // order 0
@@ -13660,6 +16275,15 @@ void match_SIGN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13702,6 +16326,8 @@ void match_SIN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SIN_FUNC SIN_FUNC
     //0
     // order 0
@@ -13722,6 +16348,15 @@ void match_SIN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13764,6 +16399,8 @@ void match_SOUNDEX_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SOUNDEX_FUNC SOUNDEX_FUNC
     //0
     // order 0
@@ -13784,6 +16421,15 @@ void match_SOUNDEX_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13826,6 +16472,8 @@ void match_SPACE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SPACE_FUNC SPACE_FUNC
     //0
     // order 0
@@ -13846,6 +16494,15 @@ void match_SPACE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13888,6 +16545,8 @@ void match_SQRT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SQRT_FUNC SQRT_FUNC
     //0
     // order 0
@@ -13908,6 +16567,15 @@ void match_SQRT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -13950,6 +16618,8 @@ void match_STR_TO_DATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  STR_TO_DATE_FUNC STR_TO_DATE_FUNC
     //0
     // order 0
@@ -13978,6 +16648,15 @@ void match_STR_TO_DATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14020,6 +16699,8 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SUBDATE_FUNC SUBDATE_FUNC
     //0
     // order 0
@@ -14037,6 +16718,8 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
       //item 0
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //date  SUBDATE_FUNC SUBDATE_FUNC
         //0
         //external -> 0
@@ -14054,6 +16737,15 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 3
         match_interval_expr(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -14064,6 +16756,8 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
         n->OK = 1;
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //expr  SUBDATE_FUNC SUBDATE_FUNC
           //0
           //external -> 0
@@ -14077,6 +16771,15 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 2
           match_days(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -14097,6 +16800,15 @@ void match_SUBDATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14139,6 +16851,8 @@ void match_SUBSTRING_INDEX_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SUBSTRING_INDEX_FUNC SUBSTRING_INDEX_FUNC
     //0
     // order 0
@@ -14175,6 +16889,15 @@ void match_SUBSTRING_INDEX_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14217,6 +16940,8 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SUBSTRING_FUNC SUBSTRING_FUNC
     //0
     // order 0
@@ -14234,6 +16959,8 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
       //item 0
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //string  SUBSTRING_FUNC SUBSTRING_FUNC
         //0
         //external -> 0
@@ -14247,6 +16974,15 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 2
         match_pos(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -14257,6 +16993,8 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
         n->OK = 1;
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //string  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
           //external -> 0
@@ -14270,6 +17008,15 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 2
           match_pos(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -14282,6 +17029,8 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
         n->OK = 1;
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //string  SUBSTRING_FUNC SUBSTRING_FUNC
           //0
           //external -> 0
@@ -14303,6 +17052,15 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 4
           match_len(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -14323,6 +17081,15 @@ void match_SUBSTRING_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14365,6 +17132,8 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SUBSTR_FUNC SUBSTR_FUNC
     //0
     // order 0
@@ -14382,6 +17151,8 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
       //item 0
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //string  SUBSTR_FUNC SUBSTR_FUNC
         //0
         //external -> 0
@@ -14395,6 +17166,15 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 2
         match_pos(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
       if (n->OK == 0) {
         n->pos = peek(n->stack);
@@ -14405,6 +17185,8 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
         n->OK = 1;
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //string  SUBSTR_FUNC SUBSTR_FUNC
           //0
           //external -> 0
@@ -14418,6 +17200,15 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 2
           match_pos(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -14430,6 +17221,8 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
         n->OK = 1;
         // GROUP
         if (n_OK(n) == 1) {
+          push(n->stack, n->pos);
+          push_token(n);
           //string  SUBSTR_FUNC SUBSTR_FUNC
           //0
           //external -> 0
@@ -14451,6 +17244,15 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
           //external -> 4
           match_len(n, name, depth + 1);
 
+          if (n->OK == 1) {
+            char group_name[100];
+            memset(group_name, 0, 100);
+            int r = sprintf(group_name, "GROUP %s", name);
+            //  printf ("[%s] is a string %d chars long\n",group_name,r);
+            //  n_token(n,group_name);
+          }
+          pop(n->stack);
+          pop_token(n);
         }
 
         if (n->OK == 0) {
@@ -14471,6 +17273,15 @@ void match_SUBSTR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14513,6 +17324,8 @@ void match_SUBTIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SUBTIME_FUNC SUBTIME_FUNC
     //0
     // order 0
@@ -14541,6 +17354,15 @@ void match_SUBTIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14583,6 +17405,8 @@ void match_SYSDATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  SYSDATE_FUNC SYSDATE_FUNC
     //0
     // order 0
@@ -14599,11 +17423,22 @@ void match_SYSDATE_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  SYSDATE_FUNC SYSDATE_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -14614,6 +17449,15 @@ void match_SYSDATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14656,6 +17500,8 @@ void match_TAN_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TAN_FUNC TAN_FUNC
     //0
     // order 0
@@ -14676,6 +17522,15 @@ void match_TAN_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14718,6 +17573,8 @@ void match_TIMEDIFF_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIMEDIFF_FUNC TIMEDIFF_FUNC
     //0
     // order 0
@@ -14746,6 +17603,15 @@ void match_TIMEDIFF_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14788,6 +17654,8 @@ void match_TIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIME_FUNC TIME_FUNC
     //0
     // order 0
@@ -14808,6 +17676,15 @@ void match_TIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14850,6 +17727,8 @@ void match_TIME_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIME_FORMAT_FUNC TIME_FORMAT_FUNC
     //0
     // order 0
@@ -14878,6 +17757,15 @@ void match_TIME_FORMAT_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14920,6 +17808,8 @@ void match_TIMESTAMPADD_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIMESTAMPADD_FUNC TIMESTAMPADD_FUNC
     //0
     // order 0
@@ -14956,6 +17846,15 @@ void match_TIMESTAMPADD_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -14998,6 +17897,8 @@ void match_TIMESTAMPDIFF_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIMESTAMPDIFF_FUNC TIMESTAMPDIFF_FUNC
     //0
     // order 0
@@ -15034,6 +17935,15 @@ void match_TIMESTAMPDIFF_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15076,6 +17986,8 @@ void match_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIMESTAMP_FUNC TIMESTAMP_FUNC
     //0
     // order 0
@@ -15096,6 +18008,8 @@ void match_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  TIMESTAMP_FUNC TIMESTAMP_FUNC
         //0
         // order 0
@@ -15105,6 +18019,15 @@ void match_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_expr(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -15115,6 +18038,15 @@ void match_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15157,6 +18089,8 @@ void match_TIME_TO_SEC_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TIME_TO_SEC_FUNC TIME_TO_SEC_FUNC
     //0
     // order 0
@@ -15177,6 +18111,15 @@ void match_TIME_TO_SEC_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15219,6 +18162,8 @@ void match_TO_BASE64_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TO_BASE64_FUNC TO_BASE64_FUNC
     //0
     // order 0
@@ -15239,6 +18184,15 @@ void match_TO_BASE64_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15281,6 +18235,8 @@ void match_TO_DAYS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TO_DAYS_FUNC TO_DAYS_FUNC
     //0
     // order 0
@@ -15301,6 +18257,15 @@ void match_TO_DAYS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15343,6 +18308,8 @@ void match_TO_SECONDS_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TO_SECONDS_FUNC TO_SECONDS_FUNC
     //0
     // order 0
@@ -15363,6 +18330,15 @@ void match_TO_SECONDS_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15405,6 +18381,8 @@ void match_TRIM_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TRIM_FUNC TRIM_FUNC
     //0
     // order 0
@@ -15421,12 +18399,16 @@ void match_TRIM_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //optional
         if (n_OK(n) == 1) {
           push(n->stack, n->pos);
           push_token(n);
           // GROUP
           if (n_OK(n) == 1) {
+            push(n->stack, n->pos);
+            push_token(n);
             //OR
             if (n_OK(n) == 1) {
               push(n->stack, n->pos);
@@ -15468,6 +18450,15 @@ void match_TRIM_FUNC(node_t * n, char last_method[], int depth) {
               pop_token(n);
             }
 
+            if (n->OK == 1) {
+              char group_name[100];
+              memset(group_name, 0, 100);
+              int r = sprintf(group_name, "GROUP %s", name);
+              //  printf ("[%s] is a string %d chars long\n",group_name,r);
+              //  n_token(n,group_name);
+            }
+            pop(n->stack);
+            pop_token(n);
           }
 
           optional_reset(n);
@@ -15491,6 +18482,15 @@ void match_TRIM_FUNC(node_t * n, char last_method[], int depth) {
         // order 3
         compare_string(n, (char *) "FROM", 4, name);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -15505,6 +18505,15 @@ void match_TRIM_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15547,6 +18556,8 @@ void match_TRUNCATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  TRUNCATE_FUNC TRUNCATE_FUNC
     //0
     // order 0
@@ -15567,6 +18578,8 @@ void match_TRUNCATE_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  TRUNCATE_FUNC TRUNCATE_FUNC
         //0
         // order 0
@@ -15576,6 +18589,15 @@ void match_TRUNCATE_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_D(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -15586,6 +18608,15 @@ void match_TRUNCATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15628,6 +18659,8 @@ void match_UCASE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UCASE_FUNC UCASE_FUNC
     //0
     // order 0
@@ -15648,6 +18681,15 @@ void match_UCASE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15690,6 +18732,8 @@ void match_UNHEX_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UNHEX_FUNC UNHEX_FUNC
     //0
     // order 0
@@ -15710,6 +18754,15 @@ void match_UNHEX_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15752,6 +18805,8 @@ void match_UNIX_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UNIX_TIMESTAMP_FUNC UNIX_TIMESTAMP_FUNC
     //0
     // order 0
@@ -15782,6 +18837,15 @@ void match_UNIX_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15824,6 +18888,8 @@ void match_UTC_DATE_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UTC_DATE_FUNC UTC_DATE_FUNC
     //0
     // order 0
@@ -15840,6 +18906,15 @@ void match_UTC_DATE_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15882,6 +18957,8 @@ void match_UTC_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UTC_TIMESTAMP_FUNC UTC_TIMESTAMP_FUNC
     //0
     // order 0
@@ -15898,11 +18975,22 @@ void match_UTC_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  UTC_TIMESTAMP_FUNC UTC_TIMESTAMP_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -15913,6 +19001,15 @@ void match_UTC_TIMESTAMP_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -15955,6 +19052,8 @@ void match_UTC_TIME_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  UTC_TIME_FUNC UTC_TIME_FUNC
     //0
     // order 0
@@ -15971,11 +19070,22 @@ void match_UTC_TIME_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //fsp  UTC_TIME_FUNC UTC_TIME_FUNC
         //0
         //external -> 0
         match_fsp(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -15986,6 +19096,15 @@ void match_UTC_TIME_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -16028,6 +19147,8 @@ void match_WEEK_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  WEEK_FUNC WEEK_FUNC
     //0
     // order 0
@@ -16048,6 +19169,8 @@ void match_WEEK_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  WEEK_FUNC WEEK_FUNC
         //0
         // order 0
@@ -16057,6 +19180,15 @@ void match_WEEK_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_mode(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -16067,6 +19199,15 @@ void match_WEEK_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -16109,6 +19250,8 @@ void match_WEEKDAY_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  WEEKDAY_FUNC WEEKDAY_FUNC
     //0
     // order 0
@@ -16129,6 +19272,15 @@ void match_WEEKDAY_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -16171,6 +19323,8 @@ void match_WEEKOFYEAR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  WEEKOFYEAR_FUNC WEEKOFYEAR_FUNC
     //0
     // order 0
@@ -16191,6 +19345,15 @@ void match_WEEKOFYEAR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -16233,6 +19396,8 @@ void match_YEAR_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  YEAR_FUNC YEAR_FUNC
     //0
     // order 0
@@ -16253,6 +19418,15 @@ void match_YEAR_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -16295,6 +19469,8 @@ void match_YEARWEEK_FUNC(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //None  YEARWEEK_FUNC YEARWEEK_FUNC
     //0
     // order 0
@@ -16315,6 +19491,8 @@ void match_YEARWEEK_FUNC(node_t * n, char last_method[], int depth) {
       push_token(n);
       // GROUP
       if (n_OK(n) == 1) {
+        push(n->stack, n->pos);
+        push_token(n);
         //None  YEARWEEK_FUNC YEARWEEK_FUNC
         //0
         // order 0
@@ -16324,6 +19502,15 @@ void match_YEARWEEK_FUNC(node_t * n, char last_method[], int depth) {
         //external -> 1
         match_mode(n, name, depth + 1);
 
+        if (n->OK == 1) {
+          char group_name[100];
+          memset(group_name, 0, 100);
+          int r = sprintf(group_name, "GROUP %s", name);
+          //  printf ("[%s] is a string %d chars long\n",group_name,r);
+          //  n_token(n,group_name);
+        }
+        pop(n->stack);
+        pop_token(n);
       }
 
       optional_reset(n);
@@ -16334,6 +19521,15 @@ void match_YEARWEEK_FUNC(node_t * n, char last_method[], int depth) {
     } else
       n->OK = 0;
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -20052,6 +23248,8 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
 #endif
   // GROUP
   if (n_OK(n) == 1) {
+    push(n->stack, n->pos);
+    push_token(n);
     //NOT
     if (n_OK(n) == 1) {
       push(n->stack, n->pos);
@@ -20065,6 +23263,15 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
       not_reset(n);
     }                           //end NOT
 
+    if (n->OK == 1) {
+      char group_name[100];
+      memset(group_name, 0, 100);
+      int r = sprintf(group_name, "GROUP %s", name);
+      //  printf ("[%s] is a string %d chars long\n",group_name,r);
+      //  n_token(n,group_name);
+    }
+    pop(n->stack);
+    pop_token(n);
   }
 #ifdef  DEBUG_SUCCESS
   if (n->OK == 1) {
@@ -20098,7 +23305,7 @@ void match_catch_all(node_t * n, char last_method[], int depth) {
 /*
 * Function: match_functions
 * -----------------------------
-*   Generated: 2019-11-24
+*   Generated: 2019-12-27
 *      nodes: a pointer to the curent element in a linked list of nodes to search
 *
 *     OK: Returns a the node AFTER the curent pattern match
@@ -20119,6 +23326,7 @@ node_t *match_function(char *d) {
   n->stack = createStack(1000);
   n->token_stack = createStack(1000);
   n->tokens = NULL;
+  n->last_token = NULL;
   char *name = "functions";
   push(n->stack, n->pos);
   push_token(n);
@@ -20175,6 +23383,7 @@ node_t *match_function(char *d) {
     printf("String parsed until [%d] out of [%d]\n", n->pos, n->len);
   }
 #endif
+  printf("\nEND MATCH\n");
   print_tokens(n->tokens);
   return n;
 }                               // end match functions

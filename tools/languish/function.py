@@ -106,6 +106,7 @@ def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
             o+=t.build("recursive_self")
         else:
             t=tpl("templates/or.c")
+            t.add("recursive_self+1","function_name",name)
             t.add("recursive_self+1","order",order)
             t.add("recursive_self+1","body",build_function_templates(token,token_type,depth,name=name,order=order))
             o+=t.build("recursive_self+1")    

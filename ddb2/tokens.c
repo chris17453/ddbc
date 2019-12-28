@@ -5,7 +5,7 @@
 #include "headers/tokens.h"
 //#include "headers/stack.h"
 
-
+int tokens_UUID=0;
 
 // allocates memory and assigns values for a new node, u nlinked
 token_t *create_token(  uint32_t     code,
@@ -25,6 +25,8 @@ token_t *create_token(  uint32_t     code,
     //memset(new_node, 0, sizeof(*new_node));
 
     new_token->code        =code;
+    new_token->uuid        =tokens_UUID;
+    new_token->code        =code;
     new_token->type        =type;
     new_token->id          =id;
     new_token->depth       =depth;
@@ -35,7 +37,7 @@ token_t *create_token(  uint32_t     code,
     new_token->value       =value;
     new_token->left        =NULL;
     new_token->right       =NULL;
-    
+    tokens_UUID++;
     
     return new_token;
 }
@@ -138,7 +140,7 @@ void pop_token(node_t *n){
 char * sub_str_cpy(char *data,int start,int length){
     if( length<1) {
         printf("Not allocating %d",length);
-        return;
+        return NULL;
     }
     char *buffer=malloc(length+1);
     if (buffer==NULL){
@@ -160,10 +162,10 @@ void print_tokens(token_t *token){
         while (token!=NULL){
             if (token->data_length>0){
                 for (int i=0;i<token->depth;i++) printf(" ");
-                printf("[%s] %s - %d \n",token->element,token->data,token->id);
+                printf("[%s] %s - %d, %d\n",token->element,token->data,token->id,token->uuid);
             } else {
                 for (int i=0;i<token->depth;i++) printf(" ");
-                printf("^ [%s] %s - %d \n","NO DATA",token->element,token->data,token->id);
+                printf("^ NO DATA [%s] %s - %d, %d \n",token->element,token->data,token->id,token->uuid);
             }
             token=token->right;
         }
@@ -188,48 +190,65 @@ void n_token(node_t *n,char *element){
         //printf("%d,%d,%d\n",last_pos,n->pos,len);
     }
     char *buffer=sub_str_cpy(n->value,last_pos,len);
+    char *name=sub_str_cpy(element,0,strlen(element));
     
     uint32_t    code       =0;
     uint16_t    type       =0;
-    token_t *t=create_token(code,type,last_pos,n->depth,element,n->pos,buffer,len,NULL);
+    token_t *t=create_token(code,type,last_pos,n->depth,name,n->pos,buffer,len,NULL);
     if(n->tokens==NULL) {
         n->tokens=t;
+        n->last_token=t;
     } else {
         //print_tokens(n->tokens);
-        token_t *tail=get_token_tail(n->tokens);
+        token_t *tail=n->last_token;
+        //get_token_tail(n->tokens);
         //print_tokens(tail);
         
         connect_token(tail,t);
+        n->last_token=t;
     }
 }
 
 void trim_token(node_t *n){
-    
-    int id=peek(n->token_stack);
-    //printf("Trimming : %d->%d",id,n->token_index);
+    return;
+    int id=n->pos;//peek(n->token_stack);
+        
+    printf("\nTrimming : %d->%d",id,n->token_index);
     if(n->tokens!=NULL){
+        //token_t *cur_token=n->last_token;
         token_t *cur_token=get_token_tail(n->tokens);
         token_t *last_token=NULL;
-        //if(cur_token!=NULL){
-        //    printf("Trimming from %d to %d\n-",cur_token->id,id);
-        //}
+        if(cur_token!=NULL){
+            //printf("\nTrimming from %d to %d\n-",cur_token->id,id);
+        }
+      //  print_tokens(n->tokens);
         while (cur_token!=NULL){
-            if (cur_token->id==id) {
+            //printf("\n TRIM");
+            if (cur_token->id<id) {
+                //n->last_token=cur_token;
                 return;
             }
+            //printf("\nFREEING  %d\n",cur_token->id);
             last_token=cur_token;
             //free_token(last_token);
             cur_token=previous_token(cur_token);
             if (cur_token!=NULL){
+                //printf("\nPointer->  %d\n",cur_token->id);
                 cur_token->right=NULL;
+
+            } else {
+                n->tokens=NULL;
+                //printf("\nPointer->  NULL\n");
             }
-            
+            n->last_token=cur_token;
+
         }
-        
-        
-        
     } //else {
         //printf("No tokens");
     //}
 
 }
+
+
+//node_t is the list of tokens and vars
+//token_t is an individual component in a token list

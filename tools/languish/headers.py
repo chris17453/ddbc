@@ -19,5 +19,5 @@ def build_headers(template_dir):
     t.add("signature","body",key)
     o+=t.build("signature2")
 
-    print o
+    print (o)
 

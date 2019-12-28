@@ -24,6 +24,7 @@ node_t * match_function(char *d) {
     n->stack      = createStack(1000);
     n->token_stack= createStack(1000);
     n->tokens       =NULL;
+    n->last_token   =NULL;
  char* name="functions";
 
 push(n->stack,n->pos);
@@ -50,6 +51,7 @@ while (n->pos>-1){
         printf("String parsed until [%d] out of [%d]\n",n->pos,n->len);
     }
 #endif
+    printf ("\nEND MATCH\n");
     print_tokens(n->tokens);
     return n;
 } // end match functions

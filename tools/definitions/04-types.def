@@ -1,5 +1,8 @@
 # TYPES
 
+whitespace:           
+  [\s]*
+
 unknown:              
   unknown
 
@@ -25,11 +28,6 @@ boolean:
     {true} 
   | {false}
 
-real:                 
-    {integer} [.] {unsigned_int} 
-  | [.] {unsigned_int} 
-  | {integer} {exponent}? 
-
 integer:              
     {signed_int} 
   | {unsigned_int} 
@@ -39,6 +37,13 @@ signed_int:
 
 unsigned_int:         
   [0-9]+
+
+real:                 
+    ( {integer} [.] {unsigned_int} )
+  | ( [.] {unsigned_int} )
+  | ( {integer} {exponent}? )
+
+
 
 sign:                 
   [-+]
@@ -68,8 +73,6 @@ keywords:
   | between
   | like
 
-whitespace:           
-  [\s]*
 
 string:
     {single_quote_string} 
