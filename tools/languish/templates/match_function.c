@@ -1,8 +1,9 @@
 match_function:
-void match_{function_name}(node_t *n,char last_method[],int depth){
+token_t * match_{function_name}(node_t *n,char last_method[],int depth){
     if( n_OK(n)==0) {
         return;
     }
+    token_t *tokens=NULL;
     char *name="{function_name}";
     int start_pos=n->pos;
     n->depth+=1;
@@ -41,22 +42,14 @@ void match_{function_name}(node_t *n,char last_method[],int depth){
         printf("%s, %d, %d\n",name,start_pos,n->pos);
     }
 #endif
-
+    return tokens;
 }
 
 
 func_recursion:
     if(n_OK(n)==1 && n->pos!=-1 && start_pos!=n->pos) { //recur
         push(n->stack,n->pos);
-        push_token(n);
-        match_{function_name}(n,name,depth+1);
-        if (n->OK==0) {
-            n->pos=pop(n->stack);
-            trim_token(n);
-            pop_token(n);
-            n->OK=1;
-        } else {
-            pop(n->stack);
-            pop_token(n);
-        }
+        token_t *pinned_tokens{uid}=tokens;
+        tokens=match_{function_name}(n,name,depth+1);
+        tokens=consolidate_tokens(n,tokens,pinned_tokens{uid});
     }

@@ -4,7 +4,8 @@
 #include <unistd.h>
 
 
-#include "headers/func.h"
+//#include "headers/func.h"
+#include "headers/parse.h"
 
 #define BUF_SIZE 512
 #define BUF_MIN 128
@@ -86,7 +87,8 @@ int main(int argc, char* argv[]) {
 
     printf ("Starting\n");
     //printf("Query: \n\n%s\n --\n",query_str);
-    match_function(query_str);
+    //match_function(query_str);
+    parse(query_str);
     free(query_str);
     return 0;
 }

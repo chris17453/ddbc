@@ -99,6 +99,20 @@ void print_sub_str(node_t *n,int start,int end){
 
 
 
+token_t * consolidate_tokens(n,tokens,pinned_tokens) {
+    if(n->OK==0){
+        free_tokens(tokens);
+        n->pos=pop(n->stack);
+        return pinned_tokens;
+    } else{
+        pop(n->stack);
+        return add_tokens(pinned_tokens{uid},tokens);
+    }
+}//end 
+
+
+
+
 void print_n(node_t *n){
     printf("POS:%d\n",n->pos);
     printf("OK:%d\n",n->OK);
@@ -234,3 +248,28 @@ char* prep_sql(char* query_str){
     free(temp);     // release the temp memory we used for copying and editing
     return data;    //return the cleansed string
 }
+
+
+
+engine_headers:
+/********************************************
+* Generated: {date_time}                    *
+********************************************/
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
+
+#include "headers/expressions.h"
+#include "headers/parse.h"
+
+
+//#define DEBUG_START   1
+//#define DEBUG_SUCCESS 1
+//#define DEBUG_FAIL    1
+
+
+
+

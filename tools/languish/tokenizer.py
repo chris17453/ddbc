@@ -108,11 +108,10 @@ def gather_matches(tokens):
         for token in tokens:
             functions.update(gather_matches(token))
 
-    if isinstance(tokens,dict):
-        for token in tokens['data']:
-            functions.update(gather_matches(token))
+    elif isinstance(tokens,dict):
+        functions.update(gather_matches( tokens['data']))
 
-    if isinstance(tokens,str):
+    elif isinstance(tokens,str):
         functions[tokens]=1
 
     return functions

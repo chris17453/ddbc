@@ -5,6 +5,7 @@
 
 // token element in bytecode list
 typedef struct token_t{
+    uint16_t        success;      // is this a good token
     uint32_t        code;         // the byte code used for comparison
     uint16_t        type;         // string,literal,delimiter,operator,function,reserverd,keyword
     uint16_t        id;           // incremental ID for trimming 
@@ -19,6 +20,7 @@ typedef struct token_t{
     struct token_t  *left;         // previous node
     struct token_t  *right;        // next node
 } token_t;
+
 
 
 // signatures

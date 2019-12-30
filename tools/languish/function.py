@@ -1,18 +1,47 @@
 import datetime
+from pprint import pprint
 from .tokenizer import group_expressions, gather_matches, build_expression_levels, recursive, get_var, uid
 from .tpl import tpl
 
-def build(name,pattern,depth=0):
+UUID=1
+
+def build_DEFINES(name,pattern,depth=0):
+    global UUID
     # load data / set variables
     tokens=build_expression_levels(pattern,0)
     # pprint(tokens,indent=2)
     # print " ---"
+    
     tokens=group_expressions(tokens)
+    #print({'name':name,'data':tokens})    
+    return gather_matches(tokens)
+
+def build_expressions(name,pattern,depth=0):
+    global UUID
+    tokens=build_expression_levels(pattern,0)
+    tokens=group_expressions(tokens)
+    # pprint(tokens,indent=2)
+    return tokens
+
+
+def build(name,pattern,depth=0):
+    global UUID
+    # load data / set variables
+    tokens=build_expression_levels(pattern,0)
+    # pprint(tokens,indent=2)
+    # print " ---"
+    
+    tokens=group_expressions(tokens)
+    
     list_of_match_functions=gather_matches(tokens)
+    
+
     #pprint(tokens,indent=2)
+
     o="\n"
     t=tpl("templates/match_function.c")
     t.add("match_function","function_name",name)
+    t.add("match_function","uid",UUID)
     t.add("match_function","date_time",str(datetime.datetime.now().strftime("%Y-%m-%d")  ) )
     t.add("match_function","body", build_function_templates(tokens,name=name) )
 
@@ -86,26 +115,32 @@ def build_string(tokens,token_type=None,depth=0,name=None,order=None):
     return "unknown STRING"
 
 def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
+    global UUID
     o=""
+    UUID+=1
     if recurse==None:
         if order==0:
             t=tpl("templates/or.c")
+            t.add("or_list_item1","uid",UUID)
             t.add("or_list_item1","order",order)
             t.add("or_list_item1","body",build_function_templates(token,token_type,depth,name=name,order=order))
             o+=t.build("or_list_item1")
         else:
             t=tpl("templates/or.c")
+            t.add("or_list_item+1","uid",UUID)
             t.add("or_list_item+1","order",order)
             t.add("or_list_item+1","body",build_function_templates(token,token_type,depth,name=name,order=order))
             o+=t.build("or_list_item+1")
     else:
         if  order==0:
             t=tpl("templates/or.c")
+            t.add("recursive_self","uid",UUID)
             t.add("recursive_self","order",order)
             t.add("recursive_self","body",build_function_templates(token,token_type,depth,name=name,order=order))
             o+=t.build("recursive_self")
         else:
             t=tpl("templates/or.c")
+            t.add("recursive_self+1","uid",UUID)
             t.add("recursive_self+1","function_name",name)
             t.add("recursive_self+1","order",order)
             t.add("recursive_self+1","body",build_function_templates(token,token_type,depth,name=name,order=order))
@@ -113,6 +148,7 @@ def list_item(token,token_type=None,depth=0,name=None,order=None,recurse=None):
     return o            
 
 def build_list(tokens,token_type=None,depth=0,name=None,order=None):
+    global UUID
     name2=name
     o=""
     if name!=None:
@@ -196,18 +232,21 @@ def build_list(tokens,token_type=None,depth=0,name=None,order=None):
     return "Unknown LIST"
 
 def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
+    global UUID
     o=""
     token=tokens
-
+    UUID+=1
 
     if token['type']=='zero_or_more':
         t=tpl("templates/zero_or_more.c")
+        t.add("zero_or_more","uid",UUID)
         t.add("zero_or_more","body",build_function_templates(token['data'],token['type'],depth,name=name))
         o+=t.build("zero_or_more")
         return o
 
     if token['type']=='one_or_more':
         t=tpl("templates/one_or_more.c")
+        t.add("one_or_more","uid",UUID)
         t.add("one_or_more","body",build_function_templates(token['data'],token['type'],depth,name=name))
         o+=t.build("one_or_more")
         return o
@@ -215,6 +254,7 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
     if token['type']=='char':
         opt_uid="opt_temp_{0}".format(uid())
         t=tpl("templates/char.c")
+        t.add("char","uid",UUID)
         t.add("char","conditions",build_function_templates(token['data'],token['type'],depth,name=name))
         o+=t.build("char")
         return o
@@ -222,6 +262,7 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
     if token['type']=='range':
         opt_uid="opt_temp_{0}".format(uid())
         t=tpl("templates/range.c")
+        t.add("range","uid",UUID)
         t.add("range","range_1",tokens['data'][0])
         t.add("range","range_2",tokens['data'][1])
         o+=t.build("range")
@@ -230,6 +271,7 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
     if token['type']=='optional':
         opt_uid="opt_temp_{0}".format(uid())
         t=tpl("templates/optional.c")
+        t.add("optional","uid",UUID)
         t.add("optional","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
         t.add("optional","token_uid",opt_uid)
         o+=t.build("optional")
@@ -237,18 +279,21 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
 
     if token['type']=='group':
         t=tpl("templates/group.c")
+        t.add("group","uid",UUID)
         t.add("group","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
         o+=t.build("group")
         return o
 
     if token['type']=='or':
         t=tpl("templates/or.c")
+        t.add("or","uid",UUID)
         t.add("or","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
         o+=t.build("or")
         return o
 
     if token['type']=='not':
         t=tpl("templates/not.c")
+        t.add("not","uid",UUID)
         t.add("not","body",build_function_templates(token['data'],token['type'],depth+1,name=name))
         o+=t.build("not")
         return o

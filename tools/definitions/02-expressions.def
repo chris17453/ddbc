@@ -60,7 +60,7 @@ simple_expr:
     {literal} 
   | {identifier}
   | {subquery}
-  | {functions}
+#  | {functions}
   | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
   | [+] {whitespace} {simple_expr}
   | [-] {whitespace} {simple_expr}

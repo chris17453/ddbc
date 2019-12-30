@@ -24,6 +24,7 @@ token_t *create_token(  uint32_t     code,
     //techinically its already cleared if values are given
     //memset(new_node, 0, sizeof(*new_node));
 
+    new_token->success     =0;
     new_token->code        =code;
     new_token->uuid        =tokens_UUID;
     new_token->code        =code;
@@ -210,7 +211,6 @@ void n_token(node_t *n,char *element){
 }
 
 void trim_token(node_t *n){
-    return;
     int id=n->pos;//peek(n->token_stack);
         
     printf("\nTrimming : %d->%d",id,n->token_index);
