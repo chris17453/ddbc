@@ -22,6 +22,7 @@ def build_defines(template_dir):
             safe_key=get_safe_name(key)
             print('#define STR_{0:25}   0x{1:04X}'.format(safe_key,matches[key]))
 
+    print("\nconst char *debug_str [{0}];\n".format(len(matches)))
     print("\n\nuint16_t *pattern[{0}];".format(len(matches)))
 
             
@@ -65,6 +66,9 @@ def functobytecode(func,matches):
         elif func_t=="ZERO_OR_MORE" : 
             func_t='TYP_ZOM'
             func_index=0xFF0A
+        elif func_t=="EXP" : 
+            func_t='TYP_EXP'
+            func_index=0xFF0B
 
 
 
@@ -262,6 +266,19 @@ def build_engine(template_dir):
         patterns.append("PATTERN_0x{0:04X}".format(i))
     o+= "\n\n// ********************"
     o+= "\n\nuint16_t *pattern[{0}]={{ {1} }};".format(len(matches),",".join(patterns) )
+
+
+    debug_str=[]
+    for key in matches:
+        if key[0]=='{' and key[-1]=='}':
+            debug_str.append('"{0}"'.format(key[1:-1]))
+
+    for key in matches:
+        if key[0]!='{' or key[-1]!='}':
+            safe_key=get_safe_name(key)
+            debug_str.append('"{0}"'.format(safe_key))
+
+    o+="\nconst char *debug_str [{0}] ={{ {1} }};\n\n".format(len(debug_str),",".join(debug_str))
 
     print (o)
 

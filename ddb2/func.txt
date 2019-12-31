@@ -1,0 +1,721 @@
+[ {
+'data': ['{whitespace}', '{select}'], 'type':'group'}
+
+]
+  [ {
+'data':{
+'data': ['\\s'], 'type':'char'}
+, 'type':'zero_or_more'}
+
+]
+
+
+
+uint16_t PATTERN_0x0002[0x002C] = { 
+  
+0x002B, 
+STR_SELECT, 
+EXP_WHITESPACE, 
+EXP_SELECT_EXPR_LIST, 
+EXP_WHITESPACE, 
+TYP_GRP, 0x0001, 
+  TYP_OPT, 0x0001, 
+    TYP_GRP, 0x0005, 
+      STR_FROM, 
+      EXP_WHITESPACE, 
+      EXP_IDENTIFIER, 
+      TYP_OPT, 0x0001, 
+        TYP_GRP, 0x0002, 
+          TYP_CHR, 0x0001, 
+            STR_PERIOD, 
+          EXP_IDENTIFIER, 
+          TYP_OPT, 0x0001, 
+            TYP_GRP, 0x0004, 
+              EXP_WHITESPACE, 
+              STR_AS, 
+              EXP_WHITESPACE, 
+              EXP_IDENTIFIER, 
+  EXP_WHITESPACE, 
+  TYP_GRP, 0x0001,
+     TYP_OPT, 0x0001, 
+      TYP_GRP, 0x0002, 
+        STR_WHERE, 
+          TYP_OOM, 0x0001, 
+            TYP_GRP, 0x0002, 
+              EXP_WHITESPACE, 
+              EXP_EXPR }; //{SELECT}
+
+
+['select', 
+'{whitespace}', 
+'{select_expr_list}', 
+'{whitespace}', {
+                    'data':[ {
+                            'data':{
+                                    'data':['from', '{whitespace}', '{identifier}', {
+                                                                                        'data':{
+                                                                                                    'data':[ {
+                                                                                                                    'data': ['.'], 'type':'char'}
+                                                                                , '{identifier}'], 'type':'group'}
+        , 'type':'optional'}
+     , {
+      'data':{
+      'data': ['{whitespace}', 'as', '{whitespace}', '{identifier}'], 'type':'group'}
+    , 'type':'optional'}
+  ], 'type':'group'}
+, 'type':'optional'}
+], 'type':'group'}
+
+   , '{whitespace}', {
+'data':[ {
+  'data':{
+    'data':['where', {
+      'data':{
+      'data': ['{whitespace}', '{expr}'], 'type':'group'}
+    , 'type':'one_or_more'}
+  ], 'type':'group'}
+, 'type':'optional'}
+], 'type':'group'}
+
+]
+  ['{select_expr}', {
+'data':[ {
+  'data':{
+    'data':['{whitespace}', {
+    'data': [','], 'type':'char'}
+  , '{whitespace}', '{select_expr}'], 'type':'group'}
+, 'type':'zero_or_more'}
+], 'type':'group'}
+
+]
+  [ {
+'data': '{keywords}', 'type':'not'}
+
+   , {
+'data':{
+  'data':[ {
+  'data': ['A', 'Z'], 'type':'range'}
+    , {
+  'data': ['a', 'z'], 'type':'range'}
+    , {
+  'data': ['0', '9'], 'type':'range'}
+, '$', '_'], 'type':'char'}
+, 'type':'one_or_more'}
+
+]
+  [ {
+'data':[ {
+  'data':[ {
+    'data':['{expr}', '{whitespace}', {
+      'data':[ {
+        'data':['or', {
+          'data':[ {
+          'data': ['\\|'], 'type':'char'}
+         , {
+          'data': ['\\|'], 'type':'char'}
+        ], 'type':'group'}
+      , 'xor', 'and', '&&'], 'type':'or'}
+    ], 'type':'group'}
+  , '{whitespace}', '{expr}'], 'type':'group'}
+], 'type':'group'}
+    , {
+'data': ['not', '{whitespace}', '{expr}'], 'type':'group'}
+    , {
+'data': ['!', '{whitespace}', '{expr}'], 'type':'group'}
+    , {
+  'data':['{boolean_primary}', '{whitespace}', 'IS', {
+    'data':{
+    'data': ['{whitespace}', 'not'], 'type':'group'}
+  , 'type':'optional'}
+     , '{whitespace}', {
+    'data':[ {
+    'data': ['{boolean}', '{unknown}'], 'type':'or'}
+  ], 'type':'group'}
+], 'type':'group'}
+, '{boolean_primary}'], 'type':'or'}
+
+]
+  [ {
+'data':['{expr}', '{whitespace}', {
+  'data':{
+  'data': ['as', '{whitespace}', '{identifier}'], 'type':'group'}
+, 'type':'optional'}
+], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ['\\('], 'type':'char'}
+    , {
+'data': '{whitespace}', 'type':'optional'}
+    , '{select}', {
+'data': '{whitespace}', 'type':'optional'}
+    , {
+'data': ['\\)'], 'type':'char'}
+], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+  'data':['{boolean_primary}', '{whitespace}', {
+    'data':[ {
+      'data':[ {
+        'data':[ {
+        'data': ['{comparison_operator}', '{whitespace}', '{predicate}'], 'type':'group'}
+      ], 'type':'group'}
+       , {
+        'data':['is', {
+          'data':{
+          'data': ['{whitespace}', 'not'], 'type':'group'}
+        , 'type':'optional'}
+      , '{whitespace}', '{null}'], 'type':'group'}
+       , {
+      'data': ['<=>', '{whitespace}', '{predicate}'], 'type':'group'}
+       , {
+        'data':['{comparison_operator}', '{whitespace}', {
+          'data':[ {
+          'data': ['all', 'any'], 'type':'or'}
+        ], 'type':'group'}
+      , '{whitespace}', '{subquery}'], 'type':'group'}
+    ], 'type':'or'}
+  ], 'type':'group'}
+], 'type':'group'}
+, '{predicate}'], 'type':'or'}
+
+]
+  [ {
+'data': ['{true}', '{false}'], 'type':'or'}
+
+]
+  ['unknown']
+  [ {
+'data':[ {
+'data': ['='], 'type':'char'}
+    , {
+  'data':[ {
+    'data':[ {
+    'data': ['<'], 'type':'char'}
+      , {
+    'data': ['>'], 'type':'char'}
+  ], 'type':'group'}
+], 'type':'group'}
+    , {
+  'data':[ {
+    'data':[ {
+    'data': ['>'], 'type':'char'}
+      , {
+    'data': ['='], 'type':'char'}
+  ], 'type':'group'}
+], 'type':'group'}
+    , {
+  'data':[ {
+    'data':[ {
+    'data': ['<'], 'type':'char'}
+      , {
+    'data': ['='], 'type':'char'}
+  ], 'type':'group'}
+], 'type':'group'}
+    , {
+  'data':[ {
+    'data':[ {
+    'data': ['!'], 'type':'char'}
+      , {
+    'data': ['='], 'type':'char'}
+  ], 'type':'group'}
+], 'type':'group'}
+    , {
+'data': ['>'], 'type':'char'}
+    , {
+'data': ['<'], 'type':'char'}
+], 'type':'or'}
+
+]
+  ['{bit_expr}', {
+'data':{
+  'data':[ {
+    'data':[ {
+      'data':[ {
+        'data':['{whitespace}', {
+        'data': 'not', 'type':'optional'}
+      , '{whitespace}', 'in', '{whitespace}', '{subquery}'], 'type':'group'}
+    ], 'type':'group'}
+     , {
+      'data':['{whitespace}', {
+      'data': 'not', 'type':'optional'}
+      , '{whitespace}', 'in', '{whitespace}', {
+      'data': ['\\('], 'type':'char'}
+      , '{expr}', {
+        'data':{
+          'data':[ {
+            'data':{
+              'data':['{whitespace}', {
+              'data': [','], 'type':'char'}
+            , '{whitespace}', '{expr}'], 'type':'group'}
+          , 'type':'zero_or_more'}
+        ], 'type':'group'}
+      , 'type':'optional'}
+      , {
+      'data': ['\\)'], 'type':'char'}
+    ], 'type':'group'}
+     , {
+      'data':['{whitespace}', {
+      'data': 'not', 'type':'optional'}
+    , '{whitespace}', 'between', '{whitespace}', '{bit_expr}', '{whitespace}', 'and', '{whitespace}', '{predicate}'], 'type':'group'}
+     , {
+      'data':['{whitespace}', {
+      'data': 'not', 'type':'optional'}
+      , '{whitespace}', 'like', '{whitespace}', '{simple_expr}', {
+        'data':{
+        'data': ['{whitespace}', 'escape', '{whitespace}', '{simple_expr}'], 'type':'group'}
+      , 'type':'optional'}
+    ], 'type':'group'}
+     , {
+      'data':['{whitespace}', {
+      'data': 'not', 'type':'optional'}
+    , '{whitespace}', 'regexp', '{whitespace}', '{bit_expr}'], 'type':'group'}
+  ], 'type':'or'}
+], 'type':'group'}
+, 'type':'optional'}
+
+]
+  [ {
+'data': ['null', 'NULL'], 'type':'or'}
+
+]
+  [ {
+'data':[ {
+'data': ['{bit_expr}', '{whitespace}', '{operations}', '{whitespace}', '{bit_expr}'], 'type':'group'}
+    , {
+  'data':['{bit_expr}', '{whitespace}', {
+  'data': ['+', '-'], 'type':'char'}
+, '{whitespace}', '{interval_expr}'], 'type':'group'}
+, '{simple_expr}'], 'type':'or'}
+
+]
+  [ {
+'data':['{literal}', '{identifier}', '{subquery}', {
+  'data':['{simple_expr}', '{whitespace}', {
+  'data': ['\\|'], 'type':'char'}
+     , {
+  'data': ['\\|'], 'type':'char'}
+, '{whitespace}', '{simple_expr}'], 'type':'group'}
+    , {
+  'data':[ {
+  'data': ['+'], 'type':'char'}
+, '{whitespace}', '{simple_expr}'], 'type':'group'}
+    , {
+  'data':[ {
+  'data': ['-'], 'type':'char'}
+, '{whitespace}', '{simple_expr}'], 'type':'group'}
+    , {
+  'data':[ {
+  'data': ['~'], 'type':'char'}
+, '{whitespace}', '{simple_expr}'], 'type':'group'}
+    , {
+  'data':[ {
+  'data': ['!'], 'type':'char'}
+, '{whitespace}', '{simple_expr}'], 'type':'group'}
+, '{identifier_expr}', '{interval_expr}'], 'type':'or'}
+
+]
+  [ {
+'data':[ {
+'data': ['\\|'], 'type':'char'}
+    , {
+'data': ['&'], 'type':'char'}
+    , {
+  'data':[ {
+  'data': ['<'], 'type':'char'}
+     , {
+  'data': ['<'], 'type':'char'}
+], 'type':'group'}
+    , {
+  'data':[ {
+  'data': ['>'], 'type':'char'}
+     , {
+  'data': ['>'], 'type':'char'}
+], 'type':'group'}
+    , {
+'data': ['+'], 'type':'char'}
+    , {
+'data': ['-'], 'type':'char'}
+    , {
+'data': ['*'], 'type':'char'}
+    , {
+'data': ['/'], 'type':'char'}
+    , 'div', 'mod', {
+'data': ['%'], 'type':'char'}
+    , {
+'data': ['\\^'], 'type':'char'}
+], 'type':'or'}
+
+]
+  [ {
+'data': ['MICROSECOND', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH'], 'type':'or'}
+
+]
+  [ {
+'data': ['{identifier}', 'as', '{identifier}'], 'type':'group'}
+
+]
+  [ {
+'data': ['{hex}', '{bit}', '{boolean}', '{null}', '{string}', '{real}'], 'type':'or'}
+
+]
+  [ {
+'data': ['0'], 'type':'char'}
+
+   , {
+'data': ['x', 'X'], 'type':'char'}
+
+   , {
+'data':{
+  'data':[ {
+  'data': ['0', '9'], 'type':'range'}
+    , {
+  'data': ['A', 'F'], 'type':'range'}
+    , {
+  'data': ['a', 'f'], 'type':'range'}
+], 'type':'char'}
+, 'type':'one_or_more'}
+
+]
+  [ {
+'data': ['0'], 'type':'char'}
+
+   , {
+'data': ['b'], 'type':'char'}
+
+   , {
+'data':{
+'data': ['0', '1'], 'type':'char'}
+, 'type':'one_or_more'}
+
+]
+  [ {
+'data': ['{single_quote_string}', '{double_quote_string}'], 'type':'or'}
+
+]
+  [ {
+'data':[ {
+  'data':[ {
+    'data':['{integer}', {
+    'data': ['.'], 'type':'char'}
+  , '{unsigned_int}'], 'type':'group'}
+], 'type':'group'}
+    , {
+  'data':[ {
+    'data':[ {
+    'data': ['.'], 'type':'char'}
+  , '{unsigned_int}'], 'type':'group'}
+], 'type':'group'}
+    , {
+  'data':[ {
+    'data':['{integer}', {
+    'data': '{exponent}', 'type':'optional'}
+  ], 'type':'group'}
+], 'type':'group'}
+], 'type':'or'}
+
+]
+  ['{unsigned_int}']
+  [ {
+'data':{
+  'data':[ {
+  'data': ['0', '9'], 'type':'range'}
+], 'type':'char'}
+, 'type':'one_or_more'}
+
+]
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  ['{unsigned_int}']
+  [ {
+'data': ['{MICROSECONDS}', 'MICROSECOND'], 'type':'group'}
+
+]
+  [ {
+'data': ['{SECONDS}', 'SECOND'], 'type':'group'}
+
+]
+  [ {
+'data': ['{MINUTES}', 'MINUTE'], 'type':'group'}
+
+]
+  [ {
+'data': ['{HOURS}', 'HOUR'], 'type':'group'}
+
+]
+  [ {
+'data': ['{DAYS}', 'DAY'], 'type':'group'}
+
+]
+  [ {
+'data': ['{WEEKS}', 'WEEK'], 'type':'group'}
+
+]
+  [ {
+'data': ['{MONTHS}', 'MONTH'], 'type':'group'}
+
+]
+  [ {
+'data': ['{QUARTERS}', 'QUARTER'], 'type':'group'}
+
+]
+  [ {
+'data': ['{YEARS}', 'YEAR'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{SECONDS}', {
+'data': ['.'], 'type':'char'}
+    , '{MICROSECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'SECOND_MICROSECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ['.'], 'type':'char'}
+    , '{MICROSECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'MINUTE_MICROSECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'MINUTE_SECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ['.'], 'type':'char'}
+    , '{MICROSECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'HOUR_MICROSECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'HOUR_SECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': ["'"], 'type':'char'}
+, 'HOUR_MINUTE'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{DAYS}', '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ['.'], 'type':'char'}
+    , '{MICROSECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'DAY_MICROSECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{DAYS}', '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': [':'], 'type':'char'}
+    , '{SECONDS}', {
+'data': ["'"], 'type':'char'}
+, 'DAY_SECOND'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{DAYS}', '{HOURS}', {
+'data': [':'], 'type':'char'}
+    , '{MINUTES}', {
+'data': ["'"], 'type':'char'}
+, 'DAY_MINUTE'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{DAYS}', '{HOURS}', {
+'data': ["'"], 'type':'char'}
+, 'DAY_HOUR'], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , '{YEARS}', '-', '{MONTHS}', {
+'data': ["'"], 'type':'char'}
+, 'YEAR_MONTH'], 'type':'group'}
+
+]
+  [ {
+'data': ['true', 'TRUE'], 'type':'or'}
+
+]
+  [ {
+'data': ['false', 'FALSE'], 'type':'or'}
+
+]
+  [ {
+'data': ['{signed_int}', '{unsigned_int}'], 'type':'or'}
+
+]
+  [ {
+'data': ['{sign}', '{unsigned_int}'], 'type':'group'}
+
+]
+  [ {
+'data': ['-', '+'], 'type':'char'}
+
+]
+  [ {
+'data':[ {
+'data': ['E', 'e'], 'type':'char'}
+, '{integer}'], 'type':'group'}
+
+]
+  [ {
+'data': ['select', 'from', 'on', 'where', 'and', 'or', 'xor', 'limit', 'having', 'group', 'by', 'order', 'not', 'in', 'between', 'like'], 'type':'or'}
+
+]
+  [ {
+'data':[ {
+'data': ["'"], 'type':'char'}
+    , {
+  'data':{
+    'data':[ {
+    'data': ['^', "'"], 'type':'char'}
+  ], 'type':'group'}
+, 'type':'one_or_more'}
+    , {
+'data': ["'"], 'type':'char'}
+], 'type':'group'}
+
+]
+  [ {
+'data':[ {
+'data': ['"'], 'type':'char'}
+    , {
+  'data':{
+    'data':[ {
+    'data': ['^', '"'], 'type':'char'}
+  ], 'type':'group'}
+, 'type':'one_or_more'}
+    , {
+'data': ['"'], 'type':'char'}
+], 'type':'group'}
+
+]
+  [ {
+'data': [';'], 'type':'char'}
+
+]
+  [ {
+'data': ['{block_comment}', '{single_comment}'], 'type':'or'}
+
+]
+  [ {
+'data':['{left_comment}', {
+  'data':{
+    'data':[ {
+    'data': '{right_comment}', 'type':'not'}
+     , {
+    'data': ['.'], 'type':'char'}
+  ], 'type':'group'}
+, 'type':'zero_or_more'}
+, '{right_comment}'], 'type':'group'}
+
+]
+  [ {
+'data':['{inline_comment}', {
+  'data':{
+    'data':[ {
+    'data': '{end_of_line}', 'type':'not'}
+     , {
+    'data': ['.'], 'type':'char'}
+  ], 'type':'group'}
+, 'type':'zero_or_more'}
+, '{end_of_line}'], 'type':'group'}
+
+]
+  [ {
+'data': ['/'], 'type':'char'}
+
+   , {
+'data': ['*'], 'type':'char'}
+
+]
+  [ {
+'data': ['*'], 'type':'char'}
+
+   , {
+'data': ['/'], 'type':'char'}
+
+]
+  [ {
+'data': ['-'], 'type':'char'}
+
+   , {
+'data': ['-'], 'type':'char'}
+
+]
+  [ {
+'data': ['\\n'], 'type':'char'}
+
+   , {
+'data':{
+'data': ['\\r'], 'type':'char'}
+, 'type':'optional'}
+
+]
+  [ {
+'data':[ {
+  'data':{
+  'data': ['\\t', '\\s', '\\n', '\\r'], 'type':'char'}
+, 'type':'not'}
+], 'type':'group'}
+
+]

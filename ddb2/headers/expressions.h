@@ -157,5 +157,8 @@
 #define STR_LINE_RETURN                 0x009B
 #define STR_TAB                         0x009C
 
+const char *debug_str[157];
+
+
 
 uint16_t *pattern[157];

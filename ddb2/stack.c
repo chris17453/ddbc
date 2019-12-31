@@ -14,6 +14,11 @@ stack_t* createStack(unsigned capacity) {
     //printf("stack created\n"); 
     return stack; 
 } 
+
+void free_stack(stack_t *stack){
+    free(stack->array);
+    free(stack);
+}
   
 //  stack_t is full when top is equal to the last index 
 int isFull(stack_t* stack) { 
