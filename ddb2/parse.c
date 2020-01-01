@@ -12,7 +12,7 @@ void parse(char *text){
     uint16_t  res=core_parse(text,EXP_QUERIES,0,0);
 }
 
-char * get_type(uint16_t t){
+const char * get_type(uint16_t t){
     switch(t){
         case TYP_CHR: return "CHAR";
         case TYP_GRP: return "GROUP";
@@ -20,15 +20,14 @@ char * get_type(uint16_t t){
         case TYP_NOT: return "NOT";
         case TYP_OOM: return "ONE_OR_MORE";
         case TYP_OPT: return "OPTIONAL";
-        case TYP_OR: return "OR";
+        case TYP_OR:  return "OR";
         case TYP_RNG: return "RANGE";
         case TYP_STR: return "STR";
         case TYP_ZOM: return "ZERO_OR_MORE";
         case TYP_EXP: return "EXPRESSION";
-        default: return "UNK";
+        default: return debug_str[t];
     }
 }
-
 
 uint16_t *get_next_level(uint16_t pattern_id,uint16_t index,uint16_t count){
     uint16_t *expressions=malloc(count * sizeof(uint16_t));
@@ -57,7 +56,7 @@ uint16_t *get_next_level(uint16_t pattern_id,uint16_t index,uint16_t count){
         if (fragment[expressions[i]]>=0xFF00) {
             printf("%04x %04x # %s/CHIDREN\n",fragment[expressions[i]],fragment[expressions[i]+1],get_type(fragment[expressions[i]]));
         } else {        
-        printf("%04x #%s \n",fragment[expressions[i]],debug_str[fragment[expressions[i]]]);
+        printf("%04x #%s # %04x \n",fragment[expressions[i]],debug_str[fragment[expressions[i]]],expressions[i]);
         }
 
         //printf("\n %d",expressions[i]);
@@ -65,7 +64,6 @@ uint16_t *get_next_level(uint16_t pattern_id,uint16_t index,uint16_t count){
     printf("\n");
     return expressions;
 }
-
 
 void debug_pattern(uint16_t pattern_id){
     uint16_t *fragment=pattern[pattern_id];
@@ -88,7 +86,7 @@ void debug_pattern(uint16_t pattern_id){
         }
         
         for(int p=0;p<padd;p++) printf(" "); 
-        printf("%04x #%s \n",fragment[i],debug_str[fragment[i]]);
+        printf("%04x #%s - %04x \n",fragment[i],debug_str[fragment[i]],fragment[i]);
 
         if(row_count>0) {
             --row_count;
@@ -123,17 +121,17 @@ uint16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_
     uint16_t range1;
     uint16_t range2;
     //if this is the start of the pattern match
-    ++pattern_pos;
+    if (pattern_pos==0)    ++pattern_pos;
     uint16_t pin,matched;
-    printf("Length: %d",length);
+//    printf("Length: %d",length);
 
     while (pattern_pos<=length){
         printf("\nPattern: %04x  Index: %04x",pattern_id,pattern_pos);
         expr_type=fragment[pattern_pos];
-        ++pattern_pos;
         if(expr_type<0xFF00) {
             expr_len=1;
         } else {
+            ++pattern_pos;
             expr_len =fragment[pattern_pos];
             ++pattern_pos;
         }
@@ -143,15 +141,19 @@ uint16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_
         uint16_t *sub_expr=get_next_level(pattern_id,pattern_pos,expr_len);
 
 
-        printf("\n%s,%d\n",get_type(expr_type),pattern_pos);
+        //printf("\n%s,%d\n",get_type(expr_type),pattern_pos);
         char c = getchar( );
         printf("\n%c\n",c);
+
+
         switch(expr_type){
             case TYP_CHR:        
             case TYP_STR:   matched=0;
+                            //printf("%s",text);
                             while (matched<expr_len){
-                                expr_char=fragment[pattern_pos];
+                                expr_char=(char)fragment[pattern_pos];
                                 data_char=(char)text[pos+matched];
+                                printf("EXP: %c - TEXT: %c %d",expr_char,data_char,pos+matched);
                                 if (expr_char != data_char ) break;
                                 ++matched;
                             }
@@ -167,10 +169,15 @@ uint16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_
                             break;
 
 
-            case TYP_GRP:   res=core_parse(text,pattern_id,pattern_pos,pos);
-                            if (res!=0) pos=res;
-                            else return 0;
+            case TYP_GRP:   pin=pos;
+                            for(int i=0;i<expr_len;i++){
+                                printf("TRYING %d",sub_expr[i]);
+                                res=core_parse(text,pattern_id,sub_expr[i],pos);
+                                if (res==0) return 0;
+                                pos=res;
+                            }
                             break;
+
 
             case TYP_OPT:   res=core_parse(text,pattern_id,pattern_pos,pos);
                             if (res!=0) pos=res;
@@ -249,6 +256,7 @@ uint16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_
                         else return 0;
 
         }//end switch
+        printf("Success\n");
         pattern_pos+=expr_len;
     }//end loop
     return pos;

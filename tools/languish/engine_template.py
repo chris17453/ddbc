@@ -77,20 +77,26 @@ def functobytecode(func,matches):
             print ("---"+func_t+"---")       
 
 
-        if USE_HUMAN_INDEXES==None:
-            o.append("0x{0:04X}".format(func_index ) )
-            if isinstance(func['data'],dict):
-                o.append("0x{0:04X}".format(1) )    
-            else:
-                o.append("0x{0:04X}".format(len(func['data']) ) )
+        if len(func['data'])==1 and func_t=="TYP_GRP":
+            dont_parse=True;
         else:
-            o.append("{0}".format(func_t ) )
-            if isinstance(func['data'],dict):
-                o.append("0x{0:04X}".format(1) )    
+            dont_parse=None
+        dont_parse=None
+        if dont_parse==None:
+            if USE_HUMAN_INDEXES==None:
+                o.append("0x{0:04X}".format(func_index ) )
+                if isinstance(func['data'],dict):
+                    o.append("0x{0:04X}".format(1) )    
+                else:
+                    o.append("0x{0:04X}".format(len(func['data']) ) )
             else:
-                o.append("0x{0:04X}".format(len(func['data']) ) )
+                o.append("{0}".format(func_t ) )
+                if isinstance(func['data'],dict):
+                    o.append("0x{0:04X}".format(1) )    
+                else:
+                    o.append("0x{0:04X}".format(len(func['data']) ) )
 
-        
+      
         o+=functobytecode(func['data'],matches)
     else:
         safe_key=get_safe_name(func)
