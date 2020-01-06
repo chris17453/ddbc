@@ -3,14 +3,15 @@ subquery:
  [\(] {whitespace}? {select} {whitespace}?  [\)]
 
 expr: 
-      ( {expr} {whitespace}  ( or | ([\|] [\|]) | xor | and | && )  {whitespace}  {expr})
-  |   not {whitespace} {expr}
-  |   !   {whitespace} {expr}
-  |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
-  |  {boolean_primary} 
-
+#      not {whitespace} {expr}
+#  |   !   {whitespace} {expr}
+#  |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
+    {boolean_primary} 
+#  |  ( {expr} {whitespace}  ( or | ([\|] [\|]) | xor | and | && )  {whitespace}  {expr})
+  
 boolean_primary:
-    (
+   {predicate} 
+   | (
       {boolean_primary} 
       {whitespace}
       ( 
@@ -20,7 +21,6 @@ boolean_primary:
         |  {comparison_operator}  {whitespace} (all | any)  {whitespace} {subquery}
       ) 
     )
-  | {predicate} 
 
 
 predicate:
@@ -30,13 +30,13 @@ predicate:
     | {whitespace} not? {whitespace} in      {whitespace} [\(] {expr}   ( ( {whitespace} [,]    {whitespace} {expr})* )? [\)] 
     | {whitespace} not? {whitespace} between {whitespace} {bit_expr}        {whitespace} and    {whitespace} {predicate} 
     | {whitespace} not? {whitespace} like    {whitespace} {simple_expr}   ( {whitespace} escape {whitespace} {simple_expr} )? 
-    | {whitespace} not? {whitespace} regexp  {whitespace} {bit_expr} 
+#    | {whitespace} not? {whitespace} regexp  {whitespace} {bit_expr} 
   )?
 
 
 bit_expr:
-    {bit_expr} {whitespace}  {operations}  {whitespace} {bit_expr}
-  | {bit_expr} {whitespace}  [+-]          {whitespace} {interval_expr}
+#    {bit_expr} {whitespace}  {operations}  {whitespace} {bit_expr}
+#  | {bit_expr} {whitespace}  [+-]          {whitespace} {interval_expr}
   | {simple_expr}
 
 operations: 
@@ -61,13 +61,13 @@ simple_expr:
   | {identifier}
   | {subquery}
 #  | {functions}
-  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
-  | [+] {whitespace} {simple_expr}
-  | [-] {whitespace} {simple_expr}
-  | [~] {whitespace} {simple_expr}
-  | [!] {whitespace} {simple_expr}
+#  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
+#  | [+] {whitespace} {simple_expr}
+#  | [-] {whitespace} {simple_expr}
+#  | [~] {whitespace} {simple_expr}
+#  | [!] {whitespace} {simple_expr}
   |     {identifier_expr}
-  |     {interval_expr}
+#  |     {interval_expr}
 
 literal: 
     {hex} 

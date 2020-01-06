@@ -15,12 +15,13 @@ def build_defines(template_dir):
 
     for key in matches:
         if key[0]=='{' and key[-1]=='}':
-            print('#define EXP_{0:25}   0x{1:04X}'.format(key[1:-1],matches[key]))
+            print('#define EXP_{0:25}   0x{1:03X}'.format(key[1:-1],matches[key]))
 
     for key in matches:
         if key[0]!='{' or key[-1]!='}':
             safe_key=get_safe_name(key)
-            print('#define STR_{0:25}   0x{1:04X}'.format(safe_key,matches[key]))
+            safe_value=matches[key]
+            print('#define STR_{0:25}   0x{1:03X}'.format(safe_key,safe_value))
 
     print("\nconst char *debug_str [{0}];\n".format(len(matches)))
     print("\n\nuint16_t *pattern[{0}];".format(len(matches)))
@@ -37,8 +38,8 @@ def functobytecode(func,matches):
 
         func_index=0
         if   func_t=="CHAR"         : 
-            func_t='TYP_CHR'
-            func_index=0xFF01
+            func_t='TYP_GRP'
+            func_index=0xFF02
         elif func_t=="GROUP"        : 
             func_t='TYP_GRP'
             func_index=0xFF02
@@ -61,18 +62,14 @@ def functobytecode(func,matches):
             func_t='TYP_RNG'
             func_index=0xFF08
         elif func_t=="STR"          : 
-            func_t='TYP_STR'
-            func_index=0xFF09
+            func_t='TYP_GRP'
+            func_index=0xFF02
         elif func_t=="ZERO_OR_MORE" : 
             func_t='TYP_ZOM'
             func_index=0xFF0A
         elif func_t=="EXP" : 
             func_t='TYP_EXP'
             func_index=0xFF0B
-
-
-
-
         else:
             print ("---"+func_t+"---")       
 
@@ -81,20 +78,22 @@ def functobytecode(func,matches):
             dont_parse=True;
         else:
             dont_parse=None
-        dont_parse=None
+        #dont_parse=None
         if dont_parse==None:
             if USE_HUMAN_INDEXES==None:
-                o.append("0x{0:04X}".format(func_index ) )
+                o.append("0x{0:03X}".format(func_index ) )
                 if isinstance(func['data'],dict):
-                    o.append("0x{0:04X}".format(1) )    
+                    o.append("0x{0:03X}".format(1) )    
                 else:
-                    o.append("0x{0:04X}".format(len(func['data']) ) )
+                    o.append("0x{0:03X}".format(len(func['data']) ) )
             else:
                 o.append("{0}".format(func_t ) )
+                if len(func['data'])==0:
+                    print(func);
                 if isinstance(func['data'],dict):
-                    o.append("0x{0:04X}".format(1) )    
+                    o.append("0x{0:03X}".format(1) )    
                 else:
-                    o.append("0x{0:04X}".format(len(func['data']) ) )
+                    o.append("0x{0:03X}".format(len(func['data']) ) )
 
       
         o+=functobytecode(func['data'],matches)
@@ -109,7 +108,7 @@ def functobytecode(func,matches):
             print ("++++"+safe_key+'+++')
 
         if USE_HUMAN_INDEXES==None:
-            o.append("0x{0:04X}".format(num ) )
+            o.append("0x{0:03X}".format(num ) )
         else:
             if func[0]=='{' and func[-1]=='}':
                 o.append("EXP_{0}".format(safe_key[1:-1] ) )
@@ -133,41 +132,40 @@ def get_safe(key,mode="NAME"):
         is_exp=True
 
     tokens=[            
-        { 'key' : "'" ,   'safe_key' : "SINGLE_QUOTE",},
-        { 'key' : '"' ,   'safe_key' : "DOUBLE_QUOTE",},
-        { 'key' : '_' ,   'safe_key' : "UNDERSCORE",},
-        { 'key' : '.' ,   'safe_key' : "PERIOD",},
-        { 'key' : '&' ,   'safe_key' : "LOGICAL_AND",},
-        { 'key' : '=' ,   'safe_key' : "EQUALS",},
-        { 'key' : ';' ,   'safe_key' : "SEMICOLON",},
-        { 'key' : ',' ,   'safe_key' : "COMMA",},
-        { 'key' : '+' ,   'safe_key' : "PLUS",},
-        { 'key' : '-' ,   'safe_key' : "MINUS",},
-        { 'key' : '<' ,   'safe_key' : "LT",},
-        { 'key' : '>' ,   'safe_key' : "GT",},
-        { 'key' : '*' ,   'safe_key' : "TIMES",},
-        { 'key' : '/' ,   'safe_key' : "DIVIDE",},
-        { 'key' : '%' ,   'safe_key' : "MODULUS",},
-        { 'key' : '~' ,   'safe_key' : "TILDE",},
-        { 'key' : ':' ,   'safe_key' : "COLON",},
-        { 'key' : '{' ,   'safe_key' : "LEFT_BRACKET",},
-        { 'key' : '}' ,   'safe_key' : "RIGHT_BRACKET",},
-        { 'key' : '!' ,   'safe_key' : "NEGATE",},
-        { 'key' : '$' ,   'safe_key' : "DOLLAR_SIGN",},
-        { 'key' : '#' ,   'safe_key' : "POUND_SIGN",},
-        { 'key' : '@' ,   'safe_key' : "AT_SIGN",},
-        { 'key' : '^' ,   'safe_key' : "NOT",},
-
-        { 'key' : "\\n",   'safe_key' : "NEW_LINE",},
-        { 'key' : "\\r",   'safe_key' : "LINE_RETURN",},
-        { 'key' : "\\t",   'safe_key' : "TAB",},
-        { 'key' : "\s",   'safe_key' : "SPACE",},
-        { 'key' : '\(',   'safe_key' : "LEFT_PAREN",},
-        { 'key' : '\^',   'safe_key' : "NOT",},
-        { 'key' : '\)',   'safe_key' : "RIGHT_PAREN",},
-        { 'key' : '\|',   'safe_key' : "LOGICAL_OR",},
-        { 'key' : '&&',   'safe_key' : "SHORT_CIRCUIT_AND",},
-        { 'key' : '<=>',  'safe_key' : "NULL_EQUAL",},
+        { 'key' : "'" ,   'value' : "'" ,  'safe_key' : "SINGLE_QUOTE",},
+        { 'key' : '"' ,   'value' : '"' ,  'safe_key' : "DOUBLE_QUOTE",},
+        { 'key' : '_' ,   'value' : '_' ,  'safe_key' : "UNDERSCORE",},
+        { 'key' : '.' ,   'value' : '.' ,  'safe_key' : "PERIOD",},
+        { 'key' : '&' ,   'value' : '&' ,  'safe_key' : "LOGICAL_AND",},
+        { 'key' : '=' ,   'value' : '=' ,  'safe_key' : "EQUALS",},
+        { 'key' : ';' ,   'value' : ';' ,  'safe_key' : "SEMICOLON",},
+        { 'key' : ',' ,   'value' : ',' ,  'safe_key' : "COMMA",},
+        { 'key' : '+' ,   'value' : '+' ,  'safe_key' : "PLUS",},
+        { 'key' : '-' ,   'value' : '-' ,  'safe_key' : "MINUS",},
+        { 'key' : '<' ,   'value' : '<' ,  'safe_key' : "LT",},
+        { 'key' : '>' ,   'value' : '>' ,  'safe_key' : "GT",},
+        { 'key' : '*' ,   'value' : '*' ,  'safe_key' : "TIMES",},
+        { 'key' : '/' ,   'value' : '/' ,  'safe_key' : "DIVIDE",},
+        { 'key' : '%' ,   'value' : '%' ,  'safe_key' : "MODULUS",},
+        { 'key' : '~' ,   'value' : '~' ,  'safe_key' : "TILDE",},
+        { 'key' : ':' ,   'value' : ':' ,  'safe_key' : "COLON",},
+        { 'key' : '{' ,   'value' : '{' ,  'safe_key' : "LEFT_BRACKET",},
+        { 'key' : '}' ,   'value' : '}' ,  'safe_key' : "RIGHT_BRACKET",},
+        { 'key' : '!' ,   'value' : '!' ,  'safe_key' : "NEGATE",},
+        { 'key' : '$' ,   'value' : '$' ,  'safe_key' : "DOLLAR_SIGN",},
+        { 'key' : '#' ,   'value' : '#' ,  'safe_key' : "POUND_SIGN",},
+        { 'key' : '@' ,   'value' : '@' ,  'safe_key' : "AT_SIGN",},
+        { 'key' : '\^' ,  'value' : '^' ,  'safe_key' : "NOT",},
+        { 'key' : "\n",   'value' : "\n",  'safe_key' : "NEW_LINE",},
+        { 'key' : "\r",   'value' : "\r",  'safe_key' : "LINE_RETURN",},
+        { 'key' : "\t",   'value' : "\t",  'safe_key' : "TAB",},
+        { 'key' : " ",    'value' : " ",   'safe_key' : "SPACE",},
+        { 'key' : '(',    'value' : '(',   'safe_key' : "LEFT_PAREN",},
+        { 'key' : '^',    'value' : '^',   'safe_key' : "NOT",},
+        { 'key' : ')',    'value' : ')',   'safe_key' : "RIGHT_PAREN",},
+        { 'key' : '|',    'value' : '|',   'safe_key' : "LOGICAL_OR",},
+        { 'key' : '&&',   'value' : '&&',  'safe_key' : "SHORT_CIRCUIT_AND",},
+        { 'key' : '<=>',  'value' : '<=>', 'safe_key' : "NULL_EQUAL",},
         ]
     if mode=="NAME":
         for token in tokens:
@@ -175,12 +173,18 @@ def get_safe(key,mode="NAME"):
                 if is_exp:
                     return "{{{0}}}".format(token['safe_key'])
                 return token['safe_key']
-    else:
+    if mode=="SAFE_KEY":
         for token in tokens:
             if token['safe_key']==key:
                 if is_exp:
                     return "{{{0}}}".format(token['key'])
                 return token['key']
+    if mode=="VALUE":
+        for token in tokens:
+            if token['safe_key']==key:
+                if is_exp:
+                    return "{{{0}}}".format(token['value'])
+                return token['value']
     
     if is_exp:
         return "{{{0}}}".format(key.upper())
@@ -226,6 +230,7 @@ def build_engine(template_dir):
     #print_defines(matches)
     #pprint(matches,indent=2)
 
+    # expression matches
     for key in matches:
         if key[0]=='{' and key[-1]=='}':
             found=None
@@ -239,37 +244,39 @@ def build_engine(template_dir):
                         #pprint(func,indent=2)
                         byte_arr=functobytecode(func,matches)
                         byte_str=",".join(byte_arr)
-                        o+="\nuint16_t PATTERN_0x{0:04X}[0x{1:04X}] = {{ 0x{4:04X}, {2} }};    //{3}".format(matches[key],len(byte_arr)+1,byte_str,key, len(byte_arr))
+                        o+="\nuint16_t PATTERN_0x{0:03X}[0x{1:03X}] = {{ 0x{4:03X}, {2} }};    //{3}".format(matches[key],len(byte_arr)+1,byte_str,key, len(byte_arr))
                         break;
             if found==None:
                 print ("// ERR{0}".format(key))
     
-
+    # string matches
     for key in matches:
         if key[0]!='{' or key[-1]!='}':
             safe_key=key
-            safe_key=safe_key.replace("\\","")
+            #safe_key=get_safe_value(key)
+            safe_value=get_safe_value(key)
+            #safe_key=safe_key.replace("\\","")
             
             chars=[]
-            for c in safe_key:
-                chars.append("0x{0:2}".format(ord(c)) )
+            for c in safe_value:
+                chars.append("0x{0:02X}".format(ord(c)) )
             
 
-            if len(safe_key)>1:
-                safe_key=safe_key.replace("\"","\\\"")
+            if len(safe_value)>1:
+                #safe_key=safe_key.replace("\"","\\\"")
                 
                 
-                o+="\nuint16_t PATTERN_0x{0:04X}[0x{1:04X}]={{ 0x{5:04X}, TYP_STR, 0x{3:04X}, {2} }};    //{4}".format(matches[key],len(chars)+3,",".join(chars) ,len(chars),safe_key,len(chars)+2)
+                o+="\nuint16_t PATTERN_0x{0:03X}[0x{1:03X}]={{ 0x{5:03X}, TYP_STR, 0x{3:03X}, {2} }};    //{4}".format(matches[key],len(chars)+3,",".join(chars) ,len(chars),safe_key,len(chars)+2)
             else:
-                safe_key=safe_key.replace("\'","\\\'")
-                safe_key=safe_key.replace("\n","\\n")
-                o+="\nuint16_t PATTERN_0x{0:04X}[0x{1:04X}]={{ 0x{5:04X}, TYP_CHR, 0x{3:04X}, {2} }};    //{4}".format(matches[key],len(chars)+3,",".join(chars),len(chars),safe_key ,len(chars)+2)
+                #//safe_key=safe_key.replace("\'","\\\'")
+                #safe_key=safe_key.replace("\n","\\n")
+                o+="\nuint16_t PATTERN_0x{0:03X}[0x{1:03X}]={{ 0x{5:03X}, TYP_CHR, 0x{3:03X}, {2} }};    //{4}".format(matches[key],len(chars)+3,",".join(chars),len(chars),safe_key ,len(chars)+2)
 
 
-    
+    # groupings array
     patterns=[]
     for i in range(0,len(matches)):
-        patterns.append("PATTERN_0x{0:04X}".format(i))
+        patterns.append("PATTERN_0x{0:03X}".format(i))
     o+= "\n\n// ********************"
     o+= "\n\nuint16_t *pattern[{0}]={{ {1} }};".format(len(matches),",".join(patterns) )
 

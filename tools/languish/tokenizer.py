@@ -118,6 +118,12 @@ def gather_matches(tokens):
 
 def group_expressions(tokens,token_type=None):
     if isinstance(tokens,str):
+        if token_type=="char":
+            tokens=tokens.replace("\\s",' ')
+            tokens=tokens.replace("\\n",'\n')
+            tokens=tokens.replace("\\t",'\t')
+            tokens=tokens.replace("\\",'')
+
         return tokens
 
     elif isinstance(tokens,dict):
