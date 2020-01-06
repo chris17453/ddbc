@@ -10,7 +10,7 @@
 const int16_t MATCH_FAIL =-1;
 
 void parse(char *text){
-    uint16_t  res=core_parse(text,EXP_QUERIES,0,0,0);
+    uint16_t  res=core_parse(text,EXP_QUERIES,0,0,0,0);
 }
 
 const char * get_type(uint16_t t){
@@ -121,7 +121,7 @@ char * padd(uint16_t length){
     return pad_str;
 }
 
-int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t  pos,uint16_t depth){
+int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t  pos,uint16_t depth, uint16_t recursion_depth){
     // this holds the action\type
     uint16_t *fragment=pattern[pattern_id];
     uint16_t expr_type=0;
@@ -143,6 +143,7 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
     //if this is the start of the pattern match
     if (pattern_pos==0)    ++pattern_pos;
     uint16_t pin,matched;
+    uint16_t next_recursion_depth=recursion_depth;
 //    printf("Length: %d",length);
 
     
@@ -164,7 +165,8 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
         uint16_t *sub_expr=get_next_level(pattern_id,pattern_pos,expr_len);
 
         //skip anything recursive from the left
-        if (fragment[sub_expr[0]]==pattern_id) {
+        if (recursion_depth==0 && expr_type==pattern_id) {
+            printf("skipping\n");
             pattern_pos+=expr_len;
             continue;
         }
@@ -203,20 +205,32 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
 
             case TYP_GRP:   for(int i=0;i<expr_len;i++){
                                 printf("%s TRYING %d\n",padd(depth), sub_expr[i]);
-                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1);
+                                if(fragment[sub_expr[i]]==pattern_id) {
+                                    next_recursion_depth=recursion_depth+1;
+                                } else { 
+                                    next_recursion_depth=recursion_depth; 
+                                }
+                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
+                           
                                 if (res==MATCH_FAIL) return MATCH_FAIL;
                                 pos=res;
                             }
                             break;
 
 
-            case TYP_OPT:   res=core_parse(text,pattern_id,pattern_pos,pos,depth+1);
+            case TYP_OPT:
+                            res=core_parse(text,pattern_id,pattern_pos,pos,depth+1,next_recursion_depth);
                             if (res!=MATCH_FAIL) pos=res;
                             break;
 
             case TYP_OR :   matched=0;
                             for(int i=0;i<expr_len;i++){
-                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1);
+                                if(fragment[sub_expr[i]]==pattern_id) {
+                                    next_recursion_depth=recursion_depth+1;
+                                } else { 
+                                    next_recursion_depth=recursion_depth; 
+                                }
+                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
                                 if (res!=MATCH_FAIL) {
                                     pos=res;
                                     ++matched;
@@ -229,7 +243,7 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             break;
 
       
-            case TYP_NOT:   res=core_parse(text,pattern_id,pattern_pos,pos,depth+1);
+            case TYP_NOT:   res=core_parse(text,pattern_id,pattern_pos,pos,depth+1,recursion_depth);
                             if (res==MATCH_FAIL) pos+=1;
                             else return MATCH_FAIL;
                             break;
@@ -240,7 +254,12 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             while(res!=MATCH_FAIL){
                                 pin=pos;
                                 for(int i=0;i<expr_len;i++){
-                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1);
+                                    if(fragment[sub_expr[i]]==pattern_id) {
+                                        next_recursion_depth=recursion_depth+1;
+                                    } else { 
+                                        next_recursion_depth=recursion_depth; 
+                                    }
+                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
                                     if (res!=MATCH_FAIL) {
                                         pos=res;
                                     }  else {
@@ -263,7 +282,13 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             while(res!=MATCH_FAIL){
                                 pin=pos;
                                 for(int i=0;i<expr_len;i++){
-                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1);
+                                    if(fragment[sub_expr[i]]==pattern_id) {
+                                        next_recursion_depth=recursion_depth+1;
+                                    } else { 
+                                        next_recursion_depth=recursion_depth; 
+                                    }
+                                                
+                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
                                     if (res!=MATCH_FAIL) {
                                         pos=res;
                                     }  else {
@@ -287,7 +312,13 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             
             //if its not a core funciton or grouping, it's an expression / user function
             default:    printf ("%s Default\n",padd(depth) );
-                        res=core_parse(text,fragment[pattern_pos],0,pos,depth+1);
+
+                        if(fragment[pattern_pos]==pattern_id) {
+                            next_recursion_depth=recursion_depth+1;
+                        } else { 
+                            next_recursion_depth=recursion_depth; 
+                        }
+                        res=core_parse(text,pattern_id,fragment[pattern_pos],pos,depth+1,next_recursion_depth);
                         if (res!=MATCH_FAIL) {
                             pos=res;
                             printf("%s Default good\n",padd(depth));

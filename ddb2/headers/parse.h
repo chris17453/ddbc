@@ -14,4 +14,4 @@
 
 
 void parse(char * text);
-int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t  pos,uint16_t depth);
+int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t  pos,uint16_t depth,uint16_t recursion_depth);
