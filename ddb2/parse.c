@@ -38,32 +38,34 @@ uint16_t *get_next_level(uint16_t pattern_id,uint16_t index,uint16_t count){
     //this is the curent index in the fragment to a top level element
     uint16_t expr_index=0;
     uint16_t level=0;
+    uint16_t fragment_index=index;
     while (expr_index<count){
+        //printf("Level: %d  Index: %d Expr_index: %d\n",level,index,expr_index);
         if(level==0){
-            expressions[expr_index]=index;
+            expressions[expr_index]=fragment_index;
             ++expr_index;
         } 
 
-        if(fragment[index]>=0xFF00) {
-            ++index;
-            level+=fragment[index];
-        }
-        ++index;
+        if(fragment[fragment_index]>=0xFF00) {
+            ++fragment_index;
+            level+=fragment[fragment_index];
+        } else
         if (level>0) --level;
+        ++fragment_index;
     }
 
     if (fragment[1]==TYP_CHR || fragment[1]==TYP_STR) {
-        printf("\nTop Level Expressions index: for  %d, Count: %d\n",pattern_id,count);
+        printf("\nTop Level Expressions index: for  Pattern_id: %d, Count: %d at %d\n",pattern_id,count,index);
         for(uint16_t i=0;i<count;i++){
-            printf("%04x #%c\n",fragment[expressions[i]],fragment[expressions[i]]);
+            printf("  %04x #%c\n",fragment[expressions[i]],fragment[expressions[i]]);
         }
     } else {
-        printf("\nTop Level Expressions index: for  %d, Count: %d\n",pattern_id,count);
+        printf("\nTop Level Expressions index: for Pattern_id: %d, Count: %d at %d\n",pattern_id,count,index);
         for(uint16_t i=0;i<count;i++){
             if (fragment[expressions[i]]>=0xFF00) {
-                printf("%04x %04x # %s/CHIDREN\n",fragment[expressions[i]],fragment[expressions[i]+1],get_type(fragment[expressions[i]]));
+                printf("  %04x %04x # %s/Length\n",fragment[expressions[i]],fragment[expressions[i]+1],get_type(fragment[expressions[i]]));
             } else {        
-            printf("%04x #%s # %04x \n",fragment[expressions[i]],debug_str[fragment[expressions[i]]],expressions[i]);
+            printf("  %04x #%s # %04x \n",fragment[expressions[i]],debug_str[fragment[expressions[i]]],expressions[i]);
             }
         }
     }
@@ -121,7 +123,9 @@ char * padd(uint16_t length){
     return pad_str;
 }
 
-int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t  pos,uint16_t depth, uint16_t recursion_depth){
+int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  expr_index,uint16_t  data_index,uint16_t depth, uint16_t recursion_depth){
+    char *pad=padd(depth);
+    printf("%s PatternId: %d Expr Index: %d, data_index: %d, depth: %d, recursion_depth %d\n",pad,pattern_id,expr_index, data_index,depth,recursion_depth);
     // this holds the action\type
     uint16_t *fragment=pattern[pattern_id];
     uint16_t expr_type=0;
@@ -141,65 +145,90 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
     uint16_t range1;
     uint16_t range2;
     //if this is the start of the pattern match
-    if (pattern_pos==0)    ++pattern_pos;
+    if (expr_index==0)    ++expr_index;
     uint16_t pin,matched;
     uint16_t next_recursion_depth=recursion_depth;
 //    printf("Length: %d",length);
 
-    
 
-    while (pattern_pos<=length){
-        
-        printf("%s Pattern: %04x  Index: %04x\n",padd(depth),pattern_id,pattern_pos);
-        expr_type=fragment[pattern_pos];
+    while (expr_index<=length){
+        printf("%s Pattern: %04x  Index: %04x Text: %d\n",pad,pattern_id,expr_index,data_index);
+        expr_type=fragment[expr_index];
         if(expr_type<0xFF00) {
             expr_len=1;
+            printf("%s Got a command %x at %d \n",pad,expr_type,expr_index);
         } else {
-            ++pattern_pos;
-            expr_len =fragment[pattern_pos];
-            ++pattern_pos;
+            const char * expr_name=get_type(expr_type);
+            printf("%s Got an expression %x - %s  at %d ",pad,expr_type,expr_name,expr_index);
+            ++expr_index;
+            expr_len =fragment[expr_index];
+            printf("%s Expression Length %d \n",pad,expr_len);
+            ++expr_index;
         }
+        printf("%s Expr Index: %d\n",pad,expr_index);
         
-        //at this point, the pattern_pos index will be at the next  component
+        //at this point, the expr_index index will be at the next  component
 
-        uint16_t *sub_expr=get_next_level(pattern_id,pattern_pos,expr_len);
+        uint16_t *sub_expr=NULL;
+        if (expr_type>=0xFF00) {
+            sub_expr=get_next_level(pattern_id,expr_index,expr_len);
+        }
 
         //skip anything recursive from the left
         if (recursion_depth==0 && expr_type==pattern_id) {
-            printf("skipping\n");
-            pattern_pos+=expr_len;
+            printf("%s Skipping\n",pad);
+            expr_index+=expr_len;
             continue;
         }
         //for(int i=0;i<expr_len;i++) if(sub_expr[i]==pattern_id) 
 
-        //printf("\n%s,%d\n",get_type(expr_type),pattern_pos);
+        //printf("\n%s,%d\n",get_type(expr_type),expr_index);
         char c = getchar( );
         //printf("%c",c);
+        printf ("%s Switch\n",pad);
+
+
+        switch(expr_type){
+            case TYP_CHR: printf (" %s > TYP_CHR\n",padd(depth) ); break;
+            case TYP_STR: printf (" %s > TYP_STR\n",padd(depth) ); break;
+            case TYP_RNG: printf (" %s > TYP_RNG\n",padd(depth) ); break;
+            case TYP_GRP: printf (" %s > TYP_GRP\n",padd(depth) ); break;
+            case TYP_OPT: printf (" %s > TYP_OPT\n",padd(depth) ); break;
+            case TYP_OR : printf (" %s > TYP_OR\n" ,padd(depth) ); break;
+            case TYP_NOT: printf (" %s > TYP_NOT\n",padd(depth) ); break;
+            case TYP_OOM: printf (" %s > TYP_OOM\n",padd(depth) ); break;
+            case TYP_ZOM: printf (" %s > TYP_ZOM\n",padd(depth) ); break;
+            default:      printf ("%s > Default\n" ,padd(depth) ); break;
+        }
+
+
 
 
         switch(expr_type){
             case TYP_CHR:        
             case TYP_STR:   matched=0;
-                            //printf("%s",text);
                             while (matched<expr_len){
-                                expr_char=(char)fragment[pattern_pos+matched];
-                                data_char=(char)text[pos+matched];
-                                printf("%s EXP: %c - TEXT: %c %d\n",padd(depth), expr_char,data_char,pos+matched,depth+1);
+                                expr_char=(char)fragment[expr_index+matched];
+                                data_char=(char)text[data_index+matched];
+                                printf("%s Expr: '%c' - TEXT: '%c' [%d - %d]\n",pad, expr_char,data_char,data_index+matched,depth+1);
                                 if (expr_char != data_char ) break;
                                 ++matched;
                             }
-                            if (matched==expr_len) pos+=expr_len;
-                            else {
-                                printf("%s str/chr failed\n",padd(depth));
+                            printf ("%s Pattern data_index - data_index : %d %d\n",pad,expr_len,matched);
+                            if (matched==expr_len) {
+                                printf ("%s SUCCESS POS INCREMENT %d %d\n",pad,expr_len,matched);
+                                data_index+=expr_len;
+                            } else {
+                                printf("%s str/chr failed\n",pad);
                                 return MATCH_FAIL;
                             }
                             break;
 
-            case TYP_RNG:   range1=fragment[pattern_pos+1]; 
-                            range2=fragment[pattern_pos+2];
-                            data_char=(char)text[pos+1];
+            case TYP_RNG:   range1=fragment[expr_index+1]; 
+                            range2=fragment[expr_index+2];
+                            data_char=(char)text[data_index+1];
                             if (data_char<range1 || data_char>range2) return MATCH_FAIL;
-                            pos++;
+                            data_index++;
                             break;
 
 
@@ -210,17 +239,17 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                                 } else { 
                                     next_recursion_depth=recursion_depth; 
                                 }
-                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
+                                res=core_parse(text,pattern_id,sub_expr[i],data_index,depth+1,next_recursion_depth);
                            
                                 if (res==MATCH_FAIL) return MATCH_FAIL;
-                                pos=res;
+                                data_index=res;
                             }
                             break;
 
 
             case TYP_OPT:
-                            res=core_parse(text,pattern_id,pattern_pos,pos,depth+1,next_recursion_depth);
-                            if (res!=MATCH_FAIL) pos=res;
+                            res=core_parse(text,pattern_id,expr_index,data_index,depth+1,next_recursion_depth);
+                            if (res!=MATCH_FAIL) data_index=res;
                             break;
 
             case TYP_OR :   matched=0;
@@ -230,9 +259,9 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                                 } else { 
                                     next_recursion_depth=recursion_depth; 
                                 }
-                                res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
+                                res=core_parse(text,pattern_id,sub_expr[i],data_index,depth+1,next_recursion_depth);
                                 if (res!=MATCH_FAIL) {
-                                    pos=res;
+                                    data_index=res;
                                     ++matched;
                                     break;
                                 }
@@ -243,8 +272,8 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             break;
 
       
-            case TYP_NOT:   res=core_parse(text,pattern_id,pattern_pos,pos,depth+1,recursion_depth);
-                            if (res==MATCH_FAIL) pos+=1;
+            case TYP_NOT:   res=core_parse(text,pattern_id,expr_index,data_index,depth+1,recursion_depth);
+                            if (res==MATCH_FAIL) data_index+=1;
                             else return MATCH_FAIL;
                             break;
                             
@@ -252,22 +281,22 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             pin=0;
                             res=1;
                             while(res!=MATCH_FAIL){
-                                pin=pos;
+                                pin=data_index;
                                 for(int i=0;i<expr_len;i++){
                                     if(fragment[sub_expr[i]]==pattern_id) {
                                         next_recursion_depth=recursion_depth+1;
                                     } else { 
                                         next_recursion_depth=recursion_depth; 
                                     }
-                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
+                                    res=core_parse(text,pattern_id,sub_expr[i],data_index,depth+1,next_recursion_depth);
                                     if (res!=MATCH_FAIL) {
-                                        pos=res;
+                                        data_index=res;
                                     }  else {
                                         break;
                                     }
                                 } //end for
                                 if (res==MATCH_FAIL) {
-                                    pos=pin;
+                                    data_index=pin;
                                     break;
                                 } else { 
                                     ++matched; 
@@ -280,7 +309,7 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
             case TYP_ZOM:   pin=0;
                             res=1;
                             while(res!=MATCH_FAIL){
-                                pin=pos;
+                                pin=data_index;
                                 for(int i=0;i<expr_len;i++){
                                     if(fragment[sub_expr[i]]==pattern_id) {
                                         next_recursion_depth=recursion_depth+1;
@@ -288,9 +317,9 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                                         next_recursion_depth=recursion_depth; 
                                     }
                                                 
-                                    res=core_parse(text,pattern_id,sub_expr[i],pos,depth+1,next_recursion_depth);
+                                    res=core_parse(text,pattern_id,sub_expr[i],data_index,depth+1,next_recursion_depth);
                                     if (res!=MATCH_FAIL) {
-                                        pos=res;
+                                        data_index=res;
                                     }  else {
                                         printf("%s Match internal failed\n",padd(depth));
                                         break;
@@ -298,7 +327,7 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                                 } //end for
                                 printf("%s End of ZOM\n",padd(depth));
                                 if (res==MATCH_FAIL) {
-                                    pos=pin;
+                                    data_index=pin;
                                     printf("%s Match failed\n",padd(depth));
                                     break;
                                 } 
@@ -311,28 +340,53 @@ int16_t core_parse(char *text,uint16_t pattern_id,uint16_t  pattern_pos,uint16_t
                             
                             
             //if its not a core funciton or grouping, it's an expression / user function
-            default:    printf ("%s Default\n",padd(depth) );
-
-                        if(fragment[pattern_pos]==pattern_id) {
+            default:    if(expr_type==pattern_id) {
+                            printf("%s Recursion+1\n",pad);
                             next_recursion_depth=recursion_depth+1;
                         } else { 
+                            printf("%s NO Recursion\n",pad);
                             next_recursion_depth=recursion_depth; 
                         }
-                        res=core_parse(text,pattern_id,fragment[pattern_pos],pos,depth+1,next_recursion_depth);
+                        printf("%s Parse match\n",pad);
+                        
+
+                        res=core_parse(text,
+                                       expr_type,
+                                       0,
+                                       0,
+                                       depth+1,
+                                       next_recursion_depth);
                         if (res!=MATCH_FAIL) {
-                            pos=res;
-                            printf("%s Default good\n",padd(depth));
+                            data_index=res;
+                            printf("%s Default good\n",pad);
                         } else {
-                            printf("%s Default fail\n",padd(depth));
+                            printf("%s Default fail\n",pad);
                             return MATCH_FAIL;
                         }
 
         }//end switch
-        printf("%s Success -> %04X\n",padd(depth), pattern_id);
-        pattern_pos+=expr_len;
+
+
+        switch(expr_type){
+            case TYP_CHR: printf (" %s < TYP_CHR\n",padd(depth) ); break;
+            case TYP_STR: printf (" %s < TYP_STR\n",padd(depth) ); break;
+            case TYP_RNG: printf (" %s < TYP_RNG\n",padd(depth) ); break;
+            case TYP_GRP: printf (" %s < TYP_GRP\n",padd(depth) ); break;
+            case TYP_OPT: printf (" %s < TYP_OPT\n",padd(depth) ); break;
+            case TYP_OR : printf (" %s < TYP_OR\n" ,padd(depth) ); break;
+            case TYP_NOT: printf (" %s < TYP_NOT\n",padd(depth) ); break;
+            case TYP_OOM: printf (" %s < TYP_OOM\n",padd(depth) ); break;
+            case TYP_ZOM: printf (" %s < TYP_ZOM\n",padd(depth) ); break;
+            default:      printf ("%s < Default\n" ,padd(depth) ); break;
+        }
+
+
+        printf("%s Success -> %04X\n",pad, pattern_id);
+        printf("%s Expr Index: %d Expr: Length: %d  Text Index %d\n",pad,expr_index,expr_len,data_index);
+        expr_index+=expr_len;
     }//end loop
-    //pos=0;
-    return pos;
+    //data_index=0;
+    return data_index;
 }
 /*
 uint16_t PATTERN_0x005[0x02E] = { 0x02D, 
@@ -383,3 +437,5 @@ expr:
   |  {boolean_primary} 
 
 */
+
+

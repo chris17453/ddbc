@@ -38,8 +38,8 @@ def functobytecode(func,matches):
 
         func_index=0
         if   func_t=="CHAR"         : 
-            func_t='TYP_GRP'
-            func_index=0xFF02
+            func_t='TYP_CHR'
+            func_index=0xFF01
         elif func_t=="GROUP"        : 
             func_t='TYP_GRP'
             func_index=0xFF02
@@ -62,8 +62,8 @@ def functobytecode(func,matches):
             func_t='TYP_RNG'
             func_index=0xFF08
         elif func_t=="STR"          : 
-            func_t='TYP_GRP'
-            func_index=0xFF02
+            func_t='TYP_STR'
+            func_index=0xFF09
         elif func_t=="ZERO_OR_MORE" : 
             func_t='TYP_ZOM'
             func_index=0xFF0A
@@ -81,19 +81,25 @@ def functobytecode(func,matches):
         #dont_parse=None
         if dont_parse==None:
             if USE_HUMAN_INDEXES==None:
-                o.append("0x{0:03X}".format(func_index ) )
-                if isinstance(func['data'],dict):
-                    o.append("0x{0:03X}".format(1) )    
-                else:
-                    o.append("0x{0:03X}".format(len(func['data']) ) )
+                if func_t!='TYP_STR' and func_t!='TYP_CHR':
+                    o.append("0x{0:03X}".format(func_index ) )
+                    if isinstance(func['data'],dict):
+                        o.append("0x{0:03X}".format(1) )    
+                    elif isinstance(func['data'],list):
+                        o.append("0x{0:03X}".format(len(func['data'])) )    
+                    elif isinstance(func['data'],str):
+                        o.append("0x{0:03X}".format(1) )    
             else:
-                o.append("{0}".format(func_t ) )
-                if len(func['data'])==0:
-                    print(func);
-                if isinstance(func['data'],dict):
-                    o.append("0x{0:03X}".format(1) )    
-                else:
-                    o.append("0x{0:03X}".format(len(func['data']) ) )
+                if func_t!='TYP_STR' and func_t!='TYP_CHR':
+                    o.append("{0}".format(func_t ) )
+                    if len(func['data'])==0:
+                        print(func);
+                    elif isinstance(func['data'],dict):
+                        o.append("0x{0:03X}".format(1) )    
+                    elif isinstance(func['data'],list):
+                        o.append("0x{0:03X}".format(len(func['data'])) )    
+                    elif isinstance(func['data'],str):
+                        o.append("0x{0:03X}".format(1) )    
 
       
         o+=functobytecode(func['data'],matches)
@@ -214,6 +220,8 @@ def get_matches(template_dir):
         if key[0]!='{' or key[-1]!='}':
             matches[key]=index
             index+=1
+
+    #pprint(functions,indent=2)
     return {'functions':functions,'matches':matches}
 
 
@@ -229,6 +237,7 @@ def build_engine(template_dir):
     
     #print_defines(matches)
     #pprint(matches,indent=2)
+    #pprint(functions,indent=2)
 
     # expression matches
     for key in matches:
@@ -243,6 +252,7 @@ def build_engine(template_dir):
                         func=build_expressions(key2,function[key2])
                         #pprint(func,indent=2)
                         byte_arr=functobytecode(func,matches)
+                        #pprint(byte_arr,indent=2)
                         byte_str=",".join(byte_arr)
                         o+="\nuint16_t PATTERN_0x{0:03X}[0x{1:03X}] = {{ 0x{4:03X}, {2} }};    //{3}".format(matches[key],len(byte_arr)+1,byte_str,key, len(byte_arr))
                         break;

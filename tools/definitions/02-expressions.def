@@ -1,6 +1,6 @@
 
 subquery:
- [\(] {whitespace}? {select} {whitespace}?  [\)]
+ [\(] {whitespace} {select} {whitespace}  [\)]
 
 expr: 
 #      not {whitespace} {expr}
@@ -59,7 +59,7 @@ identifier_expr:
 simple_expr:
     {literal} 
   | {identifier}
-  | {subquery}
+#  | {subquery}
 #  | {functions}
 #  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
 #  | [+] {whitespace} {simple_expr}

@@ -49,7 +49,7 @@ def build_expression_levels(pattern,expression_depth):
 
     index=0
     while 1:
-        #print index
+        #1 index
         if index>=len(tokens):
             break
         token=tokens[index]
@@ -88,7 +88,9 @@ def build_expression_levels(pattern,expression_depth):
                     if pattern==pattern2:
                         tokens2.append(sub_tokens)    
                     else:
-                        tokens2.append({'type':'char','data':build_expression_levels(pattern2[1:-1],expression_depth+1)}) 
+                        
+                        char_expressions=build_expression_levels(pattern2[1:-1],expression_depth+1)
+                        tokens2.append({'type':'char','data':char_expressions}) 
                     index=sub_index+1
                     break
                 else:
@@ -182,3 +184,38 @@ def group_expressions(tokens,token_type=None):
             tokens2.append({'type':'or','data':sub})
         return tokens2
 
+
+def compress_expressions(tokens):
+    if isinstance(tokens,str):
+        return tokens
+
+    elif isinstance(tokens,dict):
+        ## remove single groups...
+        if tokens['type']=='group' and len(tokens['data'])==1:
+            return tokens['data']
+
+        ## unravel ranges from chars, remove empty chars and group chars        
+        if tokens['type']=='char':
+            tokens2=[]
+            inner_types=[]
+            for item in tokens['data']:
+                if isinstance(item,str):
+                    tokens2.append(item)
+                if isinstance(item,dict):
+                    inner_types.append(item)
+            
+            if len(tokens2)>0:
+                inner_types.append({'type':tokens['type'],'data':tokens2})
+            return inner_types
+        else:
+            returned_tokens=compress_expressions(tokens['data'])
+            return {'type':tokens['type'],'data':returned_tokens}
+    
+    elif isinstance(tokens,list):
+        tokens2=[]
+        for item in tokens:
+            returned_tokens=compress_expressions(item)
+            tokens2.append(returned_tokens)
+        
+        return tokens2
+    return "ERROR"

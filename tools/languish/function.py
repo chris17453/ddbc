@@ -1,6 +1,6 @@
 import datetime
 from pprint import pprint
-from .tokenizer import group_expressions, gather_matches, build_expression_levels, recursive, get_var, uid
+from .tokenizer import group_expressions, gather_matches, build_expression_levels, recursive, get_var, uid, compress_expressions
 from .tpl import tpl
 
 UUID=1
@@ -19,8 +19,15 @@ def build_DEFINES(name,pattern,depth=0):
 def build_expressions(name,pattern,depth=0):
     global UUID
     tokens=build_expression_levels(pattern,0)
+    #pprint(tokens,indent=4)
+    
     tokens=group_expressions(tokens)
-    # pprint(tokens,indent=2)
+    tokens=compress_expressions(tokens)
+    #print ("COMPRESS->")
+    #pprint(tokens2,indent=5)
+    #print ("<-COMPRESS")
+    
+    #pprint(tokens,indent=2)
     return tokens
 
 
@@ -28,11 +35,12 @@ def build(name,pattern,depth=0):
     global UUID
     # load data / set variables
     tokens=build_expression_levels(pattern,0)
-    # pprint(tokens,indent=2)
-    # print " ---"
+   
     
     tokens=group_expressions(tokens)
     
+    # pprint(tokens,indent=2)
+    # print " ---" 
     list_of_match_functions=gather_matches(tokens)
     
 
@@ -252,7 +260,7 @@ def build_dict(tokens,token_type=None,depth=0,name=None,order=None):
         return o
 
     if token['type']=='char':
-        opt_uid="opt_temp_{0}".format(uid())
+        opt_uid="fer{0}".format(uid())
         t=tpl("templates/char.c")
         t.add("char","uid",UUID)
         t.add("char","conditions",build_function_templates(token['data'],token['type'],depth,name=name))
