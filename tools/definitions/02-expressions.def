@@ -1,24 +1,22 @@
 
 subquery:
- [\(] {whitespace} {select} {whitespace}  [\)]
+ [\(] {select}  [\)]
 
 expr: 
-#      not {whitespace} {expr}
-#  |   !   {whitespace} {expr}
-#  |  {boolean_primary} {whitespace} IS ({whitespace} not)? {whitespace} ( {boolean} | {unknown})
-    {boolean_primary} 
-#  |  ( {expr} {whitespace}  ( or | ([\|] [\|]) | xor | and | && )  {whitespace}  {expr})
+#      not {expr}
+#  |   !   {expr}
+#  |  {boolean_primary} IS (not)? ( {boolean} | {unknown})
+    {boolean_primary}  ( {expr}  ( or | ([\|] [\|]) | xor | and | && )  {expr})
   
 boolean_primary:
    {predicate} 
    | (
       {boolean_primary} 
-      {whitespace}
       ( 
-        ( {comparison_operator}  {whitespace} {predicate} )
-        |  is   ( {whitespace} not) ?  {whitespace} {null} 
-        |  <=>  {whitespace} {predicate} 
-        |  {comparison_operator}  {whitespace} (all | any)  {whitespace} {subquery}
+        ( {comparison_operator}  {predicate} )
+        |  is   ( not) ?  {null} 
+        |  <=>  {predicate} 
+        |  {comparison_operator}  (all | any)  {subquery}
       ) 
     )
 
@@ -26,17 +24,17 @@ boolean_primary:
 predicate:
   {bit_expr} 
   (
-      ({whitespace} not? {whitespace} in      {whitespace} {subquery})
-    | {whitespace} not? {whitespace} in      {whitespace} [\(] {expr}   ( ( {whitespace} [,]    {whitespace} {expr})* )? [\)] 
-    | {whitespace} not? {whitespace} between {whitespace} {bit_expr}        {whitespace} and    {whitespace} {predicate} 
-    | {whitespace} not? {whitespace} like    {whitespace} {simple_expr}   ( {whitespace} escape {whitespace} {simple_expr} )? 
-#    | {whitespace} not? {whitespace} regexp  {whitespace} {bit_expr} 
+      ( not? in      {subquery})
+     |  not? in      [\(] {expr}   ( ( [,]    {expr})* )? [\)] 
+     |  not? between {bit_expr}        and    {predicate} 
+     |  not? like    {simple_expr}   ( escape {simple_expr} )? 
+#    |  not? regexp  {bit_expr} 
   )?
 
 
 bit_expr:
-#    {bit_expr} {whitespace}  {operations}  {whitespace} {bit_expr}
-#  | {bit_expr} {whitespace}  [+-]          {whitespace} {interval_expr}
+#    {bit_expr} {operations} {bit_expr}
+#  | {bit_expr} [+-]         {interval_expr}
   | {simple_expr}
 
 operations: 
@@ -61,12 +59,12 @@ simple_expr:
   | {identifier}
 #  | {subquery}
 #  | {functions}
-#  | {simple_expr} {whitespace}  [\|][\|]  {whitespace} {simple_expr}
-#  | [+] {whitespace} {simple_expr}
-#  | [-] {whitespace} {simple_expr}
-#  | [~] {whitespace} {simple_expr}
-#  | [!] {whitespace} {simple_expr}
-  |     {identifier_expr}
+#  | {simple_expr}  [\|][\|]  {simple_expr}
+#  | [+] {simple_expr}
+#  | [-] {simple_expr}
+#  | [~] {simple_expr}
+#  | [!] {simple_expr}
+   |     {identifier_expr}
 #  |     {interval_expr}
 
 literal: 
@@ -76,7 +74,6 @@ literal:
   | {null}
   | {string} 
   | {real} 
-
 
 
 
